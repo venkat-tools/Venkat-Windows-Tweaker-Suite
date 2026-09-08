@@ -1059,6 +1059,8 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
                                     <Button Name="btnCleanBrowserCache" Content="Clean Web Browser Cache &amp; Temp Files (Chrome, Edge, Firefox)" Margin="2" HorizontalContentAlignment="Left"/>
                                     <Button Name="btnFindLargestFiles" Content="Find Top 20 Largest Files on C:" Margin="2" HorizontalContentAlignment="Left"/>
                                     <Button Name="btnPurgeWinSxSComponent" Content="Deep Clean WinSxS (DISM ResetBase)" Margin="2" HorizontalContentAlignment="Left"/>
+                                    <Button Name="btnPurgeWindowsOld" Content="Purge Windows.old &amp; Shader Cache" Margin="2" HorizontalContentAlignment="Left"/>
+                                    <Button Name="btnRebuildSearchIndex" Content="Rebuild Windows Search Index Database" Margin="2" HorizontalContentAlignment="Left"/>
                                 </UniformGrid>
                             </StackPanel>
                         </Border>
@@ -1077,6 +1079,11 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
                                     <Button Name="btnRestoreFirewallSettings" Content="Restore Default Windows Firewall Settings and Rules" Margin="2" HorizontalContentAlignment="Left"/>
                                     <Button Name="btnResetAudioPlaybackServices" Content="Reset &amp; Restart Windows Audio Playback Services" Margin="2" HorizontalContentAlignment="Left"/>
                                     <Button Name="btnUnblockTools" Content="Unblock Registry, Task Manager &amp; Command Prompt" Margin="2" HorizontalContentAlignment="Left"/>
+                                    <Button Name="btnForceTimeResync" Content="Force Windows NTP Clock Resync" Margin="2" HorizontalContentAlignment="Left"/>
+                                    <Button Name="btnFixCMOSTimeDrift" Content="Fix CMOS Time Drift (RealTimeIsUniversal)" Margin="2" HorizontalContentAlignment="Left"/>
+                                    <Button Name="btnFixAudioLatency" Content="Fix Audio Stuttering &amp; Graph Latency" Margin="2" HorizontalContentAlignment="Left"/>
+                                    <Button Name="btnAnalyzeBSOD" Content="BSOD Minidump Crash Analyzer" Margin="2" Background="#DC2626" HorizontalContentAlignment="Left"/>
+                                    <Button Name="btnFixStuckWU" Content="Fix Stuck Windows Update Pipeline" Margin="2" HorizontalContentAlignment="Left"/>
                                 </UniformGrid>
                             </StackPanel>
                         </Border>
@@ -3354,60 +3361,72 @@ $btnEnableMSIGpu.Add_Click({
 })
 
 # ==================== STORAGE & LARGE FILES ====================
-$btnFindLargestFiles.Add_Click({
-    Append-Log("Scanning Drive C: for Top 20 Largest Files (Please wait)...")
-    $largest = Get-ChildItem "C:\" -File -Recurse -ErrorAction SilentlyContinue | Sort-Object Length -Descending | Select-Object -First 20
-    $report = "=== Top 20 Largest Files on Drive C: ===`n`n"
-    foreach ($f in $largest) {
-        $sizeMB = [math]::Round($f.Length / 1MB, 1)
-        $report += "[$sizeMB MB] $($f.FullName)`n"
-    }
-    Append-Log("Found largest files on C: drive.")
-    [System.Windows.Forms.MessageBox]::Show($report, "Top 20 Largest Files Finder", "OK", "Information")
-})
-
-$btnPurgeWinSxSComponent.Add_Click({
-    Append-Log("Executing WinSxS Component Store deep cleanup via DISM (Frees 5-20 GB)...")
-    Start-Process cmd.exe -ArgumentList "/k DISM.exe /online /Cleanup-Image /StartComponentCleanup /ResetBase" -Verb RunAs
-})
-
-$btnPurgeWindowsOld.Add_Click({
-    Append-Log("Deep purging Windows.old, delivery optimization & shader caches...")
-    @("C:\Windows.old", "C:\`$Windows.~BT", "C:\`$Windows.~WS") | ForEach-Object {
-        if (Test-Path $_) {
-            Start-Process cmd.exe -ArgumentList "/c takeown /F `"$_`" /R /D Y & rd /s /q `"$_`"" -Verb RunAs -Wait
+if ($btnFindLargestFiles) {
+    $btnFindLargestFiles.Add_Click({
+        Append-Log("Scanning Drive C: for Top 20 Largest Files (Please wait)...")
+        $largest = Get-ChildItem "C:\" -File -Recurse -ErrorAction SilentlyContinue | Sort-Object Length -Descending | Select-Object -First 20
+        $report = "=== Top 20 Largest Files on Drive C: ===`n`n"
+        foreach ($f in $largest) {
+            $sizeMB = [math]::Round($f.Length / 1MB, 1)
+            $report += "[$sizeMB MB] $($f.FullName)`n"
         }
-    }
-    $shader = "$env:LOCALAPPDATA\D3DSCache"
-    if (Test-Path $shader) { Remove-Item "$shader\*" -Recurse -Force -ErrorAction SilentlyContinue }
-    Append-Log("Windows.old and Shader Cache deep purged.")
-    [System.Windows.Forms.MessageBox]::Show("Windows.old and DirectX Shader Caches purged successfully!", "Storage Cleaner", "OK", "Information")
-})
+        Append-Log("Found largest files on C: drive.")
+        [System.Windows.Forms.MessageBox]::Show($report, "Top 20 Largest Files Finder", "OK", "Information")
+    })
+}
+
+if ($btnPurgeWinSxSComponent) {
+    $btnPurgeWinSxSComponent.Add_Click({
+        Append-Log("Executing WinSxS Component Store deep cleanup via DISM (Frees 5-20 GB)...")
+        Start-Process cmd.exe -ArgumentList "/k DISM.exe /online /Cleanup-Image /StartComponentCleanup /ResetBase" -Verb RunAs
+    })
+}
+
+if ($btnPurgeWindowsOld) {
+    $btnPurgeWindowsOld.Add_Click({
+        Append-Log("Deep purging Windows.old, delivery optimization & shader caches...")
+        @("C:\Windows.old", "C:\`$Windows.~BT", "C:\`$Windows.~WS") | ForEach-Object {
+            if (Test-Path $_) {
+                Start-Process cmd.exe -ArgumentList "/c takeown /F `"$_`" /R /D Y & rd /s /q `"$_`"" -Verb RunAs -Wait
+            }
+        }
+        $shader = "$env:LOCALAPPDATA\D3DSCache"
+        if (Test-Path $shader) { Remove-Item "$shader\*" -Recurse -Force -ErrorAction SilentlyContinue }
+        Append-Log("Windows.old and Shader Cache deep purged.")
+        [System.Windows.Forms.MessageBox]::Show("Windows.old and DirectX Shader Caches purged successfully!", "Storage Cleaner", "OK", "Information")
+    })
+}
 
 # ==================== TIME & AUDIO DIAGNOSTICS ====================
-$btnForceTimeResync.Add_Click({
-    Append-Log("Resynchronizing Windows Clock with NTP pool servers...")
-    Start-Service w32time -ErrorAction SilentlyContinue
-    Start-Process cmd.exe -ArgumentList "/c w32tm /config /syncfromflags:manual /manualpeerlist:`"pool.ntp.org,time.windows.com,time.google.com`" /update & w32tm /resync /force" -Verb RunAs -Wait
-    Append-Log("Windows Time synchronized: $(Get-Date)")
-    [System.Windows.Forms.MessageBox]::Show("Windows Clock Synchronized Successfully!`n`nCurrent Time: $(Get-Date)", "Time Sync", "OK", "Information")
-})
+if ($btnForceTimeResync) {
+    $btnForceTimeResync.Add_Click({
+        Append-Log("Resynchronizing Windows Clock with NTP pool servers...")
+        Start-Service w32time -ErrorAction SilentlyContinue
+        Start-Process cmd.exe -ArgumentList "/c w32tm /config /syncfromflags:manual /manualpeerlist:`"pool.ntp.org,time.windows.com,time.google.com`" /update & w32tm /resync /force" -Verb RunAs -Wait
+        Append-Log("Windows Time synchronized: $(Get-Date)")
+        [System.Windows.Forms.MessageBox]::Show("Windows Clock Synchronized Successfully!`n`nCurrent Time: $(Get-Date)", "Time Sync", "OK", "Information")
+    })
+}
 
-$btnFixCMOSTimeDrift.Add_Click({
-    Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\TimeZoneInformation" -Name "RealTimeIsUniversal" -Value 1 -Type DWord -Force -ErrorAction SilentlyContinue
-    Append-Log("RealTimeIsUniversal enabled for CMOS/Universal time.")
-    [System.Windows.Forms.MessageBox]::Show("CMOS / Universal Time Drift Fixed! Hardware clock now synchronizes accurately across dual-boots and sleep cycles.", "Time Drift Fix", "OK", "Information")
-})
+if ($btnFixCMOSTimeDrift) {
+    $btnFixCMOSTimeDrift.Add_Click({
+        Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\TimeZoneInformation" -Name "RealTimeIsUniversal" -Value 1 -Type DWord -Force -ErrorAction SilentlyContinue
+        Append-Log("RealTimeIsUniversal enabled for CMOS/Universal time.")
+        [System.Windows.Forms.MessageBox]::Show("CMOS / Universal Time Drift Fixed! Hardware clock now synchronizes accurately across dual-boots and sleep cycles.", "Time Drift Fix", "OK", "Information")
+    })
+}
 
-$btnFixAudioLatency.Add_Click({
-    Append-Log("Restarting Windows Audio Graph Isolation & fixing DPC latency...")
-    Stop-Process -Name audiodg -Force -ErrorAction SilentlyContinue
-    Restart-Service -Name Audiosrv, AudioEndpointBuilder -Force -ErrorAction SilentlyContinue
-    Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Audio" -Name "Scheduling Category" -Value "High" -Force -ErrorAction SilentlyContinue
-    Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Audio" -Name "SFIO Priority" -Value "High" -Force -ErrorAction SilentlyContinue
-    Append-Log("Audio graph restarted with High Priority.")
-    [System.Windows.Forms.MessageBox]::Show("Windows Audio Engine Restarted with High Priority! Audio popping/crackling fixed.", "Audio Latency", "OK", "Information")
-})
+if ($btnFixAudioLatency) {
+    $btnFixAudioLatency.Add_Click({
+        Append-Log("Restarting Windows Audio Graph Isolation & fixing DPC latency...")
+        Stop-Process -Name audiodg -Force -ErrorAction SilentlyContinue
+        Restart-Service -Name Audiosrv, AudioEndpointBuilder -Force -ErrorAction SilentlyContinue
+        Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Audio" -Name "Scheduling Category" -Value "High" -Force -ErrorAction SilentlyContinue
+        Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Audio" -Name "SFIO Priority" -Value "High" -Force -ErrorAction SilentlyContinue
+        Append-Log("Audio graph restarted with High Priority.")
+        [System.Windows.Forms.MessageBox]::Show("Windows Audio Engine Restarted with High Priority! Audio popping/crackling fixed.", "Audio Latency", "OK", "Information")
+    })
+}
 
 # ==================== SUPER ADMIN HANDLERS ====================
 $btnBrowseTakeOwn.Add_Click({
@@ -3655,79 +3674,108 @@ $btnSysSummary.Add_Click({
 })
 
 # ==================== CRASH & REPAIRS ====================
-$btnAnalyzeBSOD.Add_Click({
-    $dumpPath = "C:\Windows\Minidump"
-    $events = Get-WinEvent -FilterHashtable @{LogName='System'; ProviderName='Microsoft-Windows-WER-SystemErrorReporting'} -MaxEvents 5 -ErrorAction SilentlyContinue
-    $report = "=== Windows Blue Screen (BSOD) Crash Analyzer ===`n`n"
-    if (Test-Path $dumpPath) {
-        $dumps = Get-ChildItem $dumpPath -Filter "*.dmp" -ErrorAction SilentlyContinue
-        if ($dumps) {
-            $report += "Found $($dumps.Count) Minidump crash files:`n"
-            foreach ($d in $dumps | Select-Object -Last 3) {
-                $report += "- $($d.Name) - Size: $([math]::round($d.Length/1KB,1)) KB - Modified: $($d.LastWriteTime)`n"
+if ($btnAnalyzeBSOD) {
+    $btnAnalyzeBSOD.Add_Click({
+        $dumpPath = "C:\Windows\Minidump"
+        $events = Get-WinEvent -FilterHashtable @{LogName='System'; ProviderName='Microsoft-Windows-WER-SystemErrorReporting'} -MaxEvents 5 -ErrorAction SilentlyContinue
+        $report = "=== Windows Blue Screen (BSOD) Crash Analyzer ===`n`n"
+        if (Test-Path $dumpPath) {
+            $dumps = Get-ChildItem $dumpPath -Filter "*.dmp" -ErrorAction SilentlyContinue
+            if ($dumps) {
+                $report += "Found $($dumps.Count) Minidump crash files:`n"
+                foreach ($d in $dumps | Select-Object -Last 3) {
+                    $report += "- $($d.Name) - Size: $([math]::round($d.Length/1KB,1)) KB - Modified: $($d.LastWriteTime)`n"
+                }
             }
         }
-    }
-    if ($events) {
-        $report += "`nRecent System BugCheck Crash Reports:`n"
-        foreach ($ev in $events) { $report += "[$($ev.TimeCreated)] $($ev.Message)`n------------------------------------------------`n" }
-    }
-    [System.Windows.Forms.MessageBox]::Show($report, "BSOD Minidump Crash Analyzer", "OK", "Information")
-})
-$btnUnblockTools.Add_Click({
-    Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\System" -Name "DisableTaskMgr" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
-    Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\System" -Name "DisableRegistryTools" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
-    Set-ItemProperty -Path "HKCU:\Software\Policies\Microsoft\Windows\System" -Name "DisableCMD" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
-    [System.Windows.Forms.MessageBox]::Show("Task Manager, Registry Editor, and Command Prompt are now completely UNBLOCKED!", "Unblock Tools", "OK", "Information")
-})
-$btnFixStuckWU.Add_Click({
-    Stop-Service -Name wuauserv, bits, cryptsvc, trustedinstaller -Force -ErrorAction SilentlyContinue
-    Rename-Item -Path "C:\Windows\SoftwareDistribution" -NewName "SoftwareDistribution.old_$(Get-Date -Format 'yyyyMMdd_HHmmss')" -Force -ErrorAction SilentlyContinue
-    Rename-Item -Path "C:\Windows\System32\catroot2" -NewName "catroot2.old_$(Get-Date -Format 'yyyyMMdd_HHmmss')" -Force -ErrorAction SilentlyContinue
-    Start-Service -Name wuauserv, bits, cryptsvc, trustedinstaller -ErrorAction SilentlyContinue
-    [System.Windows.Forms.MessageBox]::Show("Stuck Windows Update pipeline reset successfully!", "Windows Update Fix", "OK", "Information")
-})
-$btnRebuildSearchIndex.Add_Click({
-    Stop-Service -Name WSearch -Force -ErrorAction SilentlyContinue
-    Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows Search" -Name "SetupCompletedSuccessfully" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
-    Start-Service -Name WSearch -ErrorAction SilentlyContinue
-    [System.Windows.Forms.MessageBox]::Show("Windows Search Index database rebuild started in background.", "Search Index", "OK", "Information")
-})
-$btnRunSFC.Add_Click({ Start-Process cmd.exe -ArgumentList "/k sfc /scannow" -Verb RunAs })
-$btnDismRestore.Add_Click({ Start-Process cmd.exe -ArgumentList "/k DISM /Online /Cleanup-Image /RestoreHealth" -Verb RunAs })
-$btnDismCheck.Add_Click({ Start-Process cmd.exe -ArgumentList "/k DISM /Online /Cleanup-Image /CheckHealth" -Verb RunAs })
-$btnResetWU.Add_Click({
-    Stop-Service -Name wuauserv, bits, cryptsvc -Force -ErrorAction SilentlyContinue
-    Rename-Item -Path "C:\Windows\SoftwareDistribution" -NewName "SoftwareDistribution.old_$(Get-Date -Format 'yyyyMMdd_HHmmss')" -Force -ErrorAction SilentlyContinue
-    Start-Service -Name wuauserv, bits, cryptsvc -ErrorAction SilentlyContinue
-    [System.Windows.Forms.MessageBox]::Show("Windows Update cache reset successfully!", "Updates", "OK", "Information")
-})
-$btnRepairEngines.Add_Click({
-    @("vbscript.dll", "jscript.dll", "mshtml.dll", "wups2.dll", "wuaueng.dll", "oleaut32.dll") | ForEach-Object { Start-Process regsvr32.exe -ArgumentList "/s $_" -Wait }
-    [System.Windows.Forms.MessageBox]::Show("Servicing and repair DLL engines re-registered!", "Repair", "OK", "Information")
-})
-$btnRegCoreDLLs.Add_Click({
-    @("atl.dll", "urlmon.dll", "msxml3.dll", "msxml6.dll", "scrrun.dll") | ForEach-Object { Start-Process regsvr32.exe -ArgumentList "/s $_" -Wait }
-    [System.Windows.Forms.MessageBox]::Show("Core system DLL libraries re-registered!", "Repair", "OK", "Information")
-})
-$btnRepairStore.Add_Click({
-    Start-Process powershell.exe -ArgumentList "-NoExit -Command `"Get-AppXPackage -AllUsers | Foreach {Add-AppxPackage -DisableDevelopmentMode -Register `"`$(`$_.InstallLocation)\AppXManifest.xml`" -ErrorAction SilentlyContinue}`"" -Verb RunAs
-})
-$btnEnableWinRE.Add_Click({
-    Start-Process reagentc.exe -ArgumentList "/enable" -Wait
-    [System.Windows.Forms.MessageBox]::Show("Windows Recovery Environment (WinRE) Enabled!", "WinRE", "OK", "Information")
-})
-$btnCheckWinRE.Add_Click({ Start-Process cmd.exe -ArgumentList "/k reagentc /info" -Verb RunAs })
-$btnRebuildBCD.Add_Click({ Start-Process cmd.exe -ArgumentList "/k bcdboot C:\Windows /v" -Verb RunAs })
-$btnScheduleChkdsk.Add_Click({ Start-Process cmd.exe -ArgumentList "/k echo y | chkdsk C: /f /r" -Verb RunAs })
-$btnConvertNTFS.Add_Click({
-    $selected = $cmbDriveLetter.SelectedItem
-    if (-not $selected) { return }
-    $letter = $selected.ToString().Substring(0, 1)
-    if ([System.Windows.Forms.MessageBox]::Show("Convert Drive $letter`: to NTFS?", "Confirm NTFS", "YesNo", "Question") -eq [System.Windows.Forms.DialogResult]::Yes) {
-        Start-Process cmd.exe -ArgumentList "/k convert $letter`: /fs:ntfs" -Verb RunAs
-    }
-})
+        if ($events) {
+            $report += "`nRecent System BugCheck Crash Reports:`n"
+            foreach ($ev in $events) { $report += "[$($ev.TimeCreated)] $($ev.Message)`n------------------------------------------------`n" }
+        }
+        [System.Windows.Forms.MessageBox]::Show($report, "BSOD Minidump Crash Analyzer", "OK", "Information")
+    })
+}
+
+if ($btnUnblockTools) {
+    $btnUnblockTools.Add_Click({
+        Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\System" -Name "DisableTaskMgr" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
+        Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\System" -Name "DisableRegistryTools" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
+        Set-ItemProperty -Path "HKCU:\Software\Policies\Microsoft\Windows\System" -Name "DisableCMD" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
+        [System.Windows.Forms.MessageBox]::Show("Task Manager, Registry Editor, and Command Prompt are now completely UNBLOCKED!", "Unblock Tools", "OK", "Information")
+    })
+}
+
+if ($btnFixStuckWU) {
+    $btnFixStuckWU.Add_Click({
+        Stop-Service -Name wuauserv, bits, cryptsvc, trustedinstaller -Force -ErrorAction SilentlyContinue
+        Rename-Item -Path "C:\Windows\SoftwareDistribution" -NewName "SoftwareDistribution.old_$(Get-Date -Format 'yyyyMMdd_HHmmss')" -Force -ErrorAction SilentlyContinue
+        Rename-Item -Path "C:\Windows\System32\catroot2" -NewName "catroot2.old_$(Get-Date -Format 'yyyyMMdd_HHmmss')" -Force -ErrorAction SilentlyContinue
+        Start-Service -Name wuauserv, bits, cryptsvc, trustedinstaller -ErrorAction SilentlyContinue
+        [System.Windows.Forms.MessageBox]::Show("Stuck Windows Update pipeline reset successfully!", "Windows Update Fix", "OK", "Information")
+    })
+}
+
+if ($btnRebuildSearchIndex) {
+    $btnRebuildSearchIndex.Add_Click({
+        Stop-Service -Name WSearch -Force -ErrorAction SilentlyContinue
+        Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows Search" -Name "SetupCompletedSuccessfully" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
+        Start-Service -Name WSearch -ErrorAction SilentlyContinue
+        [System.Windows.Forms.MessageBox]::Show("Windows Search Index database rebuild started in background.", "Search Index", "OK", "Information")
+    })
+}
+
+if ($btnRunSFC) { $btnRunSFC.Add_Click({ Start-Process cmd.exe -ArgumentList "/k sfc /scannow" -Verb RunAs }) }
+if ($btnDismRestore) { $btnDismRestore.Add_Click({ Start-Process cmd.exe -ArgumentList "/k DISM /Online /Cleanup-Image /RestoreHealth" -Verb RunAs }) }
+if ($btnDismCheck) { $btnDismCheck.Add_Click({ Start-Process cmd.exe -ArgumentList "/k DISM /Online /Cleanup-Image /CheckHealth" -Verb RunAs }) }
+if ($btnResetWU) {
+    $btnResetWU.Add_Click({
+        Stop-Service -Name wuauserv, bits, cryptsvc -Force -ErrorAction SilentlyContinue
+        Rename-Item -Path "C:\Windows\SoftwareDistribution" -NewName "SoftwareDistribution.old_$(Get-Date -Format 'yyyyMMdd_HHmmss')" -Force -ErrorAction SilentlyContinue
+        Start-Service -Name wuauserv, bits, cryptsvc -ErrorAction SilentlyContinue
+        [System.Windows.Forms.MessageBox]::Show("Windows Update cache reset successfully!", "Updates", "OK", "Information")
+    })
+}
+
+if ($btnRepairEngines) {
+    $btnRepairEngines.Add_Click({
+        @("vbscript.dll", "jscript.dll", "mshtml.dll", "wups2.dll", "wuaueng.dll", "oleaut32.dll") | ForEach-Object { Start-Process regsvr32.exe -ArgumentList "/s $_" -Wait }
+        [System.Windows.Forms.MessageBox]::Show("Servicing and repair DLL engines re-registered!", "Repair", "OK", "Information")
+    })
+}
+
+if ($btnRegCoreDLLs) {
+    $btnRegCoreDLLs.Add_Click({
+        @("atl.dll", "urlmon.dll", "msxml3.dll", "msxml6.dll", "scrrun.dll") | ForEach-Object { Start-Process regsvr32.exe -ArgumentList "/s $_" -Wait }
+        [System.Windows.Forms.MessageBox]::Show("Core system DLL libraries re-registered!", "Repair", "OK", "Information")
+    })
+}
+
+if ($btnRepairStore) {
+    $btnRepairStore.Add_Click({
+        Start-Process powershell.exe -ArgumentList "-NoExit -Command `"Get-AppXPackage -AllUsers | Foreach {Add-AppxPackage -DisableDevelopmentMode -Register `"`$(`$_.InstallLocation)\AppXManifest.xml`" -ErrorAction SilentlyContinue}`"" -Verb RunAs
+    })
+}
+
+if ($btnEnableWinRE) {
+    $btnEnableWinRE.Add_Click({
+        Start-Process reagentc.exe -ArgumentList "/enable" -Wait
+        [System.Windows.Forms.MessageBox]::Show("Windows Recovery Environment (WinRE) Enabled!", "WinRE", "OK", "Information")
+    })
+}
+
+if ($btnCheckWinRE) { $btnCheckWinRE.Add_Click({ Start-Process cmd.exe -ArgumentList "/k reagentc /info" -Verb RunAs }) }
+if ($btnRebuildBCD) { $btnRebuildBCD.Add_Click({ Start-Process cmd.exe -ArgumentList "/k bcdboot C:\Windows /v" -Verb RunAs }) }
+if ($btnScheduleChkdsk) { $btnScheduleChkdsk.Add_Click({ Start-Process cmd.exe -ArgumentList "/k echo y | chkdsk C: /f /r" -Verb RunAs }) }
+if ($btnConvertNTFS) {
+    $btnConvertNTFS.Add_Click({
+        $selected = $cmbDriveLetter.SelectedItem
+        if (-not $selected) { return }
+        $letter = $selected.ToString().Substring(0, 1)
+        if ([System.Windows.Forms.MessageBox]::Show("Convert Drive $letter`: to NTFS?", "Confirm NTFS", "YesNo", "Question") -eq [System.Windows.Forms.DialogResult]::Yes) {
+            Start-Process cmd.exe -ArgumentList "/k convert $letter`: /fs:ntfs" -Verb RunAs
+        }
+    })
+}
 $btnConvertGPT.Add_Click({
     $selected = $cmbDiskID.SelectedItem
     if (-not $selected) { return }
