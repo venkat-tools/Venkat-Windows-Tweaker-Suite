@@ -2552,6 +2552,158 @@ if ($btnFixReinstallWinget) {
     })
 }
 
+# ==================== 1-CLICK MEGA APP STORE (WINGET) HANDLERS ====================
+$allAppCheckboxes = @(
+    $chkAppMS365, $chkAppMSTeams, $chkAppPowerToys, $chkAppMSTerminal, $chkAppMSPCManager, $chkAppMSOneDrive,
+    $chkAppMSPS7, $chkAppMSSysinternals, $chkAppMSOneNote, $chkAppMSWhiteboard, $chkAppMSSSMS, $chkAppMSVSCommunity, $chkAppMSWSL,
+    $chkAppChrome, $chkAppBrave, $chkAppFirefox, $chkAppEdge, $chkAppOperaGX, $chkAppTor,
+    $chkAppAnyDesk, $chkAppTeamViewer, $chkAppRustDesk, $chkAppUltraViewer, $chkAppDiscord, $chkAppTelegram, $chkAppWhatsApp, $chkAppZoom, $chkAppSkype,
+    $chkApp7Zip, $chkAppWinRAR, $chkAppPeaZip, $chkAppNotepad, $chkAppEverything, $chkAppRevo, $chkAppRufus, $chkAppCrystalDisk, $chkAppCPUZ, $chkAppHWMonitor, $chkAppTreeSize, $chkAppNirLauncher,
+    $chkAppVLC, $chkAppKLite, $chkAppOBS, $chkAppGIMP, $chkAppPaintNet, $chkAppAudacity, $chkAppHandBrake, $chkAppSpotify, $chkAppCapCut,
+    $chkAppVSCode, $chkAppGit, $chkAppGitHubDesktop, $chkAppPython, $chkAppNode, $chkAppDocker, $chkAppPostman, $chkAppDBeaver, $chkAppVCRedist, $chkAppJavaJDK,
+    $chkAppAdobeReader, $chkAppFoxit, $chkAppSumatra, $chkAppLibreOffice, $chkAppWPS, $chkAppPDF24
+)
+
+if ($btnClearAllApps) {
+    $btnClearAllApps.Add_Click({
+        foreach ($c in $allAppCheckboxes) { if ($c) { $c.IsChecked = $false } }
+        Append-Log("Cleared all App Store selections.")
+    })
+}
+
+if ($btnSelectAllApps) {
+    $btnSelectAllApps.Add_Click({
+        foreach ($c in $allAppCheckboxes) { if ($c) { $c.IsChecked = $true } }
+        Append-Log("Selected all applications in App Store.")
+    })
+}
+
+if ($btnPresetAppEssentials) {
+    $btnPresetAppEssentials.Add_Click({
+        foreach ($c in $allAppCheckboxes) { if ($c) { $c.IsChecked = $false } }
+        $essentials = @($chkAppChrome, $chkApp7Zip, $chkAppVLC, $chkAppNotepad, $chkAppAdobeReader, $chkAppAnyDesk, $chkAppPowerToys, $chkAppMSTerminal, $chkAppEverything)
+        foreach ($c in $essentials) { if ($c) { $c.IsChecked = $true } }
+        Append-Log("Loaded 'Essentials' App Store preset.")
+    })
+}
+
+if ($btnPresetAppMS) {
+    $btnPresetAppMS.Add_Click({
+        foreach ($c in $allAppCheckboxes) { if ($c) { $c.IsChecked = $false } }
+        $msApps = @($chkAppMS365, $chkAppMSTeams, $chkAppPowerToys, $chkAppMSTerminal, $chkAppMSPCManager, $chkAppMSOneDrive, $chkAppMSPS7, $chkAppMSSysinternals, $chkAppMSOneNote, $chkAppMSWhiteboard, $chkAppEdge)
+        foreach ($c in $msApps) { if ($c) { $c.IsChecked = $true } }
+        Append-Log("Loaded 'Microsoft Suite' App Store preset.")
+    })
+}
+
+if ($btnPresetAppDev) {
+    $btnPresetAppDev.Add_Click({
+        foreach ($c in $allAppCheckboxes) { if ($c) { $c.IsChecked = $false } }
+        $devApps = @($chkAppVSCode, $chkAppGit, $chkAppGitHubDesktop, $chkAppPython, $chkAppNode, $chkAppDocker, $chkAppPostman, $chkAppDBeaver, $chkAppVCRedist, $chkAppJavaJDK, $chkAppMSTerminal, $chkAppMSPS7, $chkAppMSWSL, $chkAppNotepad, $chkApp7Zip)
+        foreach ($c in $devApps) { if ($c) { $c.IsChecked = $true } }
+        Append-Log("Loaded 'Dev Bundle' App Store preset.")
+    })
+}
+
+if ($btnInstallSelectedApps) {
+    $btnInstallSelectedApps.Add_Click({
+        $appMap = @{
+            $chkAppMS365 = "Microsoft.Office"
+            $chkAppMSTeams = "Microsoft.Teams"
+            $chkAppPowerToys = "Microsoft.PowerToys"
+            $chkAppMSTerminal = "Microsoft.WindowsTerminal"
+            $chkAppMSPCManager = "Microsoft.PCManager"
+            $chkAppMSOneDrive = "Microsoft.OneDrive"
+            $chkAppMSPS7 = "Microsoft.PowerShell"
+            $chkAppMSSysinternals = "Microsoft.SysinternalsSuite"
+            $chkAppMSOneNote = "Microsoft.OneNote"
+            $chkAppMSWhiteboard = "Microsoft.Whiteboard"
+            $chkAppMSSSMS = "Microsoft.SQLServerManagementStudio"
+            $chkAppMSVSCommunity = "Microsoft.VisualStudio.2022.Community"
+            $chkAppMSWSL = "Microsoft.WSL"
+            $chkAppChrome = "Google.Chrome"
+            $chkAppBrave = "Brave.Brave"
+            $chkAppFirefox = "Mozilla.Firefox"
+            $chkAppEdge = "Microsoft.Edge"
+            $chkAppOperaGX = "Opera.OperaGX"
+            $chkAppTor = "TorProject.TorBrowser"
+            $chkAppAnyDesk = "AnyDeskSoftwareGmbH.AnyDesk"
+            $chkAppTeamViewer = "TeamViewer.TeamViewer"
+            $chkAppRustDesk = "RustDesk.RustDesk"
+            $chkAppUltraViewer = "UltraViewer.UltraViewer"
+            $chkAppDiscord = "Discord.Discord"
+            $chkAppTelegram = "Telegram.TelegramDesktop"
+            $chkAppWhatsApp = "WhatsApp.WhatsApp"
+            $chkAppZoom = "Zoom.Zoom"
+            $chkAppSkype = "Microsoft.Skype"
+            $chkApp7Zip = "7zip.7zip"
+            $chkAppWinRAR = "RARLab.WinRAR"
+            $chkAppPeaZip = "Giorgiotani.Peazip"
+            $chkAppNotepad = "Notepad++.Notepad++"
+            $chkAppEverything = "voidtools.Everything"
+            $chkAppRevo = "RevoUninstaller.RevoUninstaller"
+            $chkAppRufus = "Rufus.Rufus"
+            $chkAppCrystalDisk = "CrystalDewWorld.CrystalDiskInfo"
+            $chkAppCPUZ = "CPUID.CPU-Z"
+            $chkAppHWMonitor = "CPUID.HWMonitor"
+            $chkAppTreeSize = "JAMSoftware.TreeSize.Free"
+            $chkAppVLC = "VideoLAN.VLC"
+            $chkAppKLite = "CodecGuide.K-LiteCodecPack.Full"
+            $chkAppOBS = "OBSProject.OBSStudio"
+            $chkAppGIMP = "GIMP.GIMP"
+            $chkAppPaintNet = "dotPDN.PaintDotNet"
+            $chkAppAudacity = "Audacity.Audacity"
+            $chkAppHandBrake = "HandBrake.HandBrake"
+            $chkAppSpotify = "Spotify.Spotify"
+            $chkAppCapCut = "ByteDance.CapCut"
+            $chkAppVSCode = "Microsoft.VisualStudioCode"
+            $chkAppGit = "Git.Git"
+            $chkAppGitHubDesktop = "GitHub.GitHubDesktop"
+            $chkAppPython = "Python.Python.3.12"
+            $chkAppNode = "OpenJS.NodeJS.LTS"
+            $chkAppDocker = "Docker.DockerDesktop"
+            $chkAppPostman = "Postman.Postman"
+            $chkAppDBeaver = "dbeaver.dbeaver"
+            $chkAppVCRedist = "Microsoft.VCRedist.2015+.x64"
+            $chkAppJavaJDK = "EclipseAdoptium.Temurin.21.JDK"
+            $chkAppAdobeReader = "Adobe.Acrobat.Reader.64-bit"
+            $chkAppFoxit = "Foxit.FoxitReader"
+            $chkAppSumatra = "SumatraPDF.SumatraPDF"
+            $chkAppLibreOffice = "TheDocumentFoundation.LibreOffice"
+            $chkAppWPS = "Kingsoft.WPSOffice"
+            $chkAppPDF24 = "geeksoftwareGmbH.PDF24Creator"
+        }
+
+        $selectedIds = @()
+        foreach ($cb in $appMap.Keys) {
+            if ($cb -and $cb.IsChecked) {
+                $selectedIds += $appMap[$cb]
+            }
+        }
+
+        if ($chkAppNirLauncher -and $chkAppNirLauncher.IsChecked) {
+            Append-Log("NirLauncher selected. Preparing C:\NirSoft package setup...")
+            Start-Process "https://launcher.nirsoft.net/"
+            if (-not (Test-Path "C:\NirSoft")) { New-Item -ItemType Directory -Path "C:\NirSoft" -Force | Out-Null }
+            Start-Process explorer.exe -ArgumentList "C:\NirSoft"
+        }
+
+        if ($selectedIds.Count -eq 0) {
+            [System.Windows.Forms.MessageBox]::Show("Please select at least one application to install.", "App Store", "OK", "Warning")
+            return
+        }
+
+        Append-Log("Initiating WinGet installation for $($selectedIds.Count) selected application(s)...")
+        $cmdArgs = "/k "
+        foreach ($id in $selectedIds) {
+            $cmdArgs += "echo Installing $id via WinGet... & winget install --id $id -e --silent --accept-package-agreements --accept-source-agreements & echo. & "
+        }
+        $cmdArgs += "echo All selected software installations finished! & pause"
+        Start-Process cmd.exe -ArgumentList $cmdArgs -Verb RunAs
+        Append-Log("Launched WinGet batch installer console.")
+    })
+}
+
 # ==================== OS CUSTOMIZER & AUTOUNATTEND GENERATOR ====================
 if ($btnCustDownloadWin11) {
     $btnCustDownloadWin11.Add_Click({
