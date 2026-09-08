@@ -936,87 +936,104 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
                 </ScrollViewer>
             </TabItem>
 
-            <!-- TAB 8: REPAIR & STORAGE -->
+            <!-- TAB 8: REPAIR & STORAGE (COMPREHENSIVE MASTER SUITE) -->
             <TabItem Header="Repair &amp; Storage">
                 <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="8">
                     <StackPanel>
-                        <!-- Storage Cleaner & Large Files -->
+                        <!-- 1. SYSTEM SCANS & REPAIRS -->
                         <Border Background="#0F172A" CornerRadius="5" Padding="10" Margin="0,0,0,8" BorderBrush="#1E293B" BorderThickness="1">
                             <StackPanel>
-                                <TextBlock Text="STORAGE CLEANER &amp; COMPONENT STORE" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
-                                <UniformGrid Columns="3">
-                                    <Button Name="btnFindLargestFiles" Content="Find Top 20 Largest Files on C:" Margin="2" Background="#0284C7" FontWeight="Bold"/>
-                                    <Button Name="btnPurgeWinSxSComponent" Content="Deep Clean WinSxS (DISM ResetBase)" Margin="2" Background="#059669" FontWeight="Bold"/>
-                                    <Button Name="btnPurgeWindowsOld" Content="Purge Windows.old &amp; Shader Cache" Margin="2" Background="#D97706" FontWeight="Bold"/>
+                                <TextBlock Text="SYSTEM SCANS &amp; REPAIRS" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
+                                <UniformGrid Columns="2">
+                                    <Button Name="btnRunSFC" Content="Run System File Check (sfc /scannow)" Margin="2" HorizontalContentAlignment="Left"/>
+                                    <Button Name="btnDismRestore" Content="Repair Image Health (DISM /RestoreHealth)" Margin="2" HorizontalContentAlignment="Left"/>
+                                    <Button Name="btnDismCheck" Content="Quick Check Image Corruption Status (DISM /CheckHealth)" Margin="2" HorizontalContentAlignment="Left"/>
+                                    <Button Name="btnResetWU" Content="Reset Windows Update Components &amp; Cache" Margin="2" HorizontalContentAlignment="Left"/>
+                                    <Button Name="btnRepairEngines" Content="Repair Windows Native Repair Engines (SFC &amp; DISM Fix)" Margin="2" HorizontalContentAlignment="Left"/>
+                                    <Button Name="btnRegCoreDLLs" Content="Re-Register Core Windows System DLL Libraries (regsvr32)" Margin="2" HorizontalContentAlignment="Left"/>
+                                    <Button Name="btnFlushDNS2" Content="Flush System DNS Resolver Cache" Margin="2" HorizontalContentAlignment="Left"/>
+                                    <Button Name="btnResetWinsock2" Content="Reset Network Winsock Catalog Bindings" Margin="2" HorizontalContentAlignment="Left"/>
+                                    <Button Name="btnResetFirewall2" Content="Reset Windows Firewall Rules to Default" Margin="2" HorizontalContentAlignment="Left"/>
+                                    <Button Name="btnRepairStore" Content="Re-register &amp; Repair Microsoft Store &amp; Default Apps" Margin="2" HorizontalContentAlignment="Left"/>
+                                    <Button Name="btnResetNetworkStack2" Content="Run Comprehensive Network Stack &amp; Adapter Reset" Margin="2" HorizontalContentAlignment="Left"/>
                                 </UniformGrid>
                             </StackPanel>
                         </Border>
 
-                        <!-- Time Sync & Audio Diagnostics -->
+                        <!-- 2. SYSTEM RECOVERY & BOOT MANAGEMENT -->
                         <Border Background="#0F172A" CornerRadius="5" Padding="10" Margin="0,0,0,8" BorderBrush="#1E293B" BorderThickness="1">
                             <StackPanel>
-                                <TextBlock Text="WINDOWS TIME &amp; AUDIO DIAGNOSTICS" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
-                                <UniformGrid Columns="3">
-                                    <Button Name="btnForceTimeResync" Content="Force Windows NTP Clock Resync" Margin="2" Background="#059669"/>
-                                    <Button Name="btnFixCMOSTimeDrift" Content="Fix CMOS Time Drift (RealTimeIsUniversal)" Margin="2" Background="#0284C7"/>
-                                    <Button Name="btnFixAudioLatency" Content="Fix Audio Stuttering &amp; Graph Latency" Margin="2" Background="#D97706"/>
+                                <TextBlock Text="SYSTEM RECOVERY &amp; BOOT MANAGEMENT" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
+                                <UniformGrid Columns="2">
+                                    <Button Name="btnEnableWinRE" Content="Enable Windows Recovery Environment (WinRE)" Margin="2" HorizontalContentAlignment="Left"/>
+                                    <Button Name="btnCheckWinRE" Content="Check WinRE Environment Configuration Status" Margin="2" HorizontalContentAlignment="Left"/>
                                 </UniformGrid>
                             </StackPanel>
                         </Border>
 
-                        <!-- Crash & Corruption -->
+                        <!-- 3. MICROSOFT OFFICE & OUTLOOK DIAGNOSTICS & REPAIRS -->
                         <Border Background="#0F172A" CornerRadius="5" Padding="10" Margin="0,0,0,8" BorderBrush="#1E293B" BorderThickness="1">
                             <StackPanel>
-                                <TextBlock Text="CRASH &amp; CORRUPTION RECOVERY" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
-                                <UniformGrid Columns="4">
-                                    <Button Name="btnAnalyzeBSOD" Content="BSOD Crash Analyzer" Margin="2" Background="#DC2626"/>
-                                    <Button Name="btnUnblockTools" Content="Unblock Reg/CMD/TaskMgr" Margin="2" Background="#059669"/>
-                                    <Button Name="btnFixStuckWU" Content="Fix Stuck Updates" Margin="2"/>
-                                    <Button Name="btnRebuildSearchIndex" Content="Rebuild Search Index" Margin="2"/>
+                                <TextBlock Text="MICROSOFT OFFICE &amp; OUTLOOK DIAGNOSTICS &amp; REPAIRS" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
+                                <UniformGrid Columns="2" Margin="0,0,0,4">
+                                    <Button Name="btnOfficeQuickRepair" Content="Run Microsoft Office Quick Repair (Click-to-Run)" Margin="2" Background="#0284C7" FontWeight="Bold" HorizontalContentAlignment="Left"/>
+                                    <Button Name="btnLaunchScanPST" Content="Launch Outlook PST File Repair Tool (ScanPST)" Margin="2" Background="#0D9488" FontWeight="Bold" HorizontalContentAlignment="Left"/>
+                                </UniformGrid>
+                                <Grid Margin="2,4,2,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="Launch Safe Mode:" VerticalAlignment="Center" FontWeight="SemiBold" Foreground="#94A3B8" Margin="0,0,8,0"/>
+                                    <UniformGrid Grid.Column="1" Columns="4">
+                                        <Button Name="btnSafeWord" Content="Word" Margin="2" Background="#1E3A8A"/>
+                                        <Button Name="btnSafeExcel" Content="Excel" Margin="2" Background="#065F46"/>
+                                        <Button Name="btnSafePPT" Content="PPT" Margin="2" Background="#9A3412"/>
+                                        <Button Name="btnSafeOutlook" Content="Outlook" Margin="2" Background="#0369A1"/>
+                                    </UniformGrid>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- 4. WINDOWS BOOT SECTOR & EFI REPAIR -->
+                        <Border Background="#0F172A" CornerRadius="5" Padding="10" Margin="0,0,0,8" BorderBrush="#1E293B" BorderThickness="1">
+                            <StackPanel>
+                                <TextBlock Text="WINDOWS BOOT SECTOR &amp; EFI REPAIR" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
+                                <UniformGrid Columns="2">
+                                    <Button Name="btnRebuildBCD" Content="Rebuild Windows Boot configuration partition files (BCDBoot)" Margin="2" HorizontalContentAlignment="Left"/>
+                                    <Button Name="btnRebootRecovery" Content="Reboot System directly into Startup Repair / Recovery Menu" Margin="2" Background="#DC2626" HorizontalContentAlignment="Left"/>
+                                    <Button Name="btnEnableBootFailures" Content="Enable Windows Boot Failures Menu Display Policy" Margin="2" HorizontalContentAlignment="Left"/>
+                                    <Button Name="btnScheduleChkdsk" Content="Schedule Boot-Time Disk Volume Scan &amp; Repair (Chkdsk /f /r)" Margin="2" HorizontalContentAlignment="Left"/>
                                 </UniformGrid>
                             </StackPanel>
                         </Border>
 
-                        <!-- System Scanners -->
+                        <!-- 5. PRINTER SERVICE & SHARING REPAIRS -->
                         <Border Background="#0F172A" CornerRadius="5" Padding="10" Margin="0,0,0,8" BorderBrush="#1E293B" BorderThickness="1">
                             <StackPanel>
-                                <TextBlock Text="SYSTEM IMAGE SCANNERS" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
-                                <UniformGrid Columns="4">
-                                    <Button Name="btnRunSFC" Content="SFC ScanNow" Margin="2"/>
-                                    <Button Name="btnDismRestore" Content="DISM RestoreHealth" Margin="2"/>
-                                    <Button Name="btnDismCheck" Content="DISM CheckHealth" Margin="2"/>
-                                    <Button Name="btnResetWU" Content="Reset Update Cache" Margin="2"/>
+                                <TextBlock Text="PRINTER SERVICE &amp; SHARING REPAIRS" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
+                                <UniformGrid Columns="2">
+                                    <Button Name="btnFixPrinter0x11b" Content="Fix Shared Printer Error 0x0000011b (Set RpcAuthnLevelPrivacyEnabled=0)" Margin="2" HorizontalContentAlignment="Left"/>
+                                    <Button Name="btnConfigPrinterGPO" Content="Configure Group Policy Printer Sharing &amp; RPC Connection Settings" Margin="2" HorizontalContentAlignment="Left"/>
+                                    <Button Name="btnEnableLPD" Content="Enable Windows LPD Print Service &amp; LPR Port Monitor Optional Features" Margin="2" HorizontalContentAlignment="Left"/>
+                                    <Button Name="btnRestartPrinterServices" Content="Restart Network Discovery &amp; Printer Sharing Dependency Services" Margin="2" HorizontalContentAlignment="Left"/>
+                                    <Button Name="btnFlushPrintSpooler" Content="Flush Print Spooler Service &amp; Clear Pending Queue" Margin="2" Background="#059669" HorizontalContentAlignment="Left"/>
+                                    <Button Name="btnLaunchPrinterDiag" Content="Launch Native Windows Printer Troubleshooter Diagnostic Wizard" Margin="2" HorizontalContentAlignment="Left"/>
                                 </UniformGrid>
                             </StackPanel>
                         </Border>
 
-                        <!-- Engine DLLs -->
+                        <!-- 6. LOSSLESS DRIVE & DISK STYLE CONVERTERS -->
                         <Border Background="#0F172A" CornerRadius="5" Padding="10" Margin="0,0,0,8" BorderBrush="#1E293B" BorderThickness="1">
                             <StackPanel>
-                                <TextBlock Text="SYSTEM ENGINES &amp; WINRE" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
-                                <UniformGrid Columns="4">
-                                    <Button Name="btnRepairEngines" Content="Re-register Engines" Margin="2"/>
-                                    <Button Name="btnRegCoreDLLs" Content="Re-register DLLs" Margin="2"/>
-                                    <Button Name="btnRepairStore" Content="Reinstall Store Apps" Margin="2"/>
-                                    <Button Name="btnEnableWinRE" Content="Enable WinRE" Margin="2"/>
-                                    <Button Name="btnCheckWinRE" Content="Check WinRE Info" Margin="2"/>
-                                    <Button Name="btnRebuildBCD" Content="Rebuild BCDBoot" Margin="2"/>
-                                    <Button Name="btnScheduleChkdsk" Content="Schedule Chkdsk" Margin="2"/>
-                                </UniformGrid>
-                            </StackPanel>
-                        </Border>
-
-                        <!-- Filesystem Conversions -->
-                        <Border Background="#0F172A" CornerRadius="5" Padding="10" BorderBrush="#1E293B" BorderThickness="1">
-                            <StackPanel>
-                                <TextBlock Text="FILESYSTEM &amp; PARTITION CONVERSIONS" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
+                                <TextBlock Text="LOSSLESS DRIVE &amp; DISK STYLE CONVERTERS" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
                                 <Grid Margin="0,2,0,4">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto"/>
                                         <ColumnDefinition Width="*"/>
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
-                                    <TextBlock Grid.Column="0" Text="FAT32 to NTFS:" VerticalAlignment="Center" Margin="0,0,8,0" Foreground="#F8FAFC"/>
+                                    <TextBlock Grid.Column="0" Text="FAT32 Drive Letter:" VerticalAlignment="Center" Margin="0,0,8,0" Foreground="#F8FAFC"/>
                                     <ComboBox Name="cmbDriveLetter" Grid.Column="1" Height="26" Margin="0,0,4,0" Background="#0F172A" Foreground="#F8FAFC"/>
                                     <Button Name="btnConvertNTFS" Grid.Column="2" Content="Convert to NTFS" Width="140" Height="26" Background="#0284C7"/>
                                 </Grid>
@@ -1026,10 +1043,54 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
                                         <ColumnDefinition Width="*"/>
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
-                                    <TextBlock Grid.Column="0" Text="MBR to GPT:" VerticalAlignment="Center" Margin="0,0,16,0" Foreground="#F8FAFC"/>
+                                    <TextBlock Grid.Column="0" Text="Disk ID (MBR):" VerticalAlignment="Center" Margin="0,0,28,0" Foreground="#F8FAFC"/>
                                     <ComboBox Name="cmbDiskID" Grid.Column="1" Height="26" Margin="0,0,4,0" Background="#0F172A" Foreground="#F8FAFC"/>
                                     <Button Name="btnConvertGPT" Grid.Column="2" Content="Convert MBR to GPT" Width="140" Height="26" Background="#D97706"/>
                                 </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- 7. SYSTEM CLEANERS & CACHE OPTIMIZERS -->
+                        <Border Background="#0F172A" CornerRadius="5" Padding="10" Margin="0,0,0,8" BorderBrush="#1E293B" BorderThickness="1">
+                            <StackPanel>
+                                <TextBlock Text="SYSTEM CLEANERS &amp; CACHE OPTIMIZERS" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
+                                <UniformGrid Columns="2">
+                                    <Button Name="btnFlushRAMCache" Content="Optimize &amp; Flush System RAM Cache (Empty Process Working Sets)" Margin="2" HorizontalContentAlignment="Left"/>
+                                    <Button Name="btnCleanBrowserCache" Content="Clean Web Browser Cache &amp; Temp Files (Chrome, Edge, Firefox)" Margin="2" HorizontalContentAlignment="Left"/>
+                                    <Button Name="btnFindLargestFiles" Content="Find Top 20 Largest Files on C:" Margin="2" HorizontalContentAlignment="Left"/>
+                                    <Button Name="btnPurgeWinSxSComponent" Content="Deep Clean WinSxS (DISM ResetBase)" Margin="2" HorizontalContentAlignment="Left"/>
+                                </UniformGrid>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- 8. WINDOWS SERVICES & SHIELD REPAIRS -->
+                        <Border Background="#0F172A" CornerRadius="5" Padding="10" Margin="0,0,0,8" BorderBrush="#1E293B" BorderThickness="1">
+                            <StackPanel>
+                                <TextBlock Text="WINDOWS SERVICES &amp; SHIELD REPAIRS" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
+                                <Button Name="btnRepairWUServiceComprehensive" Content="Run Comprehensive Windows Update Service &amp; Cache Repair Engine" Margin="2" Height="28" Background="#0284C7" FontWeight="Bold" HorizontalContentAlignment="Center"/>
+                                <UniformGrid Columns="2" Margin="0,2">
+                                    <Button Name="btnBlockWinUpdates" Content="Disable &amp; Block Windows Updates" Height="28" Margin="2" Background="#DC2626" FontWeight="Bold"/>
+                                    <Button Name="btnEnableWinUpdates" Content="Restore &amp; Enable Windows Updates" Height="28" Margin="2" Background="#059669" FontWeight="Bold"/>
+                                </UniformGrid>
+                                <UniformGrid Columns="2">
+                                    <Button Name="btnResetDefenderPolicies" Content="Reset Windows Defender Policies &amp; Restart Antivirus Services" Margin="2" HorizontalContentAlignment="Left"/>
+                                    <Button Name="btnRestoreFirewallSettings" Content="Restore Default Windows Firewall Settings and Rules" Margin="2" HorizontalContentAlignment="Left"/>
+                                    <Button Name="btnResetAudioPlaybackServices" Content="Reset &amp; Restart Windows Audio Playback Services" Margin="2" HorizontalContentAlignment="Left"/>
+                                    <Button Name="btnUnblockTools" Content="Unblock Registry, Task Manager &amp; Command Prompt" Margin="2" HorizontalContentAlignment="Left"/>
+                                </UniformGrid>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- 9. SHELL OPTIMIZERS & DATA WIPERS -->
+                        <Border Background="#0F172A" CornerRadius="5" Padding="10" Margin="0,0,0,8" BorderBrush="#1E293B" BorderThickness="1">
+                            <StackPanel>
+                                <TextBlock Text="SHELL OPTIMIZERS &amp; DATA WIPERS" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
+                                <UniformGrid Columns="2">
+                                    <Button Name="btnRestartExplorerQuick2" Content="Restart Windows Explorer Shell (Quick Freeze Fix)" Margin="2" Background="#0284C7" HorizontalContentAlignment="Left"/>
+                                    <Button Name="btnClearAllEventLogs" Content="Clear All Windows System, Application &amp; Security Event Logs" Margin="2" HorizontalContentAlignment="Left"/>
+                                    <Button Name="btnRebuildIconCache" Content="Rebuild Windows Desktop Icon &amp; Thumbnail Cache Data" Margin="2" HorizontalContentAlignment="Left"/>
+                                    <Button Name="btnRebuildFontCache" Content="Rebuild Windows System Font Cache Database" Margin="2" HorizontalContentAlignment="Left"/>
+                                </UniformGrid>
                             </StackPanel>
                         </Border>
                     </StackPanel>
@@ -1723,7 +1784,7 @@ $btnSpeedTest = $window.FindName("btnSpeedTest")
 $btnBatteryHealth = $window.FindName("btnBatteryHealth")
 $btnSysSummary = $window.FindName("btnSysSummary")
 
-# Storage & Repairs
+# Storage & Repairs Master Suite
 $btnFindLargestFiles = $window.FindName("btnFindLargestFiles")
 $btnPurgeWinSxSComponent = $window.FindName("btnPurgeWinSxSComponent")
 $btnPurgeWindowsOld = $window.FindName("btnPurgeWindowsOld")
@@ -1740,15 +1801,45 @@ $btnDismCheck = $window.FindName("btnDismCheck")
 $btnResetWU = $window.FindName("btnResetWU")
 $btnRepairEngines = $window.FindName("btnRepairEngines")
 $btnRegCoreDLLs = $window.FindName("btnRegCoreDLLs")
+$btnFlushDNS2 = $window.FindName("btnFlushDNS2")
+$btnResetWinsock2 = $window.FindName("btnResetWinsock2")
+$btnResetFirewall2 = $window.FindName("btnResetFirewall2")
 $btnRepairStore = $window.FindName("btnRepairStore")
+$btnResetNetworkStack2 = $window.FindName("btnResetNetworkStack2")
 $btnEnableWinRE = $window.FindName("btnEnableWinRE")
 $btnCheckWinRE = $window.FindName("btnCheckWinRE")
+$btnOfficeQuickRepair = $window.FindName("btnOfficeQuickRepair")
+$btnLaunchScanPST = $window.FindName("btnLaunchScanPST")
+$btnSafeWord = $window.FindName("btnSafeWord")
+$btnSafeExcel = $window.FindName("btnSafeExcel")
+$btnSafePPT = $window.FindName("btnSafePPT")
+$btnSafeOutlook = $window.FindName("btnSafeOutlook")
 $btnRebuildBCD = $window.FindName("btnRebuildBCD")
+$btnRebootRecovery = $window.FindName("btnRebootRecovery")
+$btnEnableBootFailures = $window.FindName("btnEnableBootFailures")
 $btnScheduleChkdsk = $window.FindName("btnScheduleChkdsk")
+$btnFixPrinter0x11b = $window.FindName("btnFixPrinter0x11b")
+$btnConfigPrinterGPO = $window.FindName("btnConfigPrinterGPO")
+$btnEnableLPD = $window.FindName("btnEnableLPD")
+$btnRestartPrinterServices = $window.FindName("btnRestartPrinterServices")
+$btnFlushPrintSpooler = $window.FindName("btnFlushPrintSpooler")
+$btnLaunchPrinterDiag = $window.FindName("btnLaunchPrinterDiag")
 $cmbDriveLetter = $window.FindName("cmbDriveLetter")
 $btnConvertNTFS = $window.FindName("btnConvertNTFS")
 $cmbDiskID = $window.FindName("cmbDiskID")
 $btnConvertGPT = $window.FindName("btnConvertGPT")
+$btnFlushRAMCache = $window.FindName("btnFlushRAMCache")
+$btnCleanBrowserCache = $window.FindName("btnCleanBrowserCache")
+$btnRepairWUServiceComprehensive = $window.FindName("btnRepairWUServiceComprehensive")
+$btnBlockWinUpdates = $window.FindName("btnBlockWinUpdates")
+$btnEnableWinUpdates = $window.FindName("btnEnableWinUpdates")
+$btnResetDefenderPolicies = $window.FindName("btnResetDefenderPolicies")
+$btnRestoreFirewallSettings = $window.FindName("btnRestoreFirewallSettings")
+$btnResetAudioPlaybackServices = $window.FindName("btnResetAudioPlaybackServices")
+$btnRestartExplorerQuick2 = $window.FindName("btnRestartExplorerQuick2")
+$btnClearAllEventLogs = $window.FindName("btnClearAllEventLogs")
+$btnRebuildIconCache = $window.FindName("btnRebuildIconCache")
+$btnRebuildFontCache = $window.FindName("btnRebuildFontCache")
 
 # Context Menu Extensions & Tweaks
 $btnContextCopyPath = $window.FindName("btnContextCopyPath")
@@ -3645,6 +3736,259 @@ $btnConvertGPT.Add_Click({
         Start-Process cmd.exe -ArgumentList "/k mbr2gpt /validate /disk:$diskNum /allowFullOS & mbr2gpt /convert /disk:$diskNum /allowFullOS" -Verb RunAs
     }
 })
+
+if ($btnFlushDNS2) { $btnFlushDNS2.Add_Click({ Clear-DnsClientCache; [System.Windows.Forms.MessageBox]::Show("DNS Resolver Cache Flushed!", "DNS", "OK", "Information") }) }
+if ($btnResetWinsock2) { $btnResetWinsock2.Add_Click({ Start-Process netsh.exe -ArgumentList "winsock reset" -Wait -NoNewWindow; [System.Windows.Forms.MessageBox]::Show("Winsock catalog reset successfully! Please reboot your system.", "Winsock", "OK", "Information") }) }
+if ($btnResetFirewall2) { $btnResetFirewall2.Add_Click({ Start-Process netsh.exe -ArgumentList "advfirewall reset" -Wait -NoNewWindow; [System.Windows.Forms.MessageBox]::Show("Windows Firewall rules restored to default!", "Firewall", "OK", "Information") }) }
+if ($btnResetNetworkStack2) { $btnResetNetworkStack2.Add_Click({ Start-Process netsh.exe -ArgumentList "int ip reset" -Wait -NoNewWindow; Start-Process netsh.exe -ArgumentList "winsock reset" -Wait -NoNewWindow; Clear-DnsClientCache; [System.Windows.Forms.MessageBox]::Show("Comprehensive Network Stack and Adapter Reset executed! Please reboot your computer.", "Network Reset", "OK", "Information") }) }
+
+if ($btnOfficeQuickRepair) {
+    $btnOfficeQuickRepair.Add_Click({
+        $c2rPaths = @(
+            "C:\Program Files\Common Files\microsoft shared\ClickToRun\OfficeClickToRun.exe",
+            "C:\Program Files (x86)\Common Files\microsoft shared\ClickToRun\OfficeClickToRun.exe"
+        )
+        $found = $false
+        foreach ($p in $c2rPaths) {
+            if (Test-Path $p) {
+                Start-Process $p -ArgumentList "scenario=Repair platform=x64 culture=en-us Force=True" -Verb RunAs
+                $found = $true
+                break
+            }
+        }
+        if (-not $found) {
+            Start-Process appwiz.cpl
+            [System.Windows.Forms.MessageBox]::Show("Office Click-to-Run launcher not located directly. Opened Installed Applications to select and repair Office.", "Office Repair", "OK", "Information")
+        } else {
+            [System.Windows.Forms.MessageBox]::Show("Microsoft Office Quick Repair initiated in background!", "Office Repair", "OK", "Information")
+        }
+    })
+}
+
+if ($btnLaunchScanPST) {
+    $btnLaunchScanPST.Add_Click({
+        $scanPstPaths = @(
+            "C:\Program Files\Microsoft Office\root\Office16\SCANPST.EXE",
+            "C:\Program Files (x86)\Microsoft Office\root\Office16\SCANPST.EXE",
+            "C:\Program Files\Microsoft Office\Office16\SCANPST.EXE",
+            "C:\Program Files (x86)\Microsoft Office\Office16\SCANPST.EXE",
+            "C:\Program Files\Microsoft Office\Office15\SCANPST.EXE",
+            "C:\Program Files (x86)\Microsoft Office\Office15\SCANPST.EXE",
+            "C:\Program Files\Microsoft Office\Office14\SCANPST.EXE",
+            "C:\Program Files (x86)\Microsoft Office\Office14\SCANPST.EXE"
+        )
+        $found = $false
+        foreach ($p in $scanPstPaths) {
+            if (Test-Path $p) {
+                Start-Process $p
+                $found = $true
+                break
+            }
+        }
+        if (-not $found) {
+            $search = Get-ChildItem -Path "C:\Program Files", "C:\Program Files (x86)" -Filter "SCANPST.EXE" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+            if ($search) {
+                Start-Process $search.FullName
+                $found = $true
+            }
+        }
+        if (-not $found) {
+            [System.Windows.Forms.MessageBox]::Show("ScanPST.exe not found. Please ensure Microsoft Outlook is installed on this PC.", "ScanPST", "OK", "Warning")
+        }
+    })
+}
+
+if ($btnSafeWord) { $btnSafeWord.Add_Click({ Start-Process winword.exe -ArgumentList "/safe" -ErrorAction SilentlyContinue }) }
+if ($btnSafeExcel) { $btnSafeExcel.Add_Click({ Start-Process excel.exe -ArgumentList "/safe" -ErrorAction SilentlyContinue }) }
+if ($btnSafePPT) { $btnSafePPT.Add_Click({ Start-Process powerpnt.exe -ArgumentList "/safe" -ErrorAction SilentlyContinue }) }
+if ($btnSafeOutlook) { $btnSafeOutlook.Add_Click({ Start-Process outlook.exe -ArgumentList "/safe" -ErrorAction SilentlyContinue }) }
+
+if ($btnRebootRecovery) {
+    $btnRebootRecovery.Add_Click({
+        $res = [System.Windows.Forms.MessageBox]::Show("Are you sure you want to reboot immediately into the Windows Advanced Startup / Recovery Menu?", "Reboot to Recovery", "YesNo", "Question")
+        if ($res -eq [System.Windows.Forms.DialogResult]::Yes) {
+            Start-Process shutdown.exe -ArgumentList "/r /o /f /t 00" -Verb RunAs
+        }
+    })
+}
+
+if ($btnEnableBootFailures) {
+    $btnEnableBootFailures.Add_Click({
+        Start-Process bcdedit.exe -ArgumentList "/set {default} bootstatuspolicy displayallfailures" -Wait
+        Start-Process bcdedit.exe -ArgumentList "/set {default} recoveryenabled yes" -Wait
+        [System.Windows.Forms.MessageBox]::Show("Windows Boot Failures Menu Policy and Recovery Enabled!", "Boot Policy", "OK", "Information")
+    })
+}
+
+if ($btnFixPrinter0x11b) {
+    $btnFixPrinter0x11b.Add_Click({
+        Set-ItemProperty -Path "HKLM:\System\CurrentControlSet\Control\Print" -Name "RpcAuthnLevelPrivacyEnabled" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
+        Restart-Service -Name Spooler -Force -ErrorAction SilentlyContinue
+        [System.Windows.Forms.MessageBox]::Show("Fixed Network Shared Printer Error 0x0000011b (RpcAuthnLevelPrivacyEnabled=0). Spooler restarted!", "Printer Fix", "OK", "Information")
+    })
+}
+
+if ($btnConfigPrinterGPO) {
+    $btnConfigPrinterGPO.Add_Click({
+        $regPath = "HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\Printers\RPC"
+        if (-not (Test-Path $regPath)) { New-Item -Path $regPath -Force | Out-Null }
+        Set-ItemProperty -Path $regPath -Name "RpcOverNamedPipes" -Value 1 -Type DWord -Force -ErrorAction SilentlyContinue
+        Set-ItemProperty -Path $regPath -Name "RpcOverTcp" -Value 1 -Type DWord -Force -ErrorAction SilentlyContinue
+        Set-ItemProperty -Path $regPath -Name "RpcAuthentication" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
+        [System.Windows.Forms.MessageBox]::Show("Group Policy RPC connection settings configured for seamless printer sharing!", "Printer Policy", "OK", "Information")
+    })
+}
+
+if ($btnEnableLPD) {
+    $btnEnableLPD.Add_Click({
+        Start-Process cmd.exe -ArgumentList "/k dism /online /enable-feature /featurename:Printing-Foundation-LPDPrintService /featurename:Printing-Foundation-LPRPortMonitor /all /norestart & echo Done! & pause" -Verb RunAs
+    })
+}
+
+if ($btnRestartPrinterServices) {
+    $btnRestartPrinterServices.Add_Click({
+        @("fdrespub", "SSDPSRV", "upnphost", "LanmanWorkstation", "LanmanServer", "Spooler") | ForEach-Object {
+            Restart-Service -Name $_ -Force -ErrorAction SilentlyContinue
+        }
+        [System.Windows.Forms.MessageBox]::Show("Network Discovery, SMB Server/Workstation, and Print Spooler services restarted!", "Printer & Discovery Services", "OK", "Information")
+    })
+}
+
+if ($btnFlushPrintSpooler) {
+    $btnFlushPrintSpooler.Add_Click({
+        Stop-Service -Name Spooler -Force -ErrorAction SilentlyContinue
+        Remove-Item -Path "C:\Windows\System32\spool\PRINTERS\*" -Force -Recurse -ErrorAction SilentlyContinue
+        Start-Service -Name Spooler -ErrorAction SilentlyContinue
+        [System.Windows.Forms.MessageBox]::Show("Print Spooler queue flushed and service restarted successfully!", "Print Spooler", "OK", "Information")
+    })
+}
+
+if ($btnLaunchPrinterDiag) {
+    $btnLaunchPrinterDiag.Add_Click({
+        Start-Process msdt.exe -ArgumentList "/id PrinterDiagnostic" -ErrorAction SilentlyContinue
+    })
+}
+
+if ($btnFlushRAMCache) {
+    $btnFlushRAMCache.Add_Click({
+        [System.GC]::Collect()
+        [System.GC]::WaitForPendingFinalizers()
+        Get-Process | ForEach-Object {
+            try {
+                $_.MinWorkingSet = [IntPtr]::Zero
+                $_.MaxWorkingSet = [IntPtr]::Zero
+            } catch {}
+        }
+        [System.Windows.Forms.MessageBox]::Show("Process memory working sets trimmed and RAM cache optimized!", "RAM Cache Optimizer", "OK", "Information")
+    })
+}
+
+if ($btnCleanBrowserCache) {
+    $btnCleanBrowserCache.Add_Click({
+        $userProfile = $env:USERPROFILE
+        $cachePaths = @(
+            "$userProfile\AppData\Local\Google\Chrome\User Data\Default\Cache\*",
+            "$userProfile\AppData\Local\Google\Chrome\User Data\Default\Code Cache\*",
+            "$userProfile\AppData\Local\Microsoft\Edge\User Data\Default\Cache\*",
+            "$userProfile\AppData\Local\Microsoft\Edge\User Data\Default\Code Cache\*",
+            "$userProfile\AppData\Local\Mozilla\Firefox\Profiles\*\cache2\*"
+        )
+        foreach ($cp in $cachePaths) {
+            Remove-Item -Path $cp -Recurse -Force -ErrorAction SilentlyContinue
+        }
+        [System.Windows.Forms.MessageBox]::Show("Web Browser caches and temporary files cleared!", "Browser Cache", "OK", "Information")
+    })
+}
+
+if ($btnRepairWUServiceComprehensive) {
+    $btnRepairWUServiceComprehensive.Add_Click({
+        Stop-Service -Name wuauserv, bits, cryptsvc, trustedinstaller, dosvc, UsoSvc -Force -ErrorAction SilentlyContinue
+        Rename-Item -Path "C:\Windows\SoftwareDistribution" -NewName "SoftwareDistribution.old_$(Get-Date -Format 'yyyyMMdd_HHmmss')" -Force -ErrorAction SilentlyContinue
+        Rename-Item -Path "C:\Windows\System32\catroot2" -NewName "catroot2.old_$(Get-Date -Format 'yyyyMMdd_HHmmss')" -Force -ErrorAction SilentlyContinue
+        Start-Service -Name wuauserv, bits, cryptsvc, trustedinstaller, dosvc, UsoSvc -ErrorAction SilentlyContinue
+        [System.Windows.Forms.MessageBox]::Show("Comprehensive Windows Update Service pipeline and download cache fully reset!", "Windows Update Engine", "OK", "Information")
+    })
+}
+
+if ($btnBlockWinUpdates) {
+    $btnBlockWinUpdates.Add_Click({
+        Stop-Service -Name wuauserv, bits, dosvc, UsoSvc, WaaSMedicSvc -Force -ErrorAction SilentlyContinue
+        Set-Service -Name wuauserv, bits, dosvc, UsoSvc, WaaSMedicSvc -StartupType Disabled -ErrorAction SilentlyContinue
+        Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU" -Name "NoAutoUpdate" -Value 1 -Type DWord -Force -ErrorAction SilentlyContinue
+        [System.Windows.Forms.MessageBox]::Show("Windows Updates completely disabled and blocked!", "Windows Updates", "OK", "Information")
+    })
+}
+
+if ($btnEnableWinUpdates) {
+    $btnEnableWinUpdates.Add_Click({
+        Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU" -Name "NoAutoUpdate" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
+        Set-Service -Name wuauserv, bits, dosvc, UsoSvc -StartupType Manual -ErrorAction SilentlyContinue
+        Start-Service -Name wuauserv, bits, dosvc -ErrorAction SilentlyContinue
+        [System.Windows.Forms.MessageBox]::Show("Windows Updates restored and enabled to default state!", "Windows Updates", "OK", "Information")
+    })
+}
+
+if ($btnResetDefenderPolicies) {
+    $btnResetDefenderPolicies.Add_Click({
+        Remove-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender" -Recurse -Force -ErrorAction SilentlyContinue
+        Remove-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Advanced Threat Protection" -Recurse -Force -ErrorAction SilentlyContinue
+        Start-Process cmd.exe -ArgumentList "/c `"%ProgramFiles%\Windows Defender\MpCmdRun.exe`" -RestoreDefaults" -Wait -NoNewWindow
+        [System.Windows.Forms.MessageBox]::Show("Windows Defender policies reset to default and service refreshed!", "Defender Policies", "OK", "Information")
+    })
+}
+
+if ($btnRestoreFirewallSettings) {
+    $btnRestoreFirewallSettings.Add_Click({
+        Start-Process netsh.exe -ArgumentList "advfirewall reset" -Wait -NoNewWindow
+        [System.Windows.Forms.MessageBox]::Show("Windows Firewall rules and configuration restored to default!", "Firewall Reset", "OK", "Information")
+    })
+}
+
+if ($btnResetAudioPlaybackServices) {
+    $btnResetAudioPlaybackServices.Add_Click({
+        Restart-Service -Name Audiosrv, AudioEndpointBuilder -Force -ErrorAction SilentlyContinue
+        [System.Windows.Forms.MessageBox]::Show("Windows Audio and Endpoint Builder services restarted!", "Audio Reset", "OK", "Information")
+    })
+}
+
+if ($btnRestartExplorerQuick2) {
+    $btnRestartExplorerQuick2.Add_Click({
+        Stop-Process -Name explorer -Force -ErrorAction SilentlyContinue
+        Start-Sleep -Milliseconds 500
+        Start-Process explorer.exe
+        [System.Windows.Forms.MessageBox]::Show("Windows Explorer Shell restarted successfully!", "Explorer", "OK", "Information")
+    })
+}
+
+if ($btnClearAllEventLogs) {
+    $btnClearAllEventLogs.Add_Click({
+        Start-Process powershell.exe -ArgumentList "-NoProfile -Command `"wevtutil el | ForEach-Object { wevtutil cl `"`$_`" }`"" -Verb RunAs -Wait
+        [System.Windows.Forms.MessageBox]::Show("All System, Application, and Security Event Logs cleared!", "Event Logs", "OK", "Information")
+    })
+}
+
+if ($btnRebuildIconCache) {
+    $btnRebuildIconCache.Add_Click({
+        Stop-Process -Name explorer -Force -ErrorAction SilentlyContinue
+        Start-Sleep -Milliseconds 500
+        Remove-Item -Path "$env:LOCALAPPDATA\IconCache.db" -Force -ErrorAction SilentlyContinue
+        Remove-Item -Path "$env:LOCALAPPDATA\Microsoft\Windows\Explorer\thumbcache_*.db" -Force -ErrorAction SilentlyContinue
+        Remove-Item -Path "$env:LOCALAPPDATA\Microsoft\Windows\Explorer\iconcache_*.db" -Force -ErrorAction SilentlyContinue
+        Start-Process explorer.exe
+        [System.Windows.Forms.MessageBox]::Show("Desktop Icon & Thumbnail Cache purged and Explorer restarted!", "Icon & Thumbnail Cache", "OK", "Information")
+    })
+}
+
+if ($btnRebuildFontCache) {
+    $btnRebuildFontCache.Add_Click({
+        Stop-Service -Name "FontCache" -Force -ErrorAction SilentlyContinue
+        Stop-Service -Name "FontCache3.0.0.0" -Force -ErrorAction SilentlyContinue
+        Remove-Item -Path "C:\Windows\ServiceProfiles\LocalService\AppData\Local\FontCache*.dat" -Force -ErrorAction SilentlyContinue
+        Remove-Item -Path "$env:LOCALAPPDATA\FontCache*.dat" -Force -ErrorAction SilentlyContinue
+        Start-Service -Name "FontCache" -ErrorAction SilentlyContinue
+        [System.Windows.Forms.MessageBox]::Show("Windows Font Cache database reset and rebuilt successfully!", "Font Cache", "OK", "Information")
+    })
+}
 
 # ==================== SECURITY & NET ====================
 $btnEnableUSBWriteProtect.Add_Click({
