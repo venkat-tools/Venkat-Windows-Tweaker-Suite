@@ -119,7 +119,7 @@ public class NativePassViewHelper {
     [TaskbarHelper]::SetCurrentProcessExplicitAppUserModelID("Venkat.WindowsTweaker.MasterSuite")
 } catch {}
 
-Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, System.Windows.Forms, System.Drawing
+Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, System.Windows.Forms, System.Drawing, Microsoft.VisualBasic
 
 [xml]$xaml = @"
 <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -791,6 +791,20 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
                                 </StackPanel>
                             </Border>
                         </Grid>
+
+                        <!-- Device Drivers Quick Actions -->
+                        <Border Background="#0F172A" CornerRadius="5" Padding="10" Margin="0,8,0,0" BorderBrush="#1E293B" BorderThickness="1">
+                            <StackPanel>
+                                <TextBlock Text="DEVICE DRIVERS BACKUP &amp; RESTORE ACTIONS" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
+                                <TextBlock Text="Export all installed 3rd-party device drivers (INF) to Desktop or restore/inject drivers." FontSize="10" Foreground="#94A3B8" Margin="0,0,0,6"/>
+                                <UniformGrid Columns="4">
+                                    <Button Name="btnExportDriversPT" Content="Export Drivers (Desktop)" Margin="2" Background="#059669" FontWeight="Bold"/>
+                                    <Button Name="btnRestoreDriversPT" Content="Restore Drivers (Folder)" Margin="2" Background="#6366F1" FontWeight="Bold"/>
+                                    <Button Name="btnOfflineInjectPT" Content="DISM Offline Inject" Margin="2" Background="#D97706" FontWeight="Bold"/>
+                                    <Button Name="btnDevMgmtPT" Content="Device Manager" Margin="2" Background="#0891B2" FontWeight="Bold"/>
+                                </UniformGrid>
+                            </StackPanel>
+                        </Border>
                     </StackPanel>
                 </ScrollViewer>
             </TabItem>
@@ -1343,10 +1357,28 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
                 <Grid Margin="6">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
 
-                    <Grid Grid.Row="0" Margin="0,0,0,6">
+                    <!-- TOP: DRIVER EXPORT & IMPORT MASTER BAR -->
+                    <Border Grid.Row="0" Background="#0F172A" CornerRadius="5" Padding="10" Margin="0,0,0,6" BorderBrush="#1E293B" BorderThickness="1">
+                        <StackPanel>
+                            <TextBlock Text="DEVICE DRIVERS BACKUP, EXPORT &amp; RESTORE MASTER HUB" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
+                            <TextBlock Text="Export all installed 3rd-party INF drivers to Desktop/Folder, or restore/inject drivers online &amp; offline." FontSize="10" Foreground="#94A3B8" Margin="0,0,0,6"/>
+                            <WrapPanel Orientation="Horizontal">
+                                <Button Name="btnExportDrivers" Content="Export Drivers (Desktop Backup)" Background="#059669" FontWeight="Bold" Padding="10,6" Margin="0,0,6,4"/>
+                                <Button Name="btnExportDriversCustom" Content="Export Drivers (Choose Folder)" Background="#0284C7" FontWeight="Bold" Padding="10,6" Margin="0,0,6,4"/>
+                                <Button Name="btnRestoreDrivers" Content="Import &amp; Restore Drivers (PnPUTIL)" Background="#6366F1" FontWeight="Bold" Padding="10,6" Margin="0,0,6,4"/>
+                                <Button Name="btnOfflineInjectDrivers" Content="Offline Driver Inject (DISM)" Background="#D97706" FontWeight="Bold" Padding="10,6" Margin="0,0,6,4"/>
+                                <Button Name="btnListDrivers" Content="List 3rd-Party Drivers" Background="#475569" FontWeight="Bold" Padding="10,6" Margin="0,0,6,4"/>
+                                <Button Name="btnOpenDevMgmt" Content="Open Device Manager" Background="#0891B2" FontWeight="Bold" Padding="10,6" Margin="0,0,6,4"/>
+                            </WrapPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- MIDDLE SPLIT: ROBOCOPY & ENTERPRISE/CACHE -->
+                    <Grid Grid.Row="1" Margin="0,0,0,6">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="1.2*"/>
                             <ColumnDefinition Width="*"/>
@@ -1377,34 +1409,27 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
                                     <Button Name="btnBrowseTarget" Grid.Column="1" Content="Browse" Width="60" Height="26" Margin="4,0,0,0"/>
                                 </Grid>
 
-                                <Button Name="btnRunRobocopy" Content="Run Robocopy Mirror Engine" Background="#0284C7" FontWeight="Bold" Height="28" Margin="0,0,0,4"/>
-                                <Button Name="btnExportBookmarks2" Content="Backup Browser Bookmarks (Chrome, Edge, Brave)" Background="#0D9488" Height="26"/>
+                                <UniformGrid Columns="2">
+                                    <Button Name="btnRunRobocopy" Content="Run Robocopy Mirror Engine" Background="#0284C7" FontWeight="Bold" Height="28" Margin="0,0,3,0"/>
+                                    <Button Name="btnExportBookmarks2" Content="Backup Browser Bookmarks" Background="#0D9488" Height="28" Margin="3,0,0,0"/>
+                                </UniformGrid>
                             </StackPanel>
                         </Border>
 
-                        <!-- Drivers & Enterprise -->
-                        <StackPanel Grid.Column="1" Margin="4,0,0,0">
-                            <Border Background="#0F172A" CornerRadius="5" Padding="8" Margin="0,0,0,4" BorderBrush="#1E293B" BorderThickness="1">
-                                <StackPanel>
-                                    <TextBlock Text="DRIVERS &amp; SOFTWARE PACKETS" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
-                                    <Button Name="btnExportDrivers" Content="Export Custom Device Drivers (Desktop Backup)" Margin="0,2" HorizontalContentAlignment="Left"/>
-                                    <Button Name="btnRestoreDrivers" Content="Restore Device Drivers from Folder" Margin="0,2" HorizontalContentAlignment="Left"/>
-                                    <Button Name="btnUpgradeWinget" Content="Force Upgrade All Installed Software (WinGet)" Margin="0,2" HorizontalContentAlignment="Left"/>
-                                </StackPanel>
-                            </Border>
-
-                            <Border Background="#0F172A" CornerRadius="5" Padding="8" BorderBrush="#1E293B" BorderThickness="1">
-                                <StackPanel>
-                                    <TextBlock Text="ENTERPRISE &amp; CACHE PURGE" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
-                                    <Button Name="btnRestartTally" Content="Restart Active Tally Gateway System Engines" Margin="0,2" HorizontalContentAlignment="Left"/>
-                                    <Button Name="btnPurgeCache" Content="Purge System Prefetch, Cache, and Temp Files" Margin="0,2" HorizontalContentAlignment="Left"/>
-                                </StackPanel>
-                            </Border>
-                        </StackPanel>
+                        <!-- Enterprise, Winget & Cache Purge -->
+                        <Border Grid.Column="1" Background="#0F172A" CornerRadius="5" Padding="10" Margin="4,0,0,0" BorderBrush="#1E293B" BorderThickness="1">
+                            <StackPanel>
+                                <TextBlock Text="ENTERPRISE, UPDATES &amp; CACHE PURGE" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
+                                <Button Name="btnUpgradeWinget" Content="Force Upgrade All Installed Software (WinGet)" Margin="0,2" HorizontalContentAlignment="Left"/>
+                                <Button Name="btnRestartTally" Content="Restart Active Tally Gateway System Engines" Margin="0,2" HorizontalContentAlignment="Left"/>
+                                <Button Name="btnPurgeCache" Content="Purge System Prefetch, Cache, and Temp Files" Margin="0,2" HorizontalContentAlignment="Left"/>
+                                <Button Name="btnCleanDriverStore" Content="Clean Old / Unused Driver Store Packages" Margin="0,2" HorizontalContentAlignment="Left"/>
+                            </StackPanel>
+                        </Border>
                     </Grid>
 
                     <!-- Terminal Output -->
-                    <Border Grid.Row="1" Background="#050B14" CornerRadius="5" Padding="6" BorderBrush="#1E293B" BorderThickness="1">
+                    <Border Grid.Row="2" Background="#050B14" CornerRadius="5" Padding="6" BorderBrush="#1E293B" BorderThickness="1">
                         <Grid>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto"/>
@@ -1812,10 +1837,19 @@ $btnBrowseTarget = $window.FindName("btnBrowseTarget")
 $btnRunRobocopy = $window.FindName("btnRunRobocopy")
 $btnExportBookmarks2 = $window.FindName("btnExportBookmarks2")
 $btnExportDrivers = $window.FindName("btnExportDrivers")
+$btnExportDriversCustom = $window.FindName("btnExportDriversCustom")
 $btnRestoreDrivers = $window.FindName("btnRestoreDrivers")
+$btnOfflineInjectDrivers = $window.FindName("btnOfflineInjectDrivers")
+$btnListDrivers = $window.FindName("btnListDrivers")
+$btnOpenDevMgmt = $window.FindName("btnOpenDevMgmt")
 $btnUpgradeWinget = $window.FindName("btnUpgradeWinget")
 $btnRestartTally = $window.FindName("btnRestartTally")
 $btnPurgeCache = $window.FindName("btnPurgeCache")
+$btnCleanDriverStore = $window.FindName("btnCleanDriverStore")
+$btnExportDriversPT = $window.FindName("btnExportDriversPT")
+$btnRestoreDriversPT = $window.FindName("btnRestoreDriversPT")
+$btnOfflineInjectPT = $window.FindName("btnOfflineInjectPT")
+$btnDevMgmtPT = $window.FindName("btnDevMgmtPT")
 $txtTerminalLog = $window.FindName("txtTerminalLog")
 
 $btnHubReg2 = $window.FindName("btnHubReg2")
@@ -3767,26 +3801,105 @@ $btnExportBookmarks2.Add_Click({
     Append-Log("Exported $copied browser bookmarks.")
     [System.Windows.Forms.MessageBox]::Show("Exported $copied browser bookmarks files directly onto Desktop!", "Bookmarks", "OK", "Information")
 })
-$btnExportDrivers.Add_Click({
+$script:ExportDriversAction = {
+    param([string]$targetBaseFolder)
     $desktop = [Environment]::GetFolderPath("Desktop")
-    $driverDest = "$desktop\Exported_Drivers_$(Get-Date -Format 'yyyyMMdd_HHmmss')"
+    if ([string]::IsNullOrWhiteSpace($targetBaseFolder)) { $targetBaseFolder = $desktop }
+    $driverDest = Join-Path $targetBaseFolder "Exported_Drivers_$(Get-Date -Format 'yyyyMMdd_HHmmss')"
     New-Item -Path $driverDest -ItemType Directory -Force | Out-Null
-    Append-Log("Exporting custom device drivers to $driverDest...")
-    Export-WindowsDriver -Online -Destination $driverDest | Out-Null
-    Append-Log("Drivers backup complete.")
-    [System.Windows.Forms.MessageBox]::Show("All custom third-party drivers backed up to Desktop:`n$driverDest", "Drivers Backup", "OK", "Information")
-})
-$btnRestoreDrivers.Add_Click({
+    Append-Log("Exporting 3rd-party device drivers to '$driverDest'...")
+
+    try {
+        Export-WindowsDriver -Online -Destination $driverDest -ErrorAction Stop | Out-Null
+    } catch {
+        Start-Process pnputil.exe -ArgumentList "/export-driver * `"$driverDest`"" -Wait -NoNewWindow
+    }
+
+    $infCount = (Get-ChildItem -Path $driverDest -Filter "*.inf" -Recurse -ErrorAction SilentlyContinue).Count
+    Append-Log("Driver backup completed! Total packages exported: $infCount")
+    [System.Windows.Forms.MessageBox]::Show("All custom device drivers backed up successfully!`n`nDestination: $driverDest`nTotal INF Packages: $infCount", "Driver Backup", "OK", "Information")
+}
+
+$script:RestoreDriversAction = {
     $fbd = New-Object System.Windows.Forms.FolderBrowserDialog
-    $fbd.Description = "Select folder containing exported driver INF files"
+    $fbd.Description = "Select folder containing exported driver (.INF) files"
     if ($fbd.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {
         $path = $fbd.SelectedPath
-        Append-Log("Restoring device drivers from '$path'...")
-        Start-Process pnputil.exe -ArgumentList "/add-driver `"$path\*.inf`" /subdirs /install" -Wait
-        Append-Log("Driver restoration completed.")
-        [System.Windows.Forms.MessageBox]::Show("Device driver restoration completed!", "Driver Restore", "OK", "Information")
+        Append-Log("Importing and installing device drivers from '$path' via PnPUTIL...")
+        $proc = Start-Process pnputil.exe -ArgumentList "/add-driver `"$path\*.inf`" /subdirs /install" -NoNewWindow -PassThru -Wait
+        Append-Log("Driver restoration completed (Exit Code: $($proc.ExitCode)).")
+        [System.Windows.Forms.MessageBox]::Show("Device driver restoration command executed from:`n$path`n`nCheck Device Manager to verify hardware status.", "Driver Restore", "OK", "Information")
     }
-})
+}
+
+$script:OfflineInjectAction = {
+    $drivePrompt = [Microsoft.VisualBasic.Interaction]::InputBox("Enter Target Windows Drive Letter (e.g. D: or E:):", "Offline Driver Injection (DISM)", "D:")
+    if ([string]::IsNullOrWhiteSpace($drivePrompt)) { return }
+    $driveLetter = $drivePrompt.TrimEnd('\')
+    if (-not (Test-Path "$driveLetter\Windows")) {
+        [System.Windows.Forms.MessageBox]::Show("Could not find a valid Windows directory at '$driveLetter\Windows'. Please check the drive letter.", "Invalid Target Drive", "OK", "Warning")
+        return
+    }
+
+    $fbd = New-Object System.Windows.Forms.FolderBrowserDialog
+    $fbd.Description = "Select folder containing driver INF files to inject into $driveLetter"
+    if ($fbd.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {
+        $driverPath = $fbd.SelectedPath
+        Append-Log("Injecting drivers into offline OS '$driveLetter\' from '$driverPath'...")
+        Start-Process cmd.exe -ArgumentList "/k DISM /Image:$driveLetter\ /Add-Driver /Driver:`"$driverPath`" /Recurse" -Verb RunAs
+        Append-Log("DISM offline driver injection process launched.")
+    }
+}
+
+$btnExportDrivers.Add_Click({ & $script:ExportDriversAction })
+if ($btnExportDriversPT) { $btnExportDriversPT.Add_Click({ & $script:ExportDriversAction }) }
+
+if ($btnExportDriversCustom) {
+    $btnExportDriversCustom.Add_Click({
+        $fbd = New-Object System.Windows.Forms.FolderBrowserDialog
+        $fbd.Description = "Select target folder or external USB drive for Driver Backup"
+        if ($fbd.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {
+            & $script:ExportDriversAction $fbd.SelectedPath
+        }
+    })
+}
+
+$btnRestoreDrivers.Add_Click({ & $script:RestoreDriversAction })
+if ($btnRestoreDriversPT) { $btnRestoreDriversPT.Add_Click({ & $script:RestoreDriversAction }) }
+
+if ($btnOfflineInjectDrivers) { $btnOfflineInjectDrivers.Add_Click({ & $script:OfflineInjectAction }) }
+if ($btnOfflineInjectPT) { $btnOfflineInjectPT.Add_Click({ & $script:OfflineInjectAction }) }
+
+if ($btnListDrivers) {
+    $btnListDrivers.Add_Click({
+        Append-Log("Fetching installed third-party drivers list...")
+        try {
+            $drivers = Get-WindowsDriver -Online -All | Where-Object { $_.Driver -match "oem" -or ($_.ProviderName -and $_.ProviderName -notmatch "Microsoft") } | Select-Object -First 40
+            if ($drivers) {
+                Append-Log("--- INSTALLED THIRD-PARTY DRIVERS ---")
+                foreach ($d in $drivers) {
+                    Append-Log("[$($d.Driver)] Class: $($d.ClassName) | Provider: $($d.ProviderName) | Version: $($d.Version) | Date: $($d.Date)")
+                }
+                Append-Log("--- END OF DRIVER LIST ---")
+            } else {
+                $pnpList = pnputil /enum-drivers
+                Append-Log(($pnpList -join "`r`n"))
+            }
+        } catch {
+            Start-Process cmd.exe -ArgumentList "/k pnputil /enum-drivers" -Verb RunAs
+        }
+    })
+}
+
+if ($btnOpenDevMgmt) { $btnOpenDevMgmt.Add_Click({ Start-Process devmgmt.msc }) }
+if ($btnDevMgmtPT) { $btnDevMgmtPT.Add_Click({ Start-Process devmgmt.msc }) }
+
+if ($btnCleanDriverStore) {
+    $btnCleanDriverStore.Add_Click({
+        Append-Log("Launching Driver Store and Component Cleanup engine...")
+        Start-Process cmd.exe -ArgumentList "/k echo === DISM & PNP CLEANUP === & DISM /Online /Cleanup-Image /StartComponentCleanup /ResetBase & echo Done! & pause" -Verb RunAs
+    })
+}
 $btnUpgradeWinget.Add_Click({
     Append-Log("Running WinGet software upgrade suite...")
     Start-Process cmd.exe -ArgumentList "/k winget upgrade --all --include-unknown --accept-package-agreements --accept-source-agreements" -Verb RunAs
