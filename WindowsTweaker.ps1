@@ -1114,31 +1114,7 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
 
                     <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto" Margin="0,0,0,6">
                         <StackPanel>
-                            <!-- Context Menu Extensions -->
-                            <Border Background="#0F172A" CornerRadius="5" Padding="10" Margin="0,0,0,8" BorderBrush="#1E293B" BorderThickness="1">
-                                <StackPanel>
-                                    <TextBlock Text="POWER CONTEXT MENU EXTENSIONS" FontSize="11.5" FontWeight="Bold" Foreground="#10B981" Margin="0,0,0,4"/>
-                                    <TextBlock Text="Add productivity actions directly into Windows right-click file &amp; folder context menu." FontSize="10" Foreground="#94A3B8" Margin="0,0,0,6"/>
-                                    <UniformGrid Columns="3">
-                                        <Button Name="btnContextCopyPath" Content="Add 'Copy Path' to Menu" Margin="2" Background="#0284C7"/>
-                                        <Button Name="btnContextCompact" Content="Add 'Compact Folder' to Menu" Margin="2" Background="#059669"/>
-                                        <Button Name="btnContextPermanentDelete" Content="Add 'Permanent Delete' to Menu" Margin="2" Background="#DC2626"/>
-                                    </UniformGrid>
-                                </StackPanel>
-                            </Border>
-
-                            <!-- Windows 11 Bypasses -->
-                            <Border Background="#0F172A" CornerRadius="5" Padding="10" Margin="0,0,0,8" BorderBrush="#1E293B" BorderThickness="1">
-                                <StackPanel>
-                                    <TextBlock Text="WINDOWS 11 BYPASSES &amp; SPECIAL TWEAKS" FontSize="11.5" FontWeight="Bold" Foreground="#F59E0B" Margin="0,0,0,4"/>
-                                    <CheckBox Name="chkBypassTPM" Content="Bypass Windows 11 TPM 2.0, SecureBoot &amp; RAM Check Requirements" IsChecked="True"/>
-                                    <CheckBox Name="chkRemoveWatermark" Content="Remove 'System requirements not met' Desktop Watermark" IsChecked="True"/>
-                                    <CheckBox Name="chkBlockDriverWU" Content="Prevent Windows Update from Overwriting Graphics &amp; Audio Drivers" IsChecked="True"/>
-                                    <CheckBox Name="chkAlignTaskbarLeft" Content="Set Windows 11 Taskbar Alignment to Left (Classic Windows Style)"/>
-                                </StackPanel>
-                            </Border>
-
-                            <!-- Telemetry & Privacy -->
+                            <!-- 1. Telemetry & Privacy -->
                             <Border Background="#0F172A" CornerRadius="5" Padding="10" Margin="0,0,0,8" BorderBrush="#1E293B" BorderThickness="1">
                                 <StackPanel>
                                     <TextBlock Text="TELEMETRY &amp; PRIVACY (RECOMMENDED)" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
@@ -1153,35 +1129,55 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
                                 </StackPanel>
                             </Border>
 
-                            <!-- System Optimization & UI -->
+                            <!-- 2. System Optimizations & Adjustments -->
                             <Border Background="#0F172A" CornerRadius="5" Padding="10" Margin="0,0,0,8" BorderBrush="#1E293B" BorderThickness="1">
                                 <StackPanel>
-                                    <TextBlock Text="SYSTEM OPTIMIZATION &amp; UI DELAYS" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
+                                    <TextBlock Text="SYSTEM OPTIMIZATIONS &amp; ADJUSTMENTS" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
+                                    <CheckBox Name="chkHighPower" Content="Enable High-Performance Power Plan Scheme"/>
                                     <CheckBox Name="chkUltPower" Content="Enable Ultimate Performance Power Plan Scheme" IsChecked="True"/>
                                     <CheckBox Name="chkStartupDelay" Content="Disable Startup Delay for Desktop Apps launcher" IsChecked="True"/>
                                     <CheckBox Name="chkStickyKeys" Content="Disable Sticky Keys Prompt Popup warning" IsChecked="True"/>
-                                    <CheckBox Name="chkMenuDelay" Content="Speed Up Menu &amp; Window animation delays (0 ms)" IsChecked="True"/>
-                                    <CheckBox Name="chkNtfsTime" Content="Disable NTFS Last Access Timestamp updating" IsChecked="True"/>
+                                    <CheckBox Name="chkVirtSecurity" Content="Enable Virtualization Security Mitigations Fix"/>
+                                    <CheckBox Name="chkDisableHibernation" Content="Disable System Hibernation File (saves GBs of space)"/>
+                                    <CheckBox Name="chkMenuDelay" Content="Speed Up Menu &amp; Window animation delays" IsChecked="True"/>
+                                    <CheckBox Name="chkNtfsTime" Content="Disable NTFS Last-Access Timestamp updating" IsChecked="True"/>
                                     <CheckBox Name="chkUniversalBg" Content="Disable Universal App Background Run (Saves RAM/CPU)" IsChecked="True"/>
                                     <CheckBox Name="chkEdgePreload" Content="Stop Edge/Office Startup Pre-loading apps" IsChecked="True"/>
+                                    <CheckBox Name="chkHAGS" Content="Enable Hardware Accelerated GPU Scheduling (HAGS)"/>
+                                    <CheckBox Name="chkTransparency" Content="Disable Desktop Transparency &amp; Blur Effects"/>
                                     <CheckBox Name="chkGameDVR" Content="Disable Xbox Game Bar &amp; Background DVR Recording" IsChecked="True"/>
                                     <CheckBox Name="chkNetThrottle" Content="Disable Network Throttling Index for Gaming" IsChecked="True"/>
-                                    <CheckBox Name="chkGameLatency" Content="Optimize Network TCP/IP Latency for Online Gaming" IsChecked="True"/>
                                     <CheckBox Name="chkHoverDelays" Content="Disable Windows UI Hover Delays &amp; Speed up Taskbar" IsChecked="True"/>
                                     <CheckBox Name="chkSearchHighlights" Content="Disable Dynamic Search Highlights on Taskbar" IsChecked="True"/>
                                 </StackPanel>
                             </Border>
 
-                            <!-- Context Menu & Explorer -->
+                            <!-- 3. Right-Click Context Menu Tweaks -->
                             <Border Background="#0F172A" CornerRadius="5" Padding="10" Margin="0,0,0,8" BorderBrush="#1E293B" BorderThickness="1">
                                 <StackPanel>
-                                    <TextBlock Text="RIGHT-CLICK CONTEXT MENU &amp; EXPLORER" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
+                                    <TextBlock Text="RIGHT-CLICK CONTEXT MENU TWEAKS" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
                                     <CheckBox Name="chkTakeOwn" Content="Add 'Take Ownership' option to File Context Menu" IsChecked="True"/>
                                     <CheckBox Name="chkOpenNotepad" Content="Add 'Open with Notepad' option to File Context Menu" IsChecked="True"/>
                                     <CheckBox Name="chkKillStuck" Content="Add 'Kill Not Responding Tasks' to Desktop Menu" IsChecked="True"/>
                                     <CheckBox Name="chkCmdAdmin" Content="Add 'Command Prompt Here (Admin)' to Folder Menu" IsChecked="True"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- 4. Cleaners, Bloatware & Services -->
+                            <Border Background="#0F172A" CornerRadius="5" Padding="10" Margin="0,0,0,8" BorderBrush="#1E293B" BorderThickness="1">
+                                <StackPanel>
+                                    <TextBlock Text="CLEANERS, BLOATWARE &amp; SERVICES" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
+                                    <CheckBox Name="chkCleanTemp" Content="Clean Temporary Files and Prefetch folder"/>
+                                    <CheckBox Name="chkCleanmgr" Content="Run Disk Cleanup (Cleanmgr Utility) on drive C:"/>
+                                    <CheckBox Name="chkDisableOneDrive" Content="Disable OneDrive Syncing &amp; Auto Startup run"/>
+                                    <CheckBox Name="chkRemoveBloatware" Content="Remove Default Windows UWP Bloatware (Xbox, Solitaire, News, Weather)"/>
+                                    <CheckBox Name="chkDisableSearchIndexer" Content="Disable Search Indexer background service"/>
+                                    <CheckBox Name="chkDisableDefender" Content="Disable Windows Defender Antivirus suite"/>
+                                    <CheckBox Name="chkStopWU" Content="Stop &amp; Disable Windows Automatic Updates service"/>
+                                    <CheckBox Name="chkGameLatency" Content="Optimize Network TCP/IP Latency for Online Gaming" IsChecked="True"/>
                                     <CheckBox Name="chkShowExt" Content="Show File Name Extensions in Windows Explorer" IsChecked="True"/>
-                                    <CheckBox Name="chkTaskbarWidgets" Content="Disable Windows 11 Taskbar News/Weather widgets" IsChecked="True"/>
+                                    <CheckBox Name="chkShowHidden" Content="Show Hidden Files, Folders, and NTFS Drives"/>
+                                    <CheckBox Name="chkWin11ClassicMenu" Content="Enable Windows 11 Classic Right-Click Context Menu"/>
                                     <CheckBox Name="chkPhotoViewer" Content="Restore Classic Windows Photo Viewer" IsChecked="True"/>
                                 </StackPanel>
                             </Border>
@@ -1197,9 +1193,9 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
                             <StackPanel Grid.Column="0" Orientation="Horizontal">
-                                <TextBlock Text="Presets: " Foreground="#94A3B8" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                <TextBlock Text="Quick Presets: " Foreground="#94A3B8" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,6,0"/>
                                 <Button Name="btnPresetRecommended" Content="Recommended" Background="#059669" Width="105" Margin="0,0,4,0"/>
-                                <Button Name="btnPresetUltra" Content="Ultra Fast Mode" Background="#D97706" Width="110" Margin="0,0,4,0"/>
+                                <Button Name="btnPresetOnlyTweaks" Content="Only Tweaks" Background="#D97706" Width="95" Margin="0,0,4,0"/>
                                 <Button Name="btnPresetClear" Content="Clear All" Background="#DC2626" Width="75"/>
                             </StackPanel>
                             <Button Name="btnApplyTweaksBatch" Grid.Column="2" Content="Apply Selected Tweaks" Background="#0284C7" FontWeight="Bold" Width="160" Height="28"/>
@@ -1865,13 +1861,18 @@ $chkLocation = $window.FindName("chkLocation")
 $chkActivity = $window.FindName("chkActivity")
 $chkFeedback = $window.FindName("chkFeedback")
 $chkSmartScreen = $window.FindName("chkSmartScreen")
+$chkHighPower = $window.FindName("chkHighPower")
 $chkUltPower = $window.FindName("chkUltPower")
 $chkStartupDelay = $window.FindName("chkStartupDelay")
 $chkStickyKeys = $window.FindName("chkStickyKeys")
+$chkVirtSecurity = $window.FindName("chkVirtSecurity")
+$chkDisableHibernation = $window.FindName("chkDisableHibernation")
 $chkMenuDelay = $window.FindName("chkMenuDelay")
 $chkNtfsTime = $window.FindName("chkNtfsTime")
 $chkUniversalBg = $window.FindName("chkUniversalBg")
 $chkEdgePreload = $window.FindName("chkEdgePreload")
+$chkHAGS = $window.FindName("chkHAGS")
+$chkTransparency = $window.FindName("chkTransparency")
 $chkGameDVR = $window.FindName("chkGameDVR")
 $chkNetThrottle = $window.FindName("chkNetThrottle")
 $chkGameLatency = $window.FindName("chkGameLatency")
@@ -1881,12 +1882,20 @@ $chkTakeOwn = $window.FindName("chkTakeOwn")
 $chkOpenNotepad = $window.FindName("chkOpenNotepad")
 $chkKillStuck = $window.FindName("chkKillStuck")
 $chkCmdAdmin = $window.FindName("chkCmdAdmin")
+$chkCleanTemp = $window.FindName("chkCleanTemp")
+$chkCleanmgr = $window.FindName("chkCleanmgr")
+$chkDisableOneDrive = $window.FindName("chkDisableOneDrive")
+$chkRemoveBloatware = $window.FindName("chkRemoveBloatware")
+$chkDisableSearchIndexer = $window.FindName("chkDisableSearchIndexer")
+$chkDisableDefender = $window.FindName("chkDisableDefender")
+$chkStopWU = $window.FindName("chkStopWU")
 $chkShowExt = $window.FindName("chkShowExt")
-$chkTaskbarWidgets = $window.FindName("chkTaskbarWidgets")
+$chkShowHidden = $window.FindName("chkShowHidden")
+$chkWin11ClassicMenu = $window.FindName("chkWin11ClassicMenu")
 $chkPhotoViewer = $window.FindName("chkPhotoViewer")
 
 $btnPresetRecommended = $window.FindName("btnPresetRecommended")
-$btnPresetUltra = $window.FindName("btnPresetUltra")
+$btnPresetOnlyTweaks = $window.FindName("btnPresetOnlyTweaks")
 $btnPresetClear = $window.FindName("btnPresetClear")
 $btnApplyTweaksBatch = $window.FindName("btnApplyTweaksBatch")
 
@@ -3508,113 +3517,239 @@ $btnRegBackup2.Add_Click({
 })
 
 # ==================== TWEAKS & BYPASSES ====================
-$btnPresetRecommended.Add_Click({
-    $chkBypassTPM.IsChecked = $true; $chkRemoveWatermark.IsChecked = $true; $chkBlockDriverWU.IsChecked = $true
-    $chkTelemetry.IsChecked = $true; $chkCortana.IsChecked = $true; $chkBing.IsChecked = $true; $chkAds.IsChecked = $true
-    $chkLocation.IsChecked = $true; $chkActivity.IsChecked = $true; $chkFeedback.IsChecked = $true; $chkSmartScreen.IsChecked = $false
-    $chkUltPower.IsChecked = $true; $chkStartupDelay.IsChecked = $true; $chkStickyKeys.IsChecked = $true; $chkMenuDelay.IsChecked = $true
-    $chkNtfsTime.IsChecked = $true; $chkUniversalBg.IsChecked = $true; $chkEdgePreload.IsChecked = $true; $chkGameDVR.IsChecked = $true
-    $chkNetThrottle.IsChecked = $true; $chkGameLatency.IsChecked = $true; $chkHoverDelays.IsChecked = $true; $chkSearchHighlights.IsChecked = $true
-    $chkTakeOwn.IsChecked = $true; $chkOpenNotepad.IsChecked = $true; $chkKillStuck.IsChecked = $true; $chkCmdAdmin.IsChecked = $true
-    $chkShowExt.IsChecked = $true; $chkTaskbarWidgets.IsChecked = $true; $chkPhotoViewer.IsChecked = $true
-    Append-Log("Loaded Recommended Tweaks & Bypasses.")
-})
-$btnPresetUltra.Add_Click({
-    $all = @($chkBypassTPM, $chkRemoveWatermark, $chkBlockDriverWU, $chkAlignTaskbarLeft, $chkTelemetry, $chkCortana, $chkBing, $chkAds, $chkLocation, $chkActivity, $chkFeedback, $chkUltPower, $chkStartupDelay, $chkStickyKeys, $chkMenuDelay, $chkNtfsTime, $chkUniversalBg, $chkEdgePreload, $chkGameDVR, $chkNetThrottle, $chkGameLatency, $chkHoverDelays, $chkSearchHighlights, $chkTakeOwn, $chkOpenNotepad, $chkKillStuck, $chkCmdAdmin, $chkShowExt, $chkTaskbarWidgets, $chkPhotoViewer)
-    foreach ($c in $all) { if ($c) { $c.IsChecked = $true } }
-    Append-Log("Loaded Ultra Fast Mode Preset.")
-})
-$btnPresetClear.Add_Click({
-    $all = @($chkBypassTPM, $chkRemoveWatermark, $chkBlockDriverWU, $chkAlignTaskbarLeft, $chkTelemetry, $chkCortana, $chkBing, $chkAds, $chkLocation, $chkActivity, $chkFeedback, $chkSmartScreen, $chkUltPower, $chkStartupDelay, $chkStickyKeys, $chkMenuDelay, $chkNtfsTime, $chkUniversalBg, $chkEdgePreload, $chkGameDVR, $chkNetThrottle, $chkGameLatency, $chkHoverDelays, $chkSearchHighlights, $chkTakeOwn, $chkOpenNotepad, $chkKillStuck, $chkCmdAdmin, $chkShowExt, $chkTaskbarWidgets, $chkPhotoViewer)
-    foreach ($c in $all) { if ($c) { $c.IsChecked = $false } }
-    Append-Log("Cleared all checkboxes.")
-})
-$btnApplyTweaksBatch.Add_Click({
-    Append-Log("Applying selected tweaks...")
-    if ($chkBypassTPM.IsChecked) {
-        New-Item -Path "HKLM:\SYSTEM\Setup\LabConfig" -Force -ErrorAction SilentlyContinue | Out-Null
-        Set-ItemProperty -Path "HKLM:\SYSTEM\Setup\LabConfig" -Name "BypassTPMCheck" -Value 1 -Type DWord -Force -ErrorAction SilentlyContinue
-        Set-ItemProperty -Path "HKLM:\SYSTEM\Setup\LabConfig" -Name "BypassSecureBootCheck" -Value 1 -Type DWord -Force -ErrorAction SilentlyContinue
-        Set-ItemProperty -Path "HKLM:\SYSTEM\Setup\LabConfig" -Name "BypassRAMCheck" -Value 1 -Type DWord -Force -ErrorAction SilentlyContinue
-        Set-ItemProperty -Path "HKLM:\SYSTEM\Setup\LabConfig" -Name "BypassStorageCheck" -Value 1 -Type DWord -Force -ErrorAction SilentlyContinue
-        Set-ItemProperty -Path "HKLM:\SYSTEM\Setup\LabConfig" -Name "BypassCPUCheck" -Value 1 -Type DWord -Force -ErrorAction SilentlyContinue
-        New-Item -Path "HKLM:\SYSTEM\Setup\MoSetup" -Force -ErrorAction SilentlyContinue | Out-Null
-        Set-ItemProperty -Path "HKLM:\SYSTEM\Setup\MoSetup" -Name "AllowUpgradesWithUnsupportedTPMOrCPU" -Value 1 -Type DWord -Force -ErrorAction SilentlyContinue
-    }
-    if ($chkRemoveWatermark.IsChecked) {
-        New-Item -Path "HKCU:\Control Panel\UnsupportedHardwareNotificationCache" -Force -ErrorAction SilentlyContinue | Out-Null
-        Set-ItemProperty -Path "HKCU:\Control Panel\UnsupportedHardwareNotificationCache" -Name "SV1" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
-        Set-ItemProperty -Path "HKCU:\Control Panel\UnsupportedHardwareNotificationCache" -Name "SV2" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
-    }
-    if ($chkBlockDriverWU.IsChecked) {
-        New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate" -Force -ErrorAction SilentlyContinue | Out-Null
-        Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate" -Name "ExcludeWUDriversInQualityUpdate" -Value 1 -Type DWord -Force -ErrorAction SilentlyContinue
-    }
-    if ($chkAlignTaskbarLeft.IsChecked) {
-        Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "TaskbarAl" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
-    }
-    if ($chkTelemetry.IsChecked) {
-        New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\DataCollection" -Force -ErrorAction SilentlyContinue | Out-Null
-        Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\DataCollection" -Name "AllowTelemetry" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
-        Stop-Service -Name DiagTrack -Force -ErrorAction SilentlyContinue
-        Set-Service -Name DiagTrack -StartupType Disabled -ErrorAction SilentlyContinue
-    }
-    if ($chkCortana.IsChecked) {
-        New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Search" -Force -ErrorAction SilentlyContinue | Out-Null
-        Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Search" -Name "AllowCortana" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
-    }
-    if ($chkBing.IsChecked) {
-        New-Item -Path "HKCU:\Software\Policies\Microsoft\Windows\Explorer" -Force -ErrorAction SilentlyContinue | Out-Null
-        Set-ItemProperty -Path "HKCU:\Software\Policies\Microsoft\Windows\Explorer" -Name "DisableSearchBoxSuggestions" -Value 1 -Type DWord -Force -ErrorAction SilentlyContinue
-        Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Search" -Name "BingSearchEnabled" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
-    }
-    if ($chkAds.IsChecked) {
-        Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\AdvertisingInfo" -Name "Enabled" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
-        Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System" -Name "EnableActivityFeed" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
-    }
-    if ($chkLocation.IsChecked) {
-        New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\LocationAndSensors" -Force -ErrorAction SilentlyContinue | Out-Null
-        Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\LocationAndSensors" -Name "DisableLocation" -Value 1 -Type DWord -Force -ErrorAction SilentlyContinue
-    }
-    if ($chkActivity.IsChecked) {
-        Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System" -Name "PublishUserActivities" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
-    }
-    if ($chkFeedback.IsChecked) {
-        New-Item -Path "HKCU:\Software\Microsoft\Siuf\Rules" -Force -ErrorAction SilentlyContinue | Out-Null
-        Set-ItemProperty -Path "HKCU:\Software\Microsoft\Siuf\Rules" -Name "NumberOfSIUFInPeriod" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
-    }
-    if ($chkUltPower.IsChecked) {
-        powercfg -duplicatescheme e9a42b02-d5df-448d-aa00-03f14749eb61 | Out-Null
-        powercfg /setactive e9a42b02-d5df-448d-aa00-03f14749eb61 | Out-Null
-    }
-    if ($chkStartupDelay.IsChecked) {
-        New-Item -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Serialize" -Force -ErrorAction SilentlyContinue | Out-Null
-        Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Serialize" -Name "StartupDelayInMSec" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
-    }
-    if ($chkMenuDelay.IsChecked) { Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "MenuShowDelay" -Value "0" -Type String -Force -ErrorAction SilentlyContinue }
-    if ($chkNtfsTime.IsChecked) { fsutil behavior set disablelastaccess 1 | Out-Null }
-    if ($chkGameDVR.IsChecked) {
-        Set-ItemProperty -Path "HKCU:\System\GameConfigStore" -Name "GameDVR_Enabled" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
-        Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\GameDVR" -Name "AllowGameDVR" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
-    }
-    if ($chkNetThrottle.IsChecked) { Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile" -Name "NetworkThrottlingIndex" -Value 0xFFFFFFFF -Type DWord -Force -ErrorAction SilentlyContinue }
-    if ($chkGameLatency.IsChecked) { Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile" -Name "SystemResponsiveness" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue }
-    if ($chkUniversalBg.IsChecked) { Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\BackgroundAccessApplications" -Name "GlobalUserDisabled" -Value 1 -Type DWord -Force -ErrorAction SilentlyContinue }
-    if ($chkTakeOwn.IsChecked) {
-        New-Item -Path "Registry::HKEY_CLASSES_ROOT\*\shell\runas" -Force -ErrorAction SilentlyContinue | Out-Null
-        Set-ItemProperty -Path "Registry::HKEY_CLASSES_ROOT\*\shell\runas" -Name "(Default)" -Value "Take Ownership" -Force -ErrorAction SilentlyContinue
-        New-Item -Path "Registry::HKEY_CLASSES_ROOT\*\shell\runas\command" -Force -ErrorAction SilentlyContinue | Out-Null
-        Set-ItemProperty -Path "Registry::HKEY_CLASSES_ROOT\*\shell\runas\command" -Name "(Default)" -Value 'cmd.exe /c takeown /f "%1" && icacls "%1" /grant administrators:F' -Force -ErrorAction SilentlyContinue
-    }
-    if ($chkShowExt.IsChecked) { Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "HideFileExt" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue }
-    if ($chkPhotoViewer.IsChecked) {
-        $pvPath = "HKLM:\SOFTWARE\Microsoft\Windows Photo Viewer\Capabilities\FileAssociations"
-        New-Item -Path $pvPath -Force -ErrorAction SilentlyContinue | Out-Null
-        @(".jpg", ".jpeg", ".png", ".bmp", ".gif", ".tiff") | ForEach-Object { Set-ItemProperty -Path $pvPath -Name $_ -Value "PhotoViewer.FileAssoc.Tiff" -Force -ErrorAction SilentlyContinue }
-    }
-    Append-Log("Selected tweaks and bypasses applied successfully!")
-    [System.Windows.Forms.MessageBox]::Show("All selected tweaks applied successfully!", "Tweaks Applied", "OK", "Information")
-})
+if ($btnPresetRecommended) {
+    $btnPresetRecommended.Add_Click({
+        $all = @($chkBypassTPM, $chkRemoveWatermark, $chkBlockDriverWU, $chkAlignTaskbarLeft, $chkTelemetry, $chkCortana, $chkBing, $chkAds, $chkLocation, $chkActivity, $chkFeedback, $chkSmartScreen, $chkHighPower, $chkUltPower, $chkStartupDelay, $chkStickyKeys, $chkVirtSecurity, $chkDisableHibernation, $chkMenuDelay, $chkNtfsTime, $chkUniversalBg, $chkEdgePreload, $chkHAGS, $chkTransparency, $chkGameDVR, $chkNetThrottle, $chkGameLatency, $chkHoverDelays, $chkSearchHighlights, $chkTakeOwn, $chkOpenNotepad, $chkKillStuck, $chkCmdAdmin, $chkCleanTemp, $chkCleanmgr, $chkDisableOneDrive, $chkRemoveBloatware, $chkDisableSearchIndexer, $chkDisableDefender, $chkStopWU, $chkShowExt, $chkShowHidden, $chkWin11ClassicMenu, $chkPhotoViewer)
+        foreach ($c in $all) { if ($c) { $c.IsChecked = $false } }
+        
+        $rec = @($chkBypassTPM, $chkRemoveWatermark, $chkBlockDriverWU, $chkTelemetry, $chkCortana, $chkBing, $chkAds, $chkLocation, $chkActivity, $chkFeedback, $chkHighPower, $chkStartupDelay, $chkStickyKeys, $chkMenuDelay, $chkNtfsTime, $chkUniversalBg, $chkEdgePreload, $chkHAGS, $chkGameDVR, $chkNetThrottle, $chkGameLatency, $chkHoverDelays, $chkSearchHighlights, $chkTakeOwn, $chkOpenNotepad, $chkKillStuck, $chkCmdAdmin, $chkCleanTemp, $chkShowExt, $chkShowHidden, $chkWin11ClassicMenu, $chkPhotoViewer)
+        foreach ($c in $rec) { if ($c) { $c.IsChecked = $true } }
+        Append-Log("Loaded Recommended Tweaks & Bypasses Preset.")
+    })
+}
+
+if ($btnPresetOnlyTweaks) {
+    $btnPresetOnlyTweaks.Add_Click({
+        $all = @($chkBypassTPM, $chkRemoveWatermark, $chkBlockDriverWU, $chkAlignTaskbarLeft, $chkTelemetry, $chkCortana, $chkBing, $chkAds, $chkLocation, $chkActivity, $chkFeedback, $chkSmartScreen, $chkHighPower, $chkUltPower, $chkStartupDelay, $chkStickyKeys, $chkVirtSecurity, $chkDisableHibernation, $chkMenuDelay, $chkNtfsTime, $chkUniversalBg, $chkEdgePreload, $chkHAGS, $chkTransparency, $chkGameDVR, $chkNetThrottle, $chkGameLatency, $chkHoverDelays, $chkSearchHighlights, $chkTakeOwn, $chkOpenNotepad, $chkKillStuck, $chkCmdAdmin, $chkCleanTemp, $chkCleanmgr, $chkDisableOneDrive, $chkRemoveBloatware, $chkDisableSearchIndexer, $chkDisableDefender, $chkStopWU, $chkShowExt, $chkShowHidden, $chkWin11ClassicMenu, $chkPhotoViewer)
+        foreach ($c in $all) { if ($c) { $c.IsChecked = $false } }
+        
+        $tweaks = @($chkBypassTPM, $chkRemoveWatermark, $chkBlockDriverWU, $chkAlignTaskbarLeft, $chkTelemetry, $chkCortana, $chkBing, $chkAds, $chkLocation, $chkActivity, $chkFeedback, $chkHighPower, $chkUltPower, $chkStartupDelay, $chkStickyKeys, $chkMenuDelay, $chkNtfsTime, $chkUniversalBg, $chkEdgePreload, $chkHAGS, $chkTransparency, $chkGameDVR, $chkNetThrottle, $chkGameLatency, $chkHoverDelays, $chkSearchHighlights, $chkTakeOwn, $chkOpenNotepad, $chkKillStuck, $chkCmdAdmin, $chkShowExt, $chkShowHidden, $chkWin11ClassicMenu, $chkPhotoViewer)
+        foreach ($c in $tweaks) { if ($c) { $c.IsChecked = $true } }
+        Append-Log("Loaded Only Tweaks Preset.")
+    })
+}
+
+if ($btnPresetClear) {
+    $btnPresetClear.Add_Click({
+        $all = @($chkBypassTPM, $chkRemoveWatermark, $chkBlockDriverWU, $chkAlignTaskbarLeft, $chkTelemetry, $chkCortana, $chkBing, $chkAds, $chkLocation, $chkActivity, $chkFeedback, $chkSmartScreen, $chkHighPower, $chkUltPower, $chkStartupDelay, $chkStickyKeys, $chkVirtSecurity, $chkDisableHibernation, $chkMenuDelay, $chkNtfsTime, $chkUniversalBg, $chkEdgePreload, $chkHAGS, $chkTransparency, $chkGameDVR, $chkNetThrottle, $chkGameLatency, $chkHoverDelays, $chkSearchHighlights, $chkTakeOwn, $chkOpenNotepad, $chkKillStuck, $chkCmdAdmin, $chkCleanTemp, $chkCleanmgr, $chkDisableOneDrive, $chkRemoveBloatware, $chkDisableSearchIndexer, $chkDisableDefender, $chkStopWU, $chkShowExt, $chkShowHidden, $chkWin11ClassicMenu, $chkPhotoViewer)
+        foreach ($c in $all) { if ($c) { $c.IsChecked = $false } }
+        Append-Log("Cleared all checkboxes.")
+    })
+}
+
+if ($btnApplyTweaksBatch) {
+    $btnApplyTweaksBatch.Add_Click({
+        Append-Log("Applying selected tweaks and system customizations...")
+        
+        # Telemetry & Privacy
+        if ($chkBypassTPM -and $chkBypassTPM.IsChecked) {
+            New-Item -Path "HKLM:\SYSTEM\Setup\LabConfig" -Force -ErrorAction SilentlyContinue | Out-Null
+            Set-ItemProperty -Path "HKLM:\SYSTEM\Setup\LabConfig" -Name "BypassTPMCheck" -Value 1 -Type DWord -Force -ErrorAction SilentlyContinue
+            Set-ItemProperty -Path "HKLM:\SYSTEM\Setup\LabConfig" -Name "BypassSecureBootCheck" -Value 1 -Type DWord -Force -ErrorAction SilentlyContinue
+            Set-ItemProperty -Path "HKLM:\SYSTEM\Setup\LabConfig" -Name "BypassRAMCheck" -Value 1 -Type DWord -Force -ErrorAction SilentlyContinue
+            Set-ItemProperty -Path "HKLM:\SYSTEM\Setup\LabConfig" -Name "BypassStorageCheck" -Value 1 -Type DWord -Force -ErrorAction SilentlyContinue
+            Set-ItemProperty -Path "HKLM:\SYSTEM\Setup\LabConfig" -Name "BypassCPUCheck" -Value 1 -Type DWord -Force -ErrorAction SilentlyContinue
+            New-Item -Path "HKLM:\SYSTEM\Setup\MoSetup" -Force -ErrorAction SilentlyContinue | Out-Null
+            Set-ItemProperty -Path "HKLM:\SYSTEM\Setup\MoSetup" -Name "AllowUpgradesWithUnsupportedTPMOrCPU" -Value 1 -Type DWord -Force -ErrorAction SilentlyContinue
+        }
+        if ($chkRemoveWatermark -and $chkRemoveWatermark.IsChecked) {
+            New-Item -Path "HKCU:\Control Panel\UnsupportedHardwareNotificationCache" -Force -ErrorAction SilentlyContinue | Out-Null
+            Set-ItemProperty -Path "HKCU:\Control Panel\UnsupportedHardwareNotificationCache" -Name "SV1" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
+            Set-ItemProperty -Path "HKCU:\Control Panel\UnsupportedHardwareNotificationCache" -Name "SV2" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
+        }
+        if ($chkBlockDriverWU -and $chkBlockDriverWU.IsChecked) {
+            New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate" -Force -ErrorAction SilentlyContinue | Out-Null
+            Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate" -Name "ExcludeWUDriversInQualityUpdate" -Value 1 -Type DWord -Force -ErrorAction SilentlyContinue
+        }
+        if ($chkAlignTaskbarLeft -and $chkAlignTaskbarLeft.IsChecked) {
+            Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "TaskbarAl" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
+        }
+        if ($chkTelemetry -and $chkTelemetry.IsChecked) {
+            New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\DataCollection" -Force -ErrorAction SilentlyContinue | Out-Null
+            Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\DataCollection" -Name "AllowTelemetry" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
+            Stop-Service -Name DiagTrack -Force -ErrorAction SilentlyContinue
+            Set-Service -Name DiagTrack -StartupType Disabled -ErrorAction SilentlyContinue
+        }
+        if ($chkCortana -and $chkCortana.IsChecked) {
+            New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Search" -Force -ErrorAction SilentlyContinue | Out-Null
+            Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Search" -Name "AllowCortana" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
+        }
+        if ($chkBing -and $chkBing.IsChecked) {
+            New-Item -Path "HKCU:\Software\Policies\Microsoft\Windows\Explorer" -Force -ErrorAction SilentlyContinue | Out-Null
+            Set-ItemProperty -Path "HKCU:\Software\Policies\Microsoft\Windows\Explorer" -Name "DisableSearchBoxSuggestions" -Value 1 -Type DWord -Force -ErrorAction SilentlyContinue
+            Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Search" -Name "BingSearchEnabled" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
+        }
+        if ($chkAds -and $chkAds.IsChecked) {
+            Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\AdvertisingInfo" -Name "Enabled" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
+            Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System" -Name "EnableActivityFeed" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
+        }
+        if ($chkLocation -and $chkLocation.IsChecked) {
+            New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\LocationAndSensors" -Force -ErrorAction SilentlyContinue | Out-Null
+            Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\LocationAndSensors" -Name "DisableLocation" -Value 1 -Type DWord -Force -ErrorAction SilentlyContinue
+        }
+        if ($chkActivity -and $chkActivity.IsChecked) {
+            Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System" -Name "PublishUserActivities" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
+        }
+        if ($chkFeedback -and $chkFeedback.IsChecked) {
+            New-Item -Path "HKCU:\Software\Microsoft\Siuf\Rules" -Force -ErrorAction SilentlyContinue | Out-Null
+            Set-ItemProperty -Path "HKCU:\Software\Microsoft\Siuf\Rules" -Name "NumberOfSIUFInPeriod" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
+        }
+        if ($chkSmartScreen -and $chkSmartScreen.IsChecked) {
+            Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer" -Name "SmartScreenEnabled" -Value "Off" -Type String -Force -ErrorAction SilentlyContinue
+        }
+
+        # System Optimizations & Adjustments
+        if ($chkHighPower -and $chkHighPower.IsChecked) {
+            powercfg /setactive 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c 2>$null
+        }
+        if ($chkUltPower -and $chkUltPower.IsChecked) {
+            powercfg -duplicatescheme e9a42b02-d5df-448d-aa00-03f14749eb61 | Out-Null
+            powercfg /setactive e9a42b02-d5df-448d-aa00-03f14749eb61 | Out-Null
+        }
+        if ($chkStartupDelay -and $chkStartupDelay.IsChecked) {
+            New-Item -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Serialize" -Force -ErrorAction SilentlyContinue | Out-Null
+            Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Serialize" -Name "StartupDelayInMSec" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
+        }
+        if ($chkStickyKeys -and $chkStickyKeys.IsChecked) {
+            Set-ItemProperty -Path "HKCU:\Control Panel\Accessibility\StickyKeys" -Name "Flags" -Value "506" -Type String -Force -ErrorAction SilentlyContinue
+        }
+        if ($chkVirtSecurity -and $chkVirtSecurity.IsChecked) {
+            Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\DeviceGuard" -Name "EnableVirtualizationBasedSecurity" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
+            Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\DeviceGuard\Scenarios\HypervisorEnforcedCodeIntegrity" -Name "Enabled" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
+        }
+        if ($chkDisableHibernation -and $chkDisableHibernation.IsChecked) {
+            powercfg -h off 2>$null
+        }
+        if ($chkMenuDelay -and $chkMenuDelay.IsChecked) {
+            Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "MenuShowDelay" -Value "0" -Type String -Force -ErrorAction SilentlyContinue
+        }
+        if ($chkNtfsTime -and $chkNtfsTime.IsChecked) {
+            fsutil behavior set disablelastaccess 1 | Out-Null
+        }
+        if ($chkUniversalBg -and $chkUniversalBg.IsChecked) {
+            Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\BackgroundAccessApplications" -Name "GlobalUserDisabled" -Value 1 -Type DWord -Force -ErrorAction SilentlyContinue
+        }
+        if ($chkEdgePreload -and $chkEdgePreload.IsChecked) {
+            New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\MicrosoftEdge\Main" -Force -ErrorAction SilentlyContinue | Out-Null
+            Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\MicrosoftEdge\Main" -Name "AllowPrelaunch" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
+            New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\MicrosoftEdge\TabPreloader" -Force -ErrorAction SilentlyContinue | Out-Null
+            Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\MicrosoftEdge\TabPreloader" -Name "AllowTabPreloading" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
+        }
+        if ($chkHAGS -and $chkHAGS.IsChecked) {
+            Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\GraphicsDrivers" -Name "HwSchMode" -Value 2 -Type DWord -Force -ErrorAction SilentlyContinue
+        }
+        if ($chkTransparency -and $chkTransparency.IsChecked) {
+            Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize" -Name "EnableTransparency" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
+        }
+        if ($chkGameDVR -and $chkGameDVR.IsChecked) {
+            Set-ItemProperty -Path "HKCU:\System\GameConfigStore" -Name "GameDVR_Enabled" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
+            Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\GameDVR" -Name "AllowGameDVR" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
+        }
+        if ($chkNetThrottle -and $chkNetThrottle.IsChecked) {
+            Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile" -Name "NetworkThrottlingIndex" -Value 0xFFFFFFFF -Type DWord -Force -ErrorAction SilentlyContinue
+        }
+        if ($chkGameLatency -and $chkGameLatency.IsChecked) {
+            Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile" -Name "SystemResponsiveness" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
+        }
+        if ($chkHoverDelays -and $chkHoverDelays.IsChecked) {
+            Set-ItemProperty -Path "HKCU:\Control Panel\Mouse" -Name "MouseHoverTime" -Value "10" -Type String -Force -ErrorAction SilentlyContinue
+        }
+        if ($chkSearchHighlights -and $chkSearchHighlights.IsChecked) {
+            Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\SearchSettings" -Name "IsSearchHighlightsEnabled" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
+        }
+
+        # Right-Click Context Menu Tweaks
+        if ($chkTakeOwn -and $chkTakeOwn.IsChecked) {
+            New-Item -Path "Registry::HKEY_CLASSES_ROOT\*\shell\runas" -Force -ErrorAction SilentlyContinue | Out-Null
+            Set-ItemProperty -Path "Registry::HKEY_CLASSES_ROOT\*\shell\runas" -Name "(Default)" -Value "Take Ownership" -Force -ErrorAction SilentlyContinue
+            New-Item -Path "Registry::HKEY_CLASSES_ROOT\*\shell\runas\command" -Force -ErrorAction SilentlyContinue | Out-Null
+            Set-ItemProperty -Path "Registry::HKEY_CLASSES_ROOT\*\shell\runas\command" -Name "(Default)" -Value 'cmd.exe /c takeown /f "%1" && icacls "%1" /grant administrators:F' -Force -ErrorAction SilentlyContinue
+        }
+        if ($chkOpenNotepad -and $chkOpenNotepad.IsChecked) {
+            New-Item -Path "Registry::HKEY_CLASSES_ROOT\*\shell\OpenWithNotepad" -Force -ErrorAction SilentlyContinue | Out-Null
+            Set-ItemProperty -Path "Registry::HKEY_CLASSES_ROOT\*\shell\OpenWithNotepad" -Name "(Default)" -Value "Open with Notepad" -Force -ErrorAction SilentlyContinue
+            Set-ItemProperty -Path "Registry::HKEY_CLASSES_ROOT\*\shell\OpenWithNotepad" -Name "Icon" -Value "notepad.exe" -Force -ErrorAction SilentlyContinue
+            New-Item -Path "Registry::HKEY_CLASSES_ROOT\*\shell\OpenWithNotepad\command" -Force -ErrorAction SilentlyContinue | Out-Null
+            Set-ItemProperty -Path "Registry::HKEY_CLASSES_ROOT\*\shell\OpenWithNotepad\command" -Name "(Default)" -Value 'notepad.exe "%1"' -Force -ErrorAction SilentlyContinue
+        }
+        if ($chkKillStuck -and $chkKillStuck.IsChecked) {
+            New-Item -Path "Registry::HKEY_CLASSES_ROOT\DesktopBackground\Shell\KillNotResponding" -Force -ErrorAction SilentlyContinue | Out-Null
+            Set-ItemProperty -Path "Registry::HKEY_CLASSES_ROOT\DesktopBackground\Shell\KillNotResponding" -Name "(Default)" -Value "Kill Not Responding Tasks" -Force -ErrorAction SilentlyContinue
+            Set-ItemProperty -Path "Registry::HKEY_CLASSES_ROOT\DesktopBackground\Shell\KillNotResponding" -Name "Icon" -Value "taskmgr.exe,-1" -Force -ErrorAction SilentlyContinue
+            New-Item -Path "Registry::HKEY_CLASSES_ROOT\DesktopBackground\Shell\KillNotResponding\command" -Force -ErrorAction SilentlyContinue | Out-Null
+            Set-ItemProperty -Path "Registry::HKEY_CLASSES_ROOT\DesktopBackground\Shell\KillNotResponding\command" -Name "(Default)" -Value 'taskkill.exe /F /FI "STATUS eq NOT RESPONDING"' -Force -ErrorAction SilentlyContinue
+        }
+        if ($chkCmdAdmin -and $chkCmdAdmin.IsChecked) {
+            New-Item -Path "Registry::HKEY_CLASSES_ROOT\Directory\Background\shell\runas" -Force -ErrorAction SilentlyContinue | Out-Null
+            Set-ItemProperty -Path "Registry::HKEY_CLASSES_ROOT\Directory\Background\shell\runas" -Name "(Default)" -Value "Command Prompt Here (Admin)" -Force -ErrorAction SilentlyContinue
+            Set-ItemProperty -Path "Registry::HKEY_CLASSES_ROOT\Directory\Background\shell\runas" -Name "HasLUAShield" -Value "" -Force -ErrorAction SilentlyContinue
+            New-Item -Path "Registry::HKEY_CLASSES_ROOT\Directory\Background\shell\runas\command" -Force -ErrorAction SilentlyContinue | Out-Null
+            Set-ItemProperty -Path "Registry::HKEY_CLASSES_ROOT\Directory\Background\shell\runas\command" -Name "(Default)" -Value 'cmd.exe /s /k pushd "%V"' -Force -ErrorAction SilentlyContinue
+        }
+
+        # Cleaners, Bloatware & Services
+        if ($chkCleanTemp -and $chkCleanTemp.IsChecked) {
+            @($env:TEMP, "C:\Windows\Temp", "C:\Windows\Prefetch") | ForEach-Object {
+                if (Test-Path $_) { Remove-Item "$_\*" -Recurse -Force -ErrorAction SilentlyContinue }
+            }
+        }
+        if ($chkCleanmgr -and $chkCleanmgr.IsChecked) {
+            Start-Process cleanmgr.exe -ArgumentList "/autoclean /d C:" -NoNewWindow -ErrorAction SilentlyContinue
+        }
+        if ($chkDisableOneDrive -and $chkDisableOneDrive.IsChecked) {
+            Stop-Process -Name OneDrive -Force -ErrorAction SilentlyContinue
+            New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\OneDrive" -Force -ErrorAction SilentlyContinue | Out-Null
+            Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\OneDrive" -Name "DisableFileSyncNGSC" -Value 1 -Type DWord -Force -ErrorAction SilentlyContinue
+        }
+        if ($chkRemoveBloatware -and $chkRemoveBloatware.IsChecked) {
+            @("*Solitaire*", "*Xbox*", "*BingNews*", "*BingWeather*", "*ZuneVideo*", "*ZuneMusic*", "*SkypeApp*") | ForEach-Object {
+                Get-AppxPackage -AllUsers -Name $_ -ErrorAction SilentlyContinue | Remove-AppxPackage -AllUsers -ErrorAction SilentlyContinue
+            }
+        }
+        if ($chkDisableSearchIndexer -and $chkDisableSearchIndexer.IsChecked) {
+            Stop-Service -Name WSearch -Force -ErrorAction SilentlyContinue
+            Set-Service -Name WSearch -StartupType Disabled -ErrorAction SilentlyContinue
+        }
+        if ($chkDisableDefender -and $chkDisableDefender.IsChecked) {
+            New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender" -Force -ErrorAction SilentlyContinue | Out-Null
+            Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows Defender" -Name "DisableAntiSpyware" -Value 1 -Type DWord -Force -ErrorAction SilentlyContinue
+        }
+        if ($chkStopWU -and $chkStopWU.IsChecked) {
+            Stop-Service -Name wuauserv, bits, dosvc -Force -ErrorAction SilentlyContinue
+            Set-Service -Name wuauserv, bits, dosvc -StartupType Disabled -ErrorAction SilentlyContinue
+        }
+        if ($chkShowExt -and $chkShowExt.IsChecked) {
+            Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "HideFileExt" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
+        }
+        if ($chkShowHidden -and $chkShowHidden.IsChecked) {
+            Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "Hidden" -Value 1 -Type DWord -Force -ErrorAction SilentlyContinue
+            Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "ShowSuperHidden" -Value 1 -Type DWord -Force -ErrorAction SilentlyContinue
+        }
+        if ($chkWin11ClassicMenu -and $chkWin11ClassicMenu.IsChecked) {
+            $regPath = "HKCU:\Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\InprocServer32"
+            New-Item -Path $regPath -Force -ErrorAction SilentlyContinue | Out-Null
+            Set-ItemProperty -Path $regPath -Name "(Default)" -Value "" -Force -ErrorAction SilentlyContinue
+        }
+        if ($chkPhotoViewer -and $chkPhotoViewer.IsChecked) {
+            $pvPath = "HKLM:\SOFTWARE\Microsoft\Windows Photo Viewer\Capabilities\FileAssociations"
+            New-Item -Path $pvPath -Force -ErrorAction SilentlyContinue | Out-Null
+            @(".jpg", ".jpeg", ".png", ".bmp", ".gif", ".tiff") | ForEach-Object { Set-ItemProperty -Path $pvPath -Name $_ -Value "PhotoViewer.FileAssoc.Tiff" -Force -ErrorAction SilentlyContinue }
+        }
+
+        Append-Log("Selected tweaks and system customizations applied successfully!")
+        [System.Windows.Forms.MessageBox]::Show("All selected tweaks applied successfully!", "Tweaks Applied", "OK", "Information")
+    })
+}
 
 # ==================== HARDWARE, SECURITY & REPAIR ====================
 $btnUnparkCPU.Add_Click({
