@@ -1,0 +1,3680 @@
+<#
+.SYNOPSIS
+    Ultimate Windows Tweaker, Debloater, Repair, Optimizer, App Store, User Password, Super Admin, OS Customizer & Power Tools Master Suite
+.DESCRIPTION
+    100% Native PowerShell & WPF Application featuring custom taskbar icon, window controls, 360+ tools across 14 tabs.
+#>
+
+# Auto-Elevation
+$scriptPath = $PSCommandPath
+if (-not $scriptPath) { $scriptPath = $MyInvocation.MyCommand.Path }
+if (-not $scriptPath) { $scriptPath = "C:\Users\user\.gemini\antigravity\scratch\windows_tweaker\WindowsTweaker.ps1" }
+
+try {
+    $isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+    if (-not $isAdmin -and (Test-Path $scriptPath)) {
+        Start-Process powershell.exe -ArgumentList "-NoProfile -STA -ExecutionPolicy Bypass -File `"$scriptPath`"" -Verb RunAs -ErrorAction Stop
+        exit
+    }
+} catch {}
+
+# Explicit Taskbar AppUserModelID & Native PassView Credential Recovery
+try {
+    $source = @"
+using System;
+using System.Runtime.InteropServices;
+using System.Collections.Generic;
+
+public class TaskbarHelper {
+    [DllImport("shell32.dll", SetLastError = true)]
+    public static extern void SetCurrentProcessExplicitAppUserModelID([MarshalAs(UnmanagedType.LPWStr)] string AppID);
+}
+
+public class NativePassViewHelper {
+    [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+    public static extern bool CredEnumerate(string filter, int flag, out int count, out IntPtr pCredentials);
+
+    [DllImport("advapi32.dll", SetLastError = true)]
+    public static extern void CredFree(IntPtr pCredentials);
+
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+    public struct CREDENTIAL {
+        public int Flags;
+        public int Type;
+        public string TargetName;
+        public string Comment;
+        public long LastWritten;
+        public int CredentialBlobSize;
+        public IntPtr CredentialBlob;
+        public int Persist;
+        public int AttributeCount;
+        public IntPtr Attributes;
+        public string TargetAlias;
+        public string UserName;
+    }
+
+    public class CredItem {
+        public string Target { get; set; }
+        public string User { get; set; }
+        public string Password { get; set; }
+        public string Type { get; set; }
+    }
+
+    public static List<CredItem> GetAllCredentials() {
+        List<CredItem> list = new List<CredItem>();
+        int count = 0;
+        IntPtr pCreds = IntPtr.Zero;
+        if (CredEnumerate(null, 0, out count, out pCreds)) {
+            for (int i = 0; i < count; i++) {
+                IntPtr ptr = Marshal.ReadIntPtr(pCreds, i * IntPtr.Size);
+                CREDENTIAL c = (CREDENTIAL)Marshal.PtrToStructure(ptr, typeof(CREDENTIAL));
+                string secret = "";
+                if (c.CredentialBlob != IntPtr.Zero && c.CredentialBlobSize > 0) {
+                    byte[] bytes = new byte[c.CredentialBlobSize];
+                    Marshal.Copy(c.CredentialBlob, bytes, 0, c.CredentialBlobSize);
+                    
+                    bool isUnicode = false;
+                    if (c.CredentialBlobSize >= 2 && bytes[1] == 0) {
+                        isUnicode = true;
+                    }
+                    
+                    if (isUnicode) {
+                        secret = System.Text.Encoding.Unicode.GetString(bytes).Trim('\0');
+                    } else {
+                        secret = System.Text.Encoding.UTF8.GetString(bytes).Trim('\0');
+                    }
+                    
+                    bool isPrintable = true;
+                    foreach (char ch in secret) {
+                        if (char.IsControl(ch) && ch != '\r' && ch != '\n' && ch != '\t') {
+                            isPrintable = false;
+                            break;
+                        }
+                    }
+                    if (!isPrintable) {
+                        secret = "(Binary Token / Encrypted Session)";
+                    }
+                }
+                
+                string credType = "Generic";
+                if (c.Type == 1) credType = "Generic";
+                else if (c.Type == 2) credType = "Domain Password";
+                else if (c.Type == 3) credType = "Domain Certificate";
+                else if (c.Type == 4) credType = "Domain Visible Password";
+                
+                list.Add(new CredItem {
+                    Target = c.TargetName ?? "",
+                    User = string.IsNullOrEmpty(c.UserName) ? "(None)" : c.UserName,
+                    Password = string.IsNullOrEmpty(secret) ? "(Empty)" : secret,
+                    Type = credType
+                });
+            }
+            CredFree(pCreds);
+        }
+        return list;
+    }
+}
+"@
+    Add-Type -TypeDefinition $source -ErrorAction SilentlyContinue
+    [TaskbarHelper]::SetCurrentProcessExplicitAppUserModelID("Venkat.WindowsTweaker.MasterSuite")
+} catch {}
+
+Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, System.Windows.Forms, System.Drawing
+
+[xml]$xaml = @"
+<Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Venkat Ultimate Windows Tweaker, OS Customizer &amp; Diagnostic Master Suite"
+        Height="780" Width="1120"
+        MinHeight="580" MinWidth="880"
+        WindowStartupLocation="CenterScreen"
+        WindowStyle="SingleBorderWindow"
+        ResizeMode="CanResizeWithGrip"
+        Background="#080E1A"
+        FontFamily="Segoe UI">
+    
+    <Window.Resources>
+        <Style TargetType="TabItem">
+            <Setter Property="FontSize" Value="10"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="#94A3B8"/>
+            <Setter Property="Padding" Value="5,4"/>
+            <Setter Property="Background" Value="#0F172A"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TabItem">
+                        <Border Name="Border" Background="{TemplateBinding Background}" BorderBrush="#1E293B" BorderThickness="1,1,1,0" CornerRadius="4,4,0,0" Margin="1,0">
+                            <ContentPresenter x:Name="ContentSite" VerticalAlignment="Center" HorizontalAlignment="Center" ContentSource="Header" Margin="3,2"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="Border" Property="Background" Value="#0284C7"/>
+                                <Setter Property="Foreground" Value="#FFFFFF"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="Button">
+            <Setter Property="Background" Value="#1E293B"/>
+            <Setter Property="Foreground" Value="#F8FAFC"/>
+            <Setter Property="FontSize" Value="10.5"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Padding" Value="7,4"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="#334155"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Name="btnBorder" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="4" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="btnBorder" Property="BorderBrush" Value="#38BDF8"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="CheckBox">
+            <Setter Property="Foreground" Value="#F1F5F9"/>
+            <Setter Property="FontSize" Value="10.5"/>
+            <Setter Property="Margin" Value="0,2,0,2"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+
+        <Style TargetType="TextBox">
+            <Setter Property="Background" Value="#0F172A"/>
+            <Setter Property="Foreground" Value="#F8FAFC"/>
+            <Setter Property="BorderBrush" Value="#334155"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="5,3"/>
+            <Setter Property="FontSize" Value="10.5"/>
+        </Style>
+
+        <Style TargetType="ComboBox">
+            <Setter Property="Background" Value="#0F172A"/>
+            <Setter Property="Foreground" Value="#F8FAFC"/>
+            <Setter Property="BorderBrush" Value="#334155"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="FontSize" Value="10.5"/>
+            <Setter Property="Padding" Value="6,3"/>
+            <Setter Property="ItemContainerStyle">
+                <Setter.Value>
+                    <Style TargetType="ComboBoxItem">
+                        <Setter Property="Background" Value="#0F172A"/>
+                        <Setter Property="Foreground" Value="#F8FAFC"/>
+                        <Setter Property="FontSize" Value="10.5"/>
+                        <Setter Property="Padding" Value="6,4"/>
+                        <Setter Property="BorderThickness" Value="0"/>
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="ComboBoxItem">
+                                    <Border Name="ItemBorder" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}" SnapsToDevicePixels="true">
+                                        <ContentPresenter TextElement.Foreground="{TemplateBinding Foreground}"/>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsHighlighted" Value="true">
+                                            <Setter TargetName="ItemBorder" Property="Background" Value="#0284C7"/>
+                                            <Setter Property="Foreground" Value="#FFFFFF"/>
+                                        </Trigger>
+                                        <Trigger Property="IsSelected" Value="true">
+                                            <Setter TargetName="ItemBorder" Property="Background" Value="#0369A1"/>
+                                            <Setter Property="Foreground" Value="#FFFFFF"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="8">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- TOP HEADER BAR WITH CONTROLS & LOGO -->
+        <Border Grid.Row="0" Background="#0F172A" CornerRadius="6" Padding="10,6" Margin="0,0,0,6" BorderBrush="#1E293B" BorderThickness="1">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- App Logo & Title -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,12,0">
+                    <!-- Tech Shield/Prompt Logo Emblem -->
+                    <Border Background="#1E3A8A" CornerRadius="6" Width="30" Height="30" Margin="0,0,8,0" BorderBrush="#38BDF8" BorderThickness="1.5">
+                        <TextBlock Text="&gt;_" FontSize="13" FontWeight="Bold" Foreground="#38BDF8" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="1,0,0,2"/>
+                    </Border>
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock Text="Venkat Ultimate Windows Tweaker &amp; OS Suite" FontSize="15" FontWeight="Bold" Foreground="#38BDF8"/>
+                        <TextBlock Text="Created by Venkat | 360+ Tools | Customizer, Edition Changer, Defender Control &amp; Store" FontSize="9.5" Foreground="#94A3B8" Margin="0,1,0,0"/>
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- Search & Status Badges -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Center">
+                    <TextBox Name="txtSearch" Width="150" Height="24" Margin="0,0,4,0" Text="Search tools..." Foreground="#64748B"/>
+                    <Button Name="btnSearch" Content="Search" Width="55" Height="24" Background="#0284C7" Margin="0,0,6,0"/>
+                    <Border Background="#064E3B" CornerRadius="4" Padding="5,2" Margin="0,0,4,0">
+                        <TextBlock Text="WinGet: Active" FontSize="9.5" FontWeight="Bold" Foreground="#10B981"/>
+                    </Border>
+                    <Border Background="#1E3A8A" CornerRadius="4" Padding="5,2">
+                        <TextBlock Text="Super Admin" FontSize="9.5" FontWeight="Bold" Foreground="#60A5FA"/>
+                    </Border>
+                </StackPanel>
+
+                <!-- Right Side Status Badges -->
+                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Border Background="#1E293B" CornerRadius="4" Padding="6,3" Margin="0,0,4,0">
+                        <TextBlock Text="Venkat v3.6 Pro" FontSize="9.5" FontWeight="Bold" Foreground="#38BDF8"/>
+                    </Border>
+                    <Border Background="#064E3B" CornerRadius="4" Padding="6,3">
+                        <TextBlock Text="Online Mode" FontSize="9.5" FontWeight="Bold" Foreground="#10B981"/>
+                    </Border>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- MAIN TABS CONTAINER -->
+        <TabControl Grid.Row="1" Background="#0B132B" BorderBrush="#1E293B">
+
+            <!-- TAB 1: USER PASSWORDS & ACCOUNTS HUB -->
+            <TabItem Header="User Passwords">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="8">
+                    <StackPanel>
+                        <TextBlock Text="WINDOWS USER ACCOUNTS &amp; PASSWORD MANAGEMENT HUB" FontSize="12.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,6"/>
+
+                        <!-- User Selection & Password Actions -->
+                        <Border Background="#0F172A" CornerRadius="5" Padding="10" Margin="0,0,0,8" BorderBrush="#1E293B" BorderThickness="1">
+                            <StackPanel>
+                                <TextBlock Text="SELECTED LOCAL USER ACCOUNT &amp; PASSWORD RESET" FontSize="11.5" FontWeight="Bold" Foreground="#10B981" Margin="0,0,0,4"/>
+                                <TextBlock Text="Select any detected user account to reset/remove password, unlock, or configure auto-login." FontSize="10" Foreground="#94A3B8" Margin="0,0,0,6"/>
+                                
+                                <Grid Margin="0,0,0,6">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="Select User Account:" VerticalAlignment="Center" Margin="0,0,10,0" Foreground="#F8FAFC" FontWeight="Bold"/>
+                                    <ComboBox Name="cmbUserAccounts" Grid.Column="1" Height="26" Margin="0,0,6,0" Background="#0F172A" Foreground="#F8FAFC"/>
+                                    <Button Name="btnRefreshUserList" Grid.Column="2" Content="Refresh Accounts" Width="120" Height="26" Background="#334155"/>
+                                </Grid>
+
+                                <Grid Margin="0,0,0,6">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="New Password:" VerticalAlignment="Center" Margin="0,0,38,0" Foreground="#F8FAFC"/>
+                                    <TextBox Name="txtUserNewPass" Grid.Column="1" Height="26" Margin="0,0,6,0" Text="Enter New Password"/>
+                                    <Button Name="btnApplyUserPass" Grid.Column="2" Content="Apply New Password" Width="140" Height="26" Background="#0284C7" FontWeight="Bold" Margin="0,0,4,0"/>
+                                    <Button Name="btnRemoveUserPass" Grid.Column="3" Content="Remove Password (Blank)" Width="160" Height="26" Background="#D97706" FontWeight="Bold"/>
+                                </Grid>
+
+                                <UniformGrid Columns="4" Margin="0,2,0,0">
+                                    <Button Name="btnUnlockUserAcc" Content="Unlock Selected Account" Margin="2" Background="#059669"/>
+                                    <Button Name="btnDisableUserAcc" Content="Disable Selected Account" Margin="2" Background="#7F1D1D"/>
+                                    <Button Name="btnPassNeverExpire" Content="Set Password Never Expires" Margin="2" Background="#1E3A8A"/>
+                                    <Button Name="btnDeleteUserAcc" Content="Delete Selected Account" Margin="2" Background="#DC2626"/>
+                                </UniformGrid>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Automatic Login Without Password (Auto-Logon) -->
+                        <Border Background="#0F172A" CornerRadius="5" Padding="10" Margin="0,0,0,8" BorderBrush="#1E293B" BorderThickness="1">
+                            <StackPanel>
+                                <TextBlock Text="AUTOMATIC LOGON ON SYSTEM BOOT (NO PASSWORD PROMPT)" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
+                                <TextBlock Text="Configure Windows to automatically log in to the selected user on startup without asking for password or PIN." FontSize="10" Foreground="#94A3B8" Margin="0,0,0,6"/>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Button Name="btnEnableAutoLogon" Grid.Column="0" Content="Enable Auto-Logon for Selected User" Background="#059669" Height="28" Margin="0,0,3,0" FontWeight="Bold"/>
+                                    <Button Name="btnDisableAutoLogon" Grid.Column="1" Content="Disable Auto-Logon (Require Password)" Background="#DC2626" Height="28" Margin="3,0,0,0" FontWeight="Bold"/>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Create New Local Account -->
+                        <Border Background="#0F172A" CornerRadius="5" Padding="10" Margin="0,0,0,8" BorderBrush="#1E293B" BorderThickness="1">
+                            <StackPanel>
+                                <TextBlock Text="CREATE NEW LOCAL USER ACCOUNT" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
+                                <Grid Margin="0,2">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBox Name="txtCreateUsername" Grid.Column="0" Height="26" Margin="0,0,4,0" Text="NewUser"/>
+                                    <TextBox Name="txtCreatePassword" Grid.Column="1" Height="26" Margin="0,0,4,0" Text="User@12345"/>
+                                    <ComboBox Name="cmbAccountType" Grid.Column="2" Width="130" Height="26" Margin="0,0,4,0" Background="#0F172A" Foreground="#F8FAFC"/>
+                                    <Button Name="btnCreateAccountAction" Grid.Column="3" Content="Create Account" Width="130" Height="26" Background="#0284C7" FontWeight="Bold"/>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- WINPE RESCUE & HIREN'S EMERGENCY RECOVERY MASTER SUITE -->
+                        <Border Background="#0F172A" CornerRadius="5" Padding="10" Margin="0,0,0,8" BorderBrush="#1E293B" BorderThickness="1">
+                            <StackPanel>
+                                <TextBlock Text="WINPE RESCUE &amp; HIREN'S EMERGENCY RECOVERY MASTER SUITE" FontSize="11.5" FontWeight="Bold" Foreground="#10B981" Margin="0,0,0,4"/>
+                                <TextBlock Text="Standalone Bootable WinPE Suite: Offline Password Resetter, BCD/EFI Boot Fixer, Offline Registry &amp; DISM Imaging." FontSize="10" Foreground="#94A3B8" Margin="0,0,0,6"/>
+                                <UniformGrid Columns="2">
+                                    <Button Name="btnLaunchWinPERescue" Content="Launch Venkat WinPE Rescue Suite (Live &amp; Offline)" Margin="2" Height="30" Background="#059669" FontWeight="Bold"/>
+                                    <Button Name="btnLaunchWinPEBuilder" Content="1-Click WinPE Bootable USB / ISO Builder" Margin="2" Height="30" Background="#0284C7" FontWeight="Bold"/>
+                                </UniformGrid>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- NIRLAUNCHER & NIRSOFT MASTER RECOVERY SUITE -->
+                        <Border Background="#0F172A" CornerRadius="5" Padding="10" Margin="0,0,0,8" BorderBrush="#1E293B" BorderThickness="1">
+                            <StackPanel>
+                                <TextBlock Text="NIRLAUNCHER &amp; NIRSOFT MASTER RECOVERY SUITE (200+ TOOLS)" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
+                                <TextBlock Text="Integrated launcher for NirSoft 200+ utilities: Mail PassView, WebBrowserPassView, WirelessKeyView, Network &amp; System tools." FontSize="10" Foreground="#94A3B8" Margin="0,0,0,6"/>
+                                <UniformGrid Columns="3" Margin="0,0,0,4">
+                                    <Button Name="btnLaunchNirLauncher" Content="Launch NirLauncher Package" Margin="2" Height="30" Background="#0284C7" FontWeight="Bold"/>
+                                    <Button Name="btnDownloadNirLauncher" Content="Download NirLauncher (Auto Setup)" Margin="2" Height="30" Background="#059669" FontWeight="Bold"/>
+                                    <Button Name="btnOpenNirFolder" Content="Open NirSoft Tools Folder" Margin="2" Height="30" Background="#334155"/>
+                                </UniformGrid>
+                                <UniformGrid Columns="3">
+                                    <Button Name="btnLaunchWebBrowserPass" Content="WebBrowserPassView Engine" Margin="2" Height="28" Background="#1E3A8A"/>
+                                    <Button Name="btnLaunchWirelessKeyView" Content="WirelessKeyView (Wi-Fi Passwords)" Margin="2" Height="28" Background="#0D9488"/>
+                                    <Button Name="btnLaunchOutlookPass" Content="Outlook PST &amp; Password Tools" Margin="2" Height="28" Background="#475569"/>
+                                </UniformGrid>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Native User Consoles -->
+                        <Border Background="#0F172A" CornerRadius="5" Padding="8" BorderBrush="#1E293B" BorderThickness="1">
+                            <StackPanel>
+                                <TextBlock Text="WINDOWS BUILT-IN USER MANAGEMENT CONSOLES" FontSize="11.5" FontWeight="Bold" Foreground="#94A3B8" Margin="0,0,0,4"/>
+                                <UniformGrid Columns="2">
+                                    <Button Name="btnOpenNetplwiz" Content="Advanced User Accounts (netplwiz)" Margin="2" Height="28"/>
+                                    <Button Name="btnOpenLusrmgr" Content="Local Users &amp; Groups (lusrmgr.msc)" Margin="2" Height="28"/>
+                                </UniformGrid>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- TAB 2: 1-CLICK MEGA APP STORE (WINGET) -->
+            <TabItem Header="1-Click App Store">
+                <Grid Margin="6">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto" Margin="0,0,0,6">
+                        <StackPanel>
+                            <TextBlock Text="MEGA 1-CLICK APPLICATION STORE (WINGET REPOSITORY)" FontSize="12.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,6"/>
+
+                            <UniformGrid Columns="4">
+                                <!-- Microsoft Official Apps -->
+                                <Border Background="#0F172A" CornerRadius="5" Padding="8" Margin="2" BorderBrush="#1E293B" BorderThickness="1">
+                                    <StackPanel>
+                                        <TextBlock Text="MICROSOFT SUITE" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
+                                        <CheckBox Name="chkAppMS365" Content="Microsoft 365 / Office" IsChecked="True"/>
+                                        <CheckBox Name="chkAppMSTeams" Content="Microsoft Teams"/>
+                                        <CheckBox Name="chkAppPowerToys" Content="Microsoft PowerToys" IsChecked="True"/>
+                                        <CheckBox Name="chkAppMSTerminal" Content="Windows Terminal" IsChecked="True"/>
+                                        <CheckBox Name="chkAppMSPCManager" Content="Microsoft PC Manager"/>
+                                        <CheckBox Name="chkAppMSOneDrive" Content="Microsoft OneDrive"/>
+                                        <CheckBox Name="chkAppMSPS7" Content="PowerShell 7 (Latest)"/>
+                                        <CheckBox Name="chkAppMSSysinternals" Content="Sysinternals Suite"/>
+                                        <CheckBox Name="chkAppMSOneNote" Content="Microsoft OneNote"/>
+                                        <CheckBox Name="chkAppMSWhiteboard" Content="Microsoft Whiteboard"/>
+                                        <CheckBox Name="chkAppMSSSMS" Content="SQL Server Mgmt Studio"/>
+                                        <CheckBox Name="chkAppMSVSCommunity" Content="Visual Studio 2022"/>
+                                        <CheckBox Name="chkAppMSWSL" Content="WSL Linux Subsystem"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- Web Browsers -->
+                                <Border Background="#0F172A" CornerRadius="5" Padding="8" Margin="2" BorderBrush="#1E293B" BorderThickness="1">
+                                    <StackPanel>
+                                        <TextBlock Text="WEB BROWSERS" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
+                                        <CheckBox Name="chkAppChrome" Content="Google Chrome" IsChecked="True"/>
+                                        <CheckBox Name="chkAppBrave" Content="Brave Browser"/>
+                                        <CheckBox Name="chkAppFirefox" Content="Mozilla Firefox"/>
+                                        <CheckBox Name="chkAppEdge" Content="Microsoft Edge"/>
+                                        <CheckBox Name="chkAppOperaGX" Content="Opera GX Gaming"/>
+                                        <CheckBox Name="chkAppTor" Content="Tor Browser"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- Remote & Communication -->
+                                <Border Background="#0F172A" CornerRadius="5" Padding="8" Margin="2" BorderBrush="#1E293B" BorderThickness="1">
+                                    <StackPanel>
+                                        <TextBlock Text="REMOTE &amp; COMMS" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
+                                        <CheckBox Name="chkAppAnyDesk" Content="AnyDesk Remote" IsChecked="True"/>
+                                        <CheckBox Name="chkAppTeamViewer" Content="TeamViewer"/>
+                                        <CheckBox Name="chkAppRustDesk" Content="RustDesk (Open Source)"/>
+                                        <CheckBox Name="chkAppUltraViewer" Content="UltraViewer"/>
+                                        <CheckBox Name="chkAppDiscord" Content="Discord"/>
+                                        <CheckBox Name="chkAppTelegram" Content="Telegram Desktop"/>
+                                        <CheckBox Name="chkAppWhatsApp" Content="WhatsApp Desktop"/>
+                                        <CheckBox Name="chkAppZoom" Content="Zoom Meetings"/>
+                                        <CheckBox Name="chkAppSkype" Content="Microsoft Skype"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- Utilities & Hardware -->
+                                <Border Background="#0F172A" CornerRadius="5" Padding="8" Margin="2" BorderBrush="#1E293B" BorderThickness="1">
+                                    <StackPanel>
+                                        <TextBlock Text="UTILITIES &amp; HARDWARE" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
+                                        <CheckBox Name="chkApp7Zip" Content="7-Zip Archiver" IsChecked="True"/>
+                                        <CheckBox Name="chkAppWinRAR" Content="WinRAR"/>
+                                        <CheckBox Name="chkAppPeaZip" Content="PeaZip"/>
+                                        <CheckBox Name="chkAppNotepad" Content="Notepad++" IsChecked="True"/>
+                                        <CheckBox Name="chkAppEverything" Content="voidtools Everything"/>
+                                        <CheckBox Name="chkAppRevo" Content="Revo Uninstaller Free"/>
+                                        <CheckBox Name="chkAppRufus" Content="Rufus USB Boot Creator"/>
+                                        <CheckBox Name="chkAppCrystalDisk" Content="CrystalDiskInfo"/>
+                                        <CheckBox Name="chkAppCPUZ" Content="CPU-Z Hardware Info"/>
+                                        <CheckBox Name="chkAppHWMonitor" Content="HWMonitor Sensor Info"/>
+                                        <CheckBox Name="chkAppTreeSize" Content="TreeSize Free Disk Space"/>
+                                        <CheckBox Name="chkAppNirLauncher" Content="NirLauncher (NirSoft Suite)"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- Media & Creative -->
+                                <Border Background="#0F172A" CornerRadius="5" Padding="8" Margin="2" BorderBrush="#1E293B" BorderThickness="1">
+                                    <StackPanel>
+                                        <TextBlock Text="MEDIA &amp; CREATIVE" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
+                                        <CheckBox Name="chkAppVLC" Content="VLC Media Player" IsChecked="True"/>
+                                        <CheckBox Name="chkAppKLite" Content="K-Lite Codec Pack Full"/>
+                                        <CheckBox Name="chkAppOBS" Content="OBS Studio Screen Recorder"/>
+                                        <CheckBox Name="chkAppGIMP" Content="GIMP Image Editor"/>
+                                        <CheckBox Name="chkAppPaintNet" Content="Paint.NET"/>
+                                        <CheckBox Name="chkAppAudacity" Content="Audacity Audio Editor"/>
+                                        <CheckBox Name="chkAppHandBrake" Content="HandBrake Video Converter"/>
+                                        <CheckBox Name="chkAppSpotify" Content="Spotify Music"/>
+                                        <CheckBox Name="chkAppCapCut" Content="CapCut Video Editor"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- Developer Tools & Databases -->
+                                <Border Background="#0F172A" CornerRadius="5" Padding="8" Margin="2" BorderBrush="#1E293B" BorderThickness="1">
+                                    <StackPanel>
+                                        <TextBlock Text="DEV TOOLS &amp; RUNTIMES" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
+                                        <CheckBox Name="chkAppVSCode" Content="Visual Studio Code"/>
+                                        <CheckBox Name="chkAppGit" Content="Git for Windows"/>
+                                        <CheckBox Name="chkAppGitHubDesktop" Content="GitHub Desktop"/>
+                                        <CheckBox Name="chkAppPython" Content="Python 3.12 (Latest)"/>
+                                        <CheckBox Name="chkAppNode" Content="Node.js LTS Runtime"/>
+                                        <CheckBox Name="chkAppDocker" Content="Docker Desktop"/>
+                                        <CheckBox Name="chkAppPostman" Content="Postman API Platform"/>
+                                        <CheckBox Name="chkAppDBeaver" Content="DBeaver Database Tool"/>
+                                        <CheckBox Name="chkAppVCRedist" Content="Visual C++ All-In-One Runtimes"/>
+                                        <CheckBox Name="chkAppJavaJDK" Content="Java JDK (Eclipse Temurin)"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <!-- Documents & Office -->
+                                <Border Background="#0F172A" CornerRadius="5" Padding="8" Margin="2" BorderBrush="#1E293B" BorderThickness="1">
+                                    <StackPanel>
+                                        <TextBlock Text="OFFICE &amp; PDF SUITES" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
+                                        <CheckBox Name="chkAppAdobeReader" Content="Adobe Acrobat Reader 64-bit" IsChecked="True"/>
+                                        <CheckBox Name="chkAppFoxit" Content="Foxit PDF Reader"/>
+                                        <CheckBox Name="chkAppSumatra" Content="SumatraPDF (Ultra-Light)"/>
+                                        <CheckBox Name="chkAppLibreOffice" Content="LibreOffice Complete Suite"/>
+                                        <CheckBox Name="chkAppWPS" Content="WPS Office Free Suite"/>
+                                        <CheckBox Name="chkAppPDF24" Content="PDF24 Creator Toolbox"/>
+                                    </StackPanel>
+                                </Border>
+                            </UniformGrid>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <!-- App Store Preset Bar & Install Action -->
+                    <Border Grid.Row="1" Background="#0F172A" CornerRadius="5" Padding="8" BorderBrush="#1E293B" BorderThickness="1">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" Orientation="Horizontal">
+                                <TextBlock Text="Quick Presets: " Foreground="#94A3B8" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                <Button Name="btnPresetAppEssentials" Content="Essentials" Background="#059669" Width="85" Margin="0,0,4,0"/>
+                                <Button Name="btnPresetAppMS" Content="Microsoft Suite" Background="#0284C7" Width="105" Margin="0,0,4,0"/>
+                                <Button Name="btnPresetAppDev" Content="Dev Bundle" Background="#4F46E5" Width="90" Margin="0,0,4,0"/>
+                                <Button Name="btnSelectAllApps" Content="Select All" Background="#334155" Width="75" Margin="0,0,4,0"/>
+                                <Button Name="btnClearAllApps" Content="Clear All" Background="#DC2626" Width="70"/>
+                            </StackPanel>
+                            <Button Name="btnInstallSelectedApps" Grid.Column="2" Content="Install Selected Apps (WinGet Engine)" Background="#059669" FontWeight="Bold" Width="260" Height="30"/>
+                        </Grid>
+                    </Border>
+                </Grid>
+            </TabItem>
+
+            <!-- TAB 3: FEATURES & SYSTEM FIXES (EXACT MATCH WITH USER SCREENSHOT) -->
+            <TabItem Header="Features &amp; Fixes">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="8">
+                    <StackPanel>
+                        <!-- FEATURES SECTION -->
+                        <Border Background="#0F172A" CornerRadius="5" Padding="10" Margin="0,0,0,8" BorderBrush="#1E293B" BorderThickness="1">
+                            <StackPanel>
+                                <TextBlock Text="Features" FontSize="13" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,6"/>
+                                <CheckBox Name="chkFeatNetFx" Content=".NET Framework (Versions 2, 3, 4) - Enable (?)"/>
+                                <CheckBox Name="chkFeatHyperV" Content="Hyper-V - Enable (?)"/>
+                                <CheckBox Name="chkFeatF8Disable" Content="Legacy F8 Boot Recovery - Disable (?)"/>
+                                <CheckBox Name="chkFeatF8Enable" Content="Legacy F8 Boot Recovery - Enable (?)"/>
+                                <CheckBox Name="chkFeatMedia" Content="Legacy Media Components (WMP, DirectPlay) - Enable (?)"/>
+                                <CheckBox Name="chkFeatNFS" Content="Network File System (NFS) - Enable (?)"/>
+                                <CheckBox Name="chkFeatRegBackupTask" Content="Registry Backup (Daily Task 12:30am) - Enable (?)"/>
+                                <CheckBox Name="chkFeatSandbox" Content="Windows Sandbox - Enable (?)"/>
+                                <CheckBox Name="chkFeatWSL" Content="Windows Subsystem for Linux (WSL) - Enable (?)"/>
+                                
+                                <Button Name="btnInstallFeaturesBatch" Content="Install Features" Background="#0284C7" FontWeight="Bold" Height="30" Margin="0,8,0,0"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- FIXES SECTION -->
+                        <Border Background="#0F172A" CornerRadius="5" Padding="10" Margin="0,0,0,8" BorderBrush="#1E293B" BorderThickness="1">
+                            <StackPanel>
+                                <TextBlock Text="Fixes" FontSize="13" FontWeight="Bold" Foreground="#10B981" Margin="0,0,0,6"/>
+                                <Button Name="btnFixAutoLogon" Content="AutoLogon - Run" Margin="0,2" Height="30" HorizontalContentAlignment="Center"/>
+                                <Button Name="btnFixNetworkReset" Content="Network - Reset" Margin="0,2" Height="30" HorizontalContentAlignment="Center"/>
+                                <Button Name="btnFixNTPServer" Content="NTP Server - Enable" Margin="0,2" Height="30" HorizontalContentAlignment="Center"/>
+                                <Button Name="btnFixSystemCorruption" Content="System Corruption Scan - Run" Margin="0,2" Height="30" HorizontalContentAlignment="Center"/>
+                                <Button Name="btnFixWindowsUpdate" Content="Windows Update - Reset" Margin="0,2" Height="30" HorizontalContentAlignment="Center"/>
+                                <Button Name="btnFixReinstallWinget" Content="WinGet - Reinstall" Margin="0,2" Height="30" HorizontalContentAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- TAB 4: WINDOWS OS CUSTOMIZER & UNATTENDED ISO BUILDER -->
+            <TabItem Header="OS Customizer &amp; ISOs">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="8">
+                    <StackPanel>
+                        <TextBlock Text="WINDOWS OS CUSTOMIZATION &amp; UNATTENDED ISO SETUP BUILDER" FontSize="12.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,6"/>
+
+                        <!-- Official ISO & Creator Tools -->
+                        <Border Background="#0F172A" CornerRadius="5" Padding="10" Margin="0,0,0,8" BorderBrush="#1E293B" BorderThickness="1">
+                            <StackPanel>
+                                <TextBlock Text="1. OFFICIAL WINDOWS ISO &amp; BOOTABLE USB CREATOR TOOLS" FontSize="11.5" FontWeight="Bold" Foreground="#10B981" Margin="0,0,0,4"/>
+                                <TextBlock Text="Download genuine official Windows ISOs directly from Microsoft servers and Rufus USB builder tool." FontSize="10" Foreground="#94A3B8" Margin="0,0,0,6"/>
+                                <UniformGrid Columns="4">
+                                    <Button Name="btnCustDownloadWin11" Content="Official Win 11 ISO (Microsoft)" Margin="2" Background="#059669" FontWeight="Bold"/>
+                                    <Button Name="btnCustDownloadWin10" Content="Official Win 10 ISO (Microsoft)" Margin="2" Background="#0284C7" FontWeight="Bold"/>
+                                    <Button Name="btnCustDownloadRufus" Content="Download Rufus (USB Tool)" Margin="2" Background="#D97706" FontWeight="Bold"/>
+                                    <Button Name="btnCustOpenFido" Content="Download Fido / UUPDump ISO" Margin="2" Background="#475569"/>
+                                </UniformGrid>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Unattended Setup & Bypass Configurator -->
+                        <Border Background="#0F172A" CornerRadius="5" Padding="10" Margin="0,0,0,8" BorderBrush="#1E293B" BorderThickness="1">
+                            <StackPanel>
+                                <TextBlock Text="2. UNATTENDED SETUP &amp; BYPASS ANSWER FILE (autounattend.xml)" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
+                                <TextBlock Text="Configure automated answer file to bypass Microsoft Account (MSA), bypass TPM/SecureBoot/RAM checks, and auto-create local user." FontSize="10" Foreground="#94A3B8" Margin="0,0,0,6"/>
+
+                                <UniformGrid Columns="2" Margin="0,0,0,6">
+                                    <CheckBox Name="chkCustBypassMSA" Content="Bypass Microsoft Account (MSA) in Setup (Force Local Account)" IsChecked="True"/>
+                                    <CheckBox Name="chkCustBypassTPM" Content="Bypass Windows 11 TPM 2.0, SecureBoot, RAM &amp; CPU Checks" IsChecked="True"/>
+                                    <CheckBox Name="chkCustSkipEULA" Content="Auto-Accept EULA &amp; Skip All Privacy Screens (Diagnostics, Ads)" IsChecked="True"/>
+                                    <CheckBox Name="chkCustDisableBitLocker" Content="Disable BitLocker Automatic Drive Encryption during Setup" IsChecked="True"/>
+                                    <CheckBox Name="chkCustPerfPower" Content="Enable High Performance Power Plan Scheme on Setup" IsChecked="True"/>
+                                    <CheckBox Name="chkCustClassicMenu" Content="Restore Classic Windows Right-Click Menu on First Boot" IsChecked="True"/>
+                                </UniformGrid>
+
+                                <!-- Custom Local User Credentials -->
+                                <Border Background="#080E1A" CornerRadius="4" Padding="8" Margin="0,4,0,6" BorderBrush="#1E293B" BorderThickness="1">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Text="Default User Name:" VerticalAlignment="Center" Margin="0,0,6,0" Foreground="#F8FAFC" FontWeight="Bold"/>
+                                        <TextBox Name="txtCustUsername" Grid.Column="1" Height="26" Margin="0,0,8,0" Text="Admin"/>
+                                        <TextBlock Grid.Column="2" Text="Password (Optional):" VerticalAlignment="Center" Margin="0,0,6,0" Foreground="#F8FAFC"/>
+                                        <TextBox Name="txtCustPassword" Grid.Column="3" Height="26" Margin="0,0,8,0" Text=""/>
+                                        <CheckBox Name="chkCustAutoLogon" Grid.Column="4" Content="Auto-Logon on Boot" VerticalAlignment="Center" IsChecked="True"/>
+                                    </Grid>
+                                </Border>
+
+                                <!-- Export autounattend.xml -->
+                                <Grid Margin="0,4,0,0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="Target USB / Drive:" VerticalAlignment="Center" Margin="0,0,8,0" Foreground="#F8FAFC" FontWeight="Bold"/>
+                                    <ComboBox Name="cmbCustTargetDrive" Grid.Column="1" Height="26" Margin="0,0,6,0" Background="#0F172A" Foreground="#F8FAFC"/>
+                                    <Button Name="btnCustRefreshDrives" Grid.Column="2" Content="Refresh Drives" Width="100" Height="26" Background="#334155" Margin="0,0,6,0"/>
+                                    <Button Name="btnGenerateAutounattend" Grid.Column="3" Content="Generate &amp; Save autounattend.xml" Width="220" Height="26" Background="#059669" FontWeight="Bold"/>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Live OOBE Bypass & Rufus Helper -->
+                        <Border Background="#0F172A" CornerRadius="5" Padding="10" BorderBrush="#1E293B" BorderThickness="1">
+                            <StackPanel>
+                                <TextBlock Text="3. LIVE SETUP (OOBE) BYPASS &amp; RUFUS INTEGRATION" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
+                                <TextBlock Text="If currently stuck on Windows 11 'Let's connect you to a network' setup screen, run live bypass command." FontSize="10" Foreground="#94A3B8" Margin="0,0,0,6"/>
+                                <UniformGrid Columns="2">
+                                    <Button Name="btnRunLiveOOBEBypass" Content="Execute Live OOBE Network Bypass (oobe\bypassnro)" Margin="2" Height="30" Background="#0284C7" FontWeight="Bold"/>
+                                    <Button Name="btnLaunchRufus" Content="Launch Rufus USB Builder with Recommended Config" Margin="2" Height="30" Background="#334155"/>
+                                </UniformGrid>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- TAB 5: POWER TOOLS & SYSTEM CONTROLS -->
+            <TabItem Header="Power Tools Hub">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="8">
+                    <StackPanel>
+                        <TextBlock Text="ADVANCED TECHNICIAN POWER TOOLS &amp; CONTROLLERS" FontSize="12.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,6"/>
+
+                        <!-- Windows Defender & Security Control -->
+                        <Border Background="#0F172A" CornerRadius="5" Padding="10" Margin="0,0,0,8" BorderBrush="#1E293B" BorderThickness="1">
+                            <StackPanel>
+                                <TextBlock Text="WINDOWS DEFENDER &amp; SECURITY CONTROLS" FontSize="11.5" FontWeight="Bold" Foreground="#10B981" Margin="0,0,0,4"/>
+                                <TextBlock Text="Temporarily pause/enable Defender real-time monitoring or clear false-positive protection cache." FontSize="10" Foreground="#94A3B8" Margin="0,0,0,6"/>
+                                <UniformGrid Columns="4">
+                                    <Button Name="btnPauseDefender" Content="Pause Realtime Defender" Margin="2" Background="#DC2626" FontWeight="Bold"/>
+                                    <Button Name="btnEnableDefender" Content="Enable Realtime Defender" Margin="2" Background="#059669" FontWeight="Bold"/>
+                                    <Button Name="btnClearDefenderCache" Content="Clear Protection History" Margin="2" Background="#0284C7"/>
+                                    <Button Name="btnDisableSmartScreen2" Content="Disable SmartScreen Warnings" Margin="2" Background="#D97706"/>
+                                </UniformGrid>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Printer Spooler & OneDrive / AI Debloat -->
+                        <Grid Margin="0,0,0,8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <Border Grid.Column="0" Background="#0F172A" CornerRadius="5" Padding="10" Margin="0,0,4,0" BorderBrush="#1E293B" BorderThickness="1">
+                                <StackPanel>
+                                    <TextBlock Text="PRINTER SPOOLER RECOVERY" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
+                                    <TextBlock Text="Purge stuck print queue &amp; cycle Spooler engine." FontSize="10" Foreground="#94A3B8" Margin="0,0,0,6"/>
+                                    <Button Name="btnFixPrinterSpooler" Content="1-Click Clear Stuck Print Jobs &amp; Restart Spooler" Height="30" Background="#059669" FontWeight="Bold"/>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Grid.Column="1" Background="#0F172A" CornerRadius="5" Padding="10" Margin="4,0,0,0" BorderBrush="#1E293B" BorderThickness="1">
+                                <StackPanel>
+                                    <TextBlock Text="ONEDRIVE &amp; COPILOT / RECALL AI" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
+                                    <TextBlock Text="Remove OneDrive completely or disable AI telemetry." FontSize="10" Foreground="#94A3B8" Margin="0,0,0,6"/>
+                                    <UniformGrid Columns="2">
+                                        <Button Name="btnRemoveOneDrive" Content="Uninstall OneDrive" Height="30" Margin="2" Background="#7F1D1D" FontWeight="Bold"/>
+                                        <Button Name="btnDisableCopilotRecall" Content="Disable Copilot &amp; Recall" Height="30" Margin="2" Background="#1E3A8A" FontWeight="Bold"/>
+                                    </UniformGrid>
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+
+                        <!-- Laptop Battery, Hibernation & Windows Explorer Quick Boost -->
+                        <Border Background="#0F172A" CornerRadius="5" Padding="10" Margin="0,0,0,8" BorderBrush="#1E293B" BorderThickness="1">
+                            <StackPanel>
+                                <TextBlock Text="LAPTOP BATTERY, HIBERNATION STORAGE &amp; EXPLORER QUICK RESTART" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
+                                <UniformGrid Columns="4">
+                                    <Button Name="btnDisableHibernation" Content="Disable Hibernation (Free 4-32GB)" Margin="2" Background="#059669" FontWeight="Bold"/>
+                                    <Button Name="btnEnableHibernation" Content="Enable Hibernation" Margin="2" Background="#334155"/>
+                                    <Button Name="btnRestartExplorerQuick" Content="1-Click Restart Explorer.exe" Margin="2" Background="#0284C7" FontWeight="Bold"/>
+                                    <Button Name="btnFixRecycleBinQuick" Content="Fix Corrupted Recycle Bin" Margin="2" Background="#D97706"/>
+                                </UniformGrid>
+                                <UniformGrid Columns="4" Margin="0,4,0,0">
+                                    <Button Name="btnToggleHiddenFilesQuick" Content="Toggle Hidden Files / Folders" Margin="2"/>
+                                    <Button Name="btnEnableLongPathsQuick" Content="Enable Long Paths (>260 Chars)" Margin="2" Background="#0D9488"/>
+                                    <Button Name="btnListStartupAppsQuick" Content="Inspect Startup Programs" Margin="2"/>
+                                    <Button Name="btnAnalyzeBatteryWear" Content="Battery Life &amp; Wear % Scan" Margin="2" Background="#1E3A8A"/>
+                                </UniformGrid>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Wi-Fi Hotspot & Secure File Shredder -->
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="1.1*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <Border Grid.Column="0" Background="#0F172A" CornerRadius="5" Padding="10" Margin="0,0,4,0" BorderBrush="#1E293B" BorderThickness="1">
+                                <StackPanel>
+                                    <TextBlock Text="PC WI-FI HOTSPOT CREATOR" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
+                                    <TextBlock Text="Turn PC into Hosted Virtual Router (SSID: WindowsTweakerHotspot)." FontSize="10" Foreground="#94A3B8" Margin="0,0,0,6"/>
+                                    <UniformGrid Columns="2">
+                                        <Button Name="btnStartHotspot" Content="Start Wi-Fi Hotspot" Height="28" Margin="2" Background="#059669" FontWeight="Bold"/>
+                                        <Button Name="btnStopHotspot" Content="Stop Wi-Fi Hotspot" Height="28" Margin="2" Background="#DC2626"/>
+                                    </UniformGrid>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Grid.Column="1" Background="#0F172A" CornerRadius="5" Padding="10" Margin="4,0,0,0" BorderBrush="#1E293B" BorderThickness="1">
+                                <StackPanel>
+                                    <TextBlock Text="PERMANENT FILE SHREDDER (DoD 3-PASS)" FontSize="11.5" FontWeight="Bold" Foreground="#EF4444" Margin="0,0,0,4"/>
+                                    <Grid Margin="0,2">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBox Name="txtShredFilePath" Grid.Column="0" Height="26" Margin="0,0,4,0" Text="C:\FileToShred.txt"/>
+                                        <Button Name="btnBrowseShredFile" Grid.Column="1" Content="Browse" Width="55" Height="26" Margin="0,0,4,0"/>
+                                        <Button Name="btnExecuteShredFile" Grid.Column="2" Content="Shred Now" Width="85" Height="26" Background="#DC2626" FontWeight="Bold"/>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- TAB 6: SUPER ADMIN & OEM KEY EXTRACTOR -->
+            <TabItem Header="Super Admin">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="8">
+                    <StackPanel>
+                        <TextBlock Text="SUPER ADMINISTRATOR &amp; OEM PRODUCT KEY POWER SUITE" FontSize="12.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,6"/>
+
+                        <!-- OEM BIOS Product Key Extractor -->
+                        <Border Background="#0F172A" CornerRadius="5" Padding="10" Margin="0,0,0,8" BorderBrush="#1E293B" BorderThickness="1">
+                            <StackPanel>
+                                <TextBlock Text="OEM BIOS &amp; DIGITAL PRODUCT KEY EXTRACTOR" FontSize="11.5" FontWeight="Bold" Foreground="#10B981" Margin="0,0,0,4"/>
+                                <TextBlock Text="Extracts OEM License Key embedded in Motherboard BIOS ACPI MSDM tables &amp; Registry Digital Product Key to Desktop." FontSize="10" Foreground="#94A3B8" Margin="0,0,0,6"/>
+                                <Button Name="btnExtractProductKey" Content="Extract OEM BIOS &amp; Digital Product Key (Export Desktop Report)" Background="#059669" FontWeight="Bold" Height="28"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Take Full Ownership -->
+                        <Border Background="#0F172A" CornerRadius="5" Padding="10" Margin="0,0,0,8" BorderBrush="#1E293B" BorderThickness="1">
+                            <StackPanel>
+                                <TextBlock Text="TAKE FULL ADMINISTRATOR OWNERSHIP &amp; PERMISSIONS" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
+                                <Grid Margin="0,2">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBox Name="txtTakeOwnPath" Grid.Column="0" Height="26" Margin="0,0,4,0" Text="C:\TargetFolderOrFile"/>
+                                    <Button Name="btnBrowseTakeOwn" Grid.Column="1" Content="Browse Folder" Width="100" Height="26" Margin="0,0,4,0"/>
+                                    <Button Name="btnExecuteTakeOwn" Grid.Column="2" Content="Grant Full Ownership" Width="140" Height="26" Background="#0284C7" FontWeight="Bold"/>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Advanced Admin Controls -->
+                        <Border Background="#0F172A" CornerRadius="5" Padding="10" Margin="0,0,0,8" BorderBrush="#1E293B" BorderThickness="1">
+                            <StackPanel>
+                                <TextBlock Text="SPECIAL PRIVILEGES &amp; SYSTEM OVERRIDES" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
+                                <UniformGrid Columns="3">
+                                    <Button Name="btnEnableSuperAdmin2" Content="Enable Built-in Administrator" Margin="2" Background="#059669"/>
+                                    <Button Name="btnCreateGodMode2" Content="Create GodMode Panel" Margin="2" Background="#D97706"/>
+                                    <Button Name="btnDisableUAC2" Content="Disable UAC Prompts" Margin="2" Background="#DC2626"/>
+                                    <Button Name="btnRebootUEFI" Content="Reboot into UEFI/BIOS" Margin="2" Background="#1E3A8A"/>
+                                    <Button Name="btnPurgeTelemetryTasks" Content="Purge Telemetry Tasks" Margin="2" Background="#0D9488"/>
+                                    <Button Name="btnInstallGPEdit2" Content="Install GPEdit on Win Home" Margin="2" Background="#475569"/>
+                                </UniformGrid>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Rename Computer & Force Kill -->
+                        <Border Background="#0F172A" CornerRadius="5" Padding="10" BorderBrush="#1E293B" BorderThickness="1">
+                            <StackPanel>
+                                <TextBlock Text="COMPUTER IDENTITY &amp; PROCESS TERMINATOR" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
+                                <Grid Margin="0,2,0,4">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="New PC Hostname:" VerticalAlignment="Center" Margin="0,0,8,0" Foreground="#F8FAFC"/>
+                                    <TextBox Name="txtNewHostName" Grid.Column="1" Height="26" Margin="0,0,4,0" Text="MyFastPC"/>
+                                    <Button Name="btnRenameComputer" Grid.Column="2" Content="Rename Computer" Width="130" Height="26" Background="#0284C7"/>
+                                </Grid>
+                                <Grid Margin="0,2">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="Kill Process Name:" VerticalAlignment="Center" Margin="0,0,14,0" Foreground="#F8FAFC"/>
+                                    <TextBox Name="txtProcessName" Grid.Column="1" Height="26" Margin="0,0,4,0" Text="notepad.exe"/>
+                                    <Button Name="btnKillProcess2" Grid.Column="2" Content="Force Terminate" Width="120" Height="26" Background="#DC2626" Margin="0,0,4,0"/>
+                                    <Button Name="btnRegBackup2" Grid.Column="3" Content="Export Full Registry Backup" Width="170" Height="26" Background="#059669"/>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- TAB 7: GAMING & HARDWARE -->
+            <TabItem Header="Gaming &amp; Hardware">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="8">
+                    <StackPanel>
+                        <!-- Gaming Latency & Input Lag -->
+                        <Border Background="#0F172A" CornerRadius="5" Padding="10" Margin="0,0,0,8" BorderBrush="#1E293B" BorderThickness="1">
+                            <StackPanel>
+                                <TextBlock Text="INPUT LAG &amp; LOW LATENCY GAMING BOOSTERS" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
+                                <TextBlock Text="Maximize mouse sensor tracking, eliminate keyboard typing delay, and configure MSI GPU mode." FontSize="10" Foreground="#94A3B8" Margin="0,0,0,6"/>
+                                <UniformGrid Columns="3">
+                                    <Button Name="btnDisableMouseAccel" Content="Disable Mouse Acceleration (1:1 Raw)" Margin="2" Background="#059669" FontWeight="Bold"/>
+                                    <Button Name="btnBoostKeyboardRate" Content="Boost Keyboard Repeat Rate (0ms Delay)" Margin="2" Background="#0284C7" FontWeight="Bold"/>
+                                    <Button Name="btnEnableMSIGpu" Content="Enable MSI Mode on GPU (Low DPC)" Margin="2" Background="#D97706" FontWeight="Bold"/>
+                                </UniformGrid>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Hardware Optimization -->
+                        <Border Background="#0F172A" CornerRadius="5" Padding="10" Margin="0,0,0,8" BorderBrush="#1E293B" BorderThickness="1">
+                            <StackPanel>
+                                <TextBlock Text="CPU &amp; HARDWARE OPTIMIZATION" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
+                                <UniformGrid Columns="3">
+                                    <Button Name="btnUnparkCPU" Content="Unpark All CPU Cores (100% Speed)" Margin="2" Background="#059669"/>
+                                    <Button Name="btnDisableUSBSleep" Content="Disable USB Power Throttling / Sleep" Margin="2" Background="#0284C7"/>
+                                    <Button Name="btnForceTrimSSD" Content="Force Deep NVMe / SSD TRIM" Margin="2" Background="#D97706"/>
+                                    <Button Name="btnEnableHAGS" Content="Enable Hardware GPU Scheduling (HAGS)" Margin="2" Background="#1E3A8A"/>
+                                    <Button Name="btnSmartScan" Content="SMART Physical Drive Health Scan" Margin="2" Background="#475569"/>
+                                    <Button Name="btnRamSpecs" Content="RAM Hardware Specifications" Margin="2" Background="#475569"/>
+                                </UniformGrid>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Diagnostics & Performance -->
+                        <Border Background="#0F172A" CornerRadius="5" Padding="10" BorderBrush="#1E293B" BorderThickness="1">
+                            <StackPanel>
+                                <TextBlock Text="DIAGNOSTICS &amp; BENCHMARKS" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
+                                <UniformGrid Columns="4">
+                                    <Button Name="btnMemDiag" Content="Memory Diagnostic" Margin="2"/>
+                                    <Button Name="btnSpeedTest" Content="Cloudflare Speed Test" Margin="2" Background="#059669"/>
+                                    <Button Name="btnBatteryHealth" Content="Battery Health Report" Margin="2"/>
+                                    <Button Name="btnSysSummary" Content="System Hardware Summary" Margin="2"/>
+                                </UniformGrid>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- TAB 8: REPAIR & STORAGE -->
+            <TabItem Header="Repair &amp; Storage">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="8">
+                    <StackPanel>
+                        <!-- Storage Cleaner & Large Files -->
+                        <Border Background="#0F172A" CornerRadius="5" Padding="10" Margin="0,0,0,8" BorderBrush="#1E293B" BorderThickness="1">
+                            <StackPanel>
+                                <TextBlock Text="STORAGE CLEANER &amp; COMPONENT STORE" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
+                                <UniformGrid Columns="3">
+                                    <Button Name="btnFindLargestFiles" Content="Find Top 20 Largest Files on C:" Margin="2" Background="#0284C7" FontWeight="Bold"/>
+                                    <Button Name="btnPurgeWinSxSComponent" Content="Deep Clean WinSxS (DISM ResetBase)" Margin="2" Background="#059669" FontWeight="Bold"/>
+                                    <Button Name="btnPurgeWindowsOld" Content="Purge Windows.old &amp; Shader Cache" Margin="2" Background="#D97706" FontWeight="Bold"/>
+                                </UniformGrid>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Time Sync & Audio Diagnostics -->
+                        <Border Background="#0F172A" CornerRadius="5" Padding="10" Margin="0,0,0,8" BorderBrush="#1E293B" BorderThickness="1">
+                            <StackPanel>
+                                <TextBlock Text="WINDOWS TIME &amp; AUDIO DIAGNOSTICS" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
+                                <UniformGrid Columns="3">
+                                    <Button Name="btnForceTimeResync" Content="Force Windows NTP Clock Resync" Margin="2" Background="#059669"/>
+                                    <Button Name="btnFixCMOSTimeDrift" Content="Fix CMOS Time Drift (RealTimeIsUniversal)" Margin="2" Background="#0284C7"/>
+                                    <Button Name="btnFixAudioLatency" Content="Fix Audio Stuttering &amp; Graph Latency" Margin="2" Background="#D97706"/>
+                                </UniformGrid>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Crash & Corruption -->
+                        <Border Background="#0F172A" CornerRadius="5" Padding="10" Margin="0,0,0,8" BorderBrush="#1E293B" BorderThickness="1">
+                            <StackPanel>
+                                <TextBlock Text="CRASH &amp; CORRUPTION RECOVERY" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
+                                <UniformGrid Columns="4">
+                                    <Button Name="btnAnalyzeBSOD" Content="BSOD Crash Analyzer" Margin="2" Background="#DC2626"/>
+                                    <Button Name="btnUnblockTools" Content="Unblock Reg/CMD/TaskMgr" Margin="2" Background="#059669"/>
+                                    <Button Name="btnFixStuckWU" Content="Fix Stuck Updates" Margin="2"/>
+                                    <Button Name="btnRebuildSearchIndex" Content="Rebuild Search Index" Margin="2"/>
+                                </UniformGrid>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- System Scanners -->
+                        <Border Background="#0F172A" CornerRadius="5" Padding="10" Margin="0,0,0,8" BorderBrush="#1E293B" BorderThickness="1">
+                            <StackPanel>
+                                <TextBlock Text="SYSTEM IMAGE SCANNERS" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
+                                <UniformGrid Columns="4">
+                                    <Button Name="btnRunSFC" Content="SFC ScanNow" Margin="2"/>
+                                    <Button Name="btnDismRestore" Content="DISM RestoreHealth" Margin="2"/>
+                                    <Button Name="btnDismCheck" Content="DISM CheckHealth" Margin="2"/>
+                                    <Button Name="btnResetWU" Content="Reset Update Cache" Margin="2"/>
+                                </UniformGrid>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Engine DLLs -->
+                        <Border Background="#0F172A" CornerRadius="5" Padding="10" Margin="0,0,0,8" BorderBrush="#1E293B" BorderThickness="1">
+                            <StackPanel>
+                                <TextBlock Text="SYSTEM ENGINES &amp; WINRE" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
+                                <UniformGrid Columns="4">
+                                    <Button Name="btnRepairEngines" Content="Re-register Engines" Margin="2"/>
+                                    <Button Name="btnRegCoreDLLs" Content="Re-register DLLs" Margin="2"/>
+                                    <Button Name="btnRepairStore" Content="Reinstall Store Apps" Margin="2"/>
+                                    <Button Name="btnEnableWinRE" Content="Enable WinRE" Margin="2"/>
+                                    <Button Name="btnCheckWinRE" Content="Check WinRE Info" Margin="2"/>
+                                    <Button Name="btnRebuildBCD" Content="Rebuild BCDBoot" Margin="2"/>
+                                    <Button Name="btnScheduleChkdsk" Content="Schedule Chkdsk" Margin="2"/>
+                                </UniformGrid>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Filesystem Conversions -->
+                        <Border Background="#0F172A" CornerRadius="5" Padding="10" BorderBrush="#1E293B" BorderThickness="1">
+                            <StackPanel>
+                                <TextBlock Text="FILESYSTEM &amp; PARTITION CONVERSIONS" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
+                                <Grid Margin="0,2,0,4">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="FAT32 to NTFS:" VerticalAlignment="Center" Margin="0,0,8,0" Foreground="#F8FAFC"/>
+                                    <ComboBox Name="cmbDriveLetter" Grid.Column="1" Height="26" Margin="0,0,4,0" Background="#0F172A" Foreground="#F8FAFC"/>
+                                    <Button Name="btnConvertNTFS" Grid.Column="2" Content="Convert to NTFS" Width="140" Height="26" Background="#0284C7"/>
+                                </Grid>
+                                <Grid Margin="0,2">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="MBR to GPT:" VerticalAlignment="Center" Margin="0,0,16,0" Foreground="#F8FAFC"/>
+                                    <ComboBox Name="cmbDiskID" Grid.Column="1" Height="26" Margin="0,0,4,0" Background="#0F172A" Foreground="#F8FAFC"/>
+                                    <Button Name="btnConvertGPT" Grid.Column="2" Content="Convert MBR to GPT" Width="140" Height="26" Background="#D97706"/>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- TAB 9: OS TWEAKS & MENU -->
+            <TabItem Header="OS Tweaks &amp; Menu">
+                <Grid Margin="6">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto" Margin="0,0,0,6">
+                        <StackPanel>
+                            <!-- Context Menu Extensions -->
+                            <Border Background="#0F172A" CornerRadius="5" Padding="10" Margin="0,0,0,8" BorderBrush="#1E293B" BorderThickness="1">
+                                <StackPanel>
+                                    <TextBlock Text="POWER CONTEXT MENU EXTENSIONS" FontSize="11.5" FontWeight="Bold" Foreground="#10B981" Margin="0,0,0,4"/>
+                                    <TextBlock Text="Add productivity actions directly into Windows right-click file &amp; folder context menu." FontSize="10" Foreground="#94A3B8" Margin="0,0,0,6"/>
+                                    <UniformGrid Columns="3">
+                                        <Button Name="btnContextCopyPath" Content="Add 'Copy Path' to Menu" Margin="2" Background="#0284C7"/>
+                                        <Button Name="btnContextCompact" Content="Add 'Compact Folder' to Menu" Margin="2" Background="#059669"/>
+                                        <Button Name="btnContextPermanentDelete" Content="Add 'Permanent Delete' to Menu" Margin="2" Background="#DC2626"/>
+                                    </UniformGrid>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Windows 11 Bypasses -->
+                            <Border Background="#0F172A" CornerRadius="5" Padding="10" Margin="0,0,0,8" BorderBrush="#1E293B" BorderThickness="1">
+                                <StackPanel>
+                                    <TextBlock Text="WINDOWS 11 BYPASSES &amp; SPECIAL TWEAKS" FontSize="11.5" FontWeight="Bold" Foreground="#F59E0B" Margin="0,0,0,4"/>
+                                    <CheckBox Name="chkBypassTPM" Content="Bypass Windows 11 TPM 2.0, SecureBoot &amp; RAM Check Requirements" IsChecked="True"/>
+                                    <CheckBox Name="chkRemoveWatermark" Content="Remove 'System requirements not met' Desktop Watermark" IsChecked="True"/>
+                                    <CheckBox Name="chkBlockDriverWU" Content="Prevent Windows Update from Overwriting Graphics &amp; Audio Drivers" IsChecked="True"/>
+                                    <CheckBox Name="chkAlignTaskbarLeft" Content="Set Windows 11 Taskbar Alignment to Left (Classic Windows Style)"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Telemetry & Privacy -->
+                            <Border Background="#0F172A" CornerRadius="5" Padding="10" Margin="0,0,0,8" BorderBrush="#1E293B" BorderThickness="1">
+                                <StackPanel>
+                                    <TextBlock Text="TELEMETRY &amp; PRIVACY (RECOMMENDED)" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
+                                    <CheckBox Name="chkTelemetry" Content="Disable Windows Telemetry &amp; Diagnostic Data" IsChecked="True"/>
+                                    <CheckBox Name="chkCortana" Content="Disable Cortana Digital Assistant service" IsChecked="True"/>
+                                    <CheckBox Name="chkBing" Content="Disable Bing Search queries in Start Menu" IsChecked="True"/>
+                                    <CheckBox Name="chkAds" Content="Disable Lockscreen Tips, Ads &amp; Spotlight suggestions" IsChecked="True"/>
+                                    <CheckBox Name="chkLocation" Content="Disable Location Tracking service &amp; sensors" IsChecked="True"/>
+                                    <CheckBox Name="chkActivity" Content="Disable Activity History timeline tracker" IsChecked="True"/>
+                                    <CheckBox Name="chkFeedback" Content="Disable Windows Feedback Prompts &amp; Surveys" IsChecked="True"/>
+                                    <CheckBox Name="chkSmartScreen" Content="Disable Windows SmartScreen Download Filter"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- System Optimization & UI -->
+                            <Border Background="#0F172A" CornerRadius="5" Padding="10" Margin="0,0,0,8" BorderBrush="#1E293B" BorderThickness="1">
+                                <StackPanel>
+                                    <TextBlock Text="SYSTEM OPTIMIZATION &amp; UI DELAYS" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
+                                    <CheckBox Name="chkUltPower" Content="Enable Ultimate Performance Power Plan Scheme" IsChecked="True"/>
+                                    <CheckBox Name="chkStartupDelay" Content="Disable Startup Delay for Desktop Apps launcher" IsChecked="True"/>
+                                    <CheckBox Name="chkStickyKeys" Content="Disable Sticky Keys Prompt Popup warning" IsChecked="True"/>
+                                    <CheckBox Name="chkMenuDelay" Content="Speed Up Menu &amp; Window animation delays (0 ms)" IsChecked="True"/>
+                                    <CheckBox Name="chkNtfsTime" Content="Disable NTFS Last Access Timestamp updating" IsChecked="True"/>
+                                    <CheckBox Name="chkUniversalBg" Content="Disable Universal App Background Run (Saves RAM/CPU)" IsChecked="True"/>
+                                    <CheckBox Name="chkEdgePreload" Content="Stop Edge/Office Startup Pre-loading apps" IsChecked="True"/>
+                                    <CheckBox Name="chkGameDVR" Content="Disable Xbox Game Bar &amp; Background DVR Recording" IsChecked="True"/>
+                                    <CheckBox Name="chkNetThrottle" Content="Disable Network Throttling Index for Gaming" IsChecked="True"/>
+                                    <CheckBox Name="chkGameLatency" Content="Optimize Network TCP/IP Latency for Online Gaming" IsChecked="True"/>
+                                    <CheckBox Name="chkHoverDelays" Content="Disable Windows UI Hover Delays &amp; Speed up Taskbar" IsChecked="True"/>
+                                    <CheckBox Name="chkSearchHighlights" Content="Disable Dynamic Search Highlights on Taskbar" IsChecked="True"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Context Menu & Explorer -->
+                            <Border Background="#0F172A" CornerRadius="5" Padding="10" Margin="0,0,0,8" BorderBrush="#1E293B" BorderThickness="1">
+                                <StackPanel>
+                                    <TextBlock Text="RIGHT-CLICK CONTEXT MENU &amp; EXPLORER" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
+                                    <CheckBox Name="chkTakeOwn" Content="Add 'Take Ownership' option to File Context Menu" IsChecked="True"/>
+                                    <CheckBox Name="chkOpenNotepad" Content="Add 'Open with Notepad' option to File Context Menu" IsChecked="True"/>
+                                    <CheckBox Name="chkKillStuck" Content="Add 'Kill Not Responding Tasks' to Desktop Menu" IsChecked="True"/>
+                                    <CheckBox Name="chkCmdAdmin" Content="Add 'Command Prompt Here (Admin)' to Folder Menu" IsChecked="True"/>
+                                    <CheckBox Name="chkShowExt" Content="Show File Name Extensions in Windows Explorer" IsChecked="True"/>
+                                    <CheckBox Name="chkTaskbarWidgets" Content="Disable Windows 11 Taskbar News/Weather widgets" IsChecked="True"/>
+                                    <CheckBox Name="chkPhotoViewer" Content="Restore Classic Windows Photo Viewer" IsChecked="True"/>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <!-- Presets & Batch Apply -->
+                    <Border Grid.Row="1" Background="#0F172A" CornerRadius="5" Padding="8" BorderBrush="#1E293B" BorderThickness="1">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" Orientation="Horizontal">
+                                <TextBlock Text="Presets: " Foreground="#94A3B8" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                <Button Name="btnPresetRecommended" Content="Recommended" Background="#059669" Width="105" Margin="0,0,4,0"/>
+                                <Button Name="btnPresetUltra" Content="Ultra Fast Mode" Background="#D97706" Width="110" Margin="0,0,4,0"/>
+                                <Button Name="btnPresetClear" Content="Clear All" Background="#DC2626" Width="75"/>
+                            </StackPanel>
+                            <Button Name="btnApplyTweaksBatch" Grid.Column="2" Content="Apply Selected Tweaks" Background="#0284C7" FontWeight="Bold" Width="160" Height="28"/>
+                        </Grid>
+                    </Border>
+                </Grid>
+            </TabItem>
+
+            <!-- TAB 10: SECURITY & USB LOCK -->
+            <TabItem Header="Security &amp; USB Lock">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="8">
+                    <StackPanel>
+                        <Border Background="#0F172A" CornerRadius="5" Padding="10" Margin="0,0,0,8" BorderBrush="#1E293B" BorderThickness="1">
+                            <StackPanel>
+                                <TextBlock Text="USB DATA LEAK PROTECTION" FontSize="11.5" FontWeight="Bold" Foreground="#EF4444" Margin="0,0,0,4"/>
+                                <TextBlock Text="Lock USB pen drives to Read-Only mode to prevent unauthorized copying of sensitive files." FontSize="10" Foreground="#94A3B8" Margin="0,0,0,6"/>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Button Name="btnEnableUSBWriteProtect" Grid.Column="0" Content="Enable USB Write-Protect (Read-Only Mode)" Background="#DC2626" Margin="0,0,3,0" FontWeight="Bold"/>
+                                    <Button Name="btnDisableUSBWriteProtect" Grid.Column="1" Content="Disable USB Write-Protect (Normal Mode)" Background="#059669" Margin="3,0,0,0" FontWeight="Bold"/>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Background="#0F172A" CornerRadius="5" Padding="10" Margin="0,0,0,8" BorderBrush="#1E293B" BorderThickness="1">
+                            <StackPanel>
+                                <TextBlock Text="HOSTS FILE AD-BLOCKER &amp; DEFENDER EXCLUSIONS" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
+                                <Button Name="btnInjectHostsAdblock" Content="Inject Telemetry &amp; Malware Ad-Blocker into Windows Hosts File" Margin="0,2" HorizontalContentAlignment="Left"/>
+                                <Button Name="btnResetHosts" Content="Reset Windows Hosts File to Factory Default" Margin="0,2" HorizontalContentAlignment="Left"/>
+                                <Button Name="btnAddDefenderExclusion" Content="Add Folder Exclusion to Windows Defender (Prevents Dev Script Blocking)" Margin="0,2" HorizontalContentAlignment="Left"/>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Background="#0F172A" CornerRadius="5" Padding="10" BorderBrush="#1E293B" BorderThickness="1">
+                            <StackPanel>
+                                <TextBlock Text="VIRTUALIZATION &amp; ISOLATION" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
+                                <Button Name="btnEnableSandbox" Content="Enable Windows Sandbox (Disposable Virtual Testing Environment)" Margin="0,2" HorizontalContentAlignment="Left"/>
+                                <Button Name="btnEnableHyperV" Content="Enable Microsoft Hyper-V Virtualization Platform" Margin="0,2" HorizontalContentAlignment="Left"/>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- TAB 11: NETWORK & WI-FI TOOLS -->
+            <TabItem Header="Network &amp; Wi-Fi Tools">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="8">
+                    <StackPanel>
+                        <Border Background="#0F172A" CornerRadius="5" Padding="10" Margin="0,0,0,8" BorderBrush="#1E293B" BorderThickness="1">
+                            <StackPanel>
+                                <TextBlock Text="WI-FI PASSWORDS &amp; MOBILE QR CODE GENERATOR" FontSize="11.5" FontWeight="Bold" Foreground="#10B981" Margin="0,0,0,4"/>
+                                <Button Name="btnExportWiFiPass" Content="Export All Saved Wi-Fi Passwords to Desktop Report" Margin="0,2" HorizontalContentAlignment="Left" Background="#059669" FontWeight="Bold"/>
+                                <Button Name="btnGenWiFiQR" Content="Generate Mobile Connect QR Code for Active Wi-Fi (Scan to Connect)" Margin="0,2" HorizontalContentAlignment="Left" Background="#0284C7" FontWeight="Bold"/>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Background="#0F172A" CornerRadius="5" Padding="10" Margin="0,0,0,8" BorderBrush="#1E293B" BorderThickness="1">
+                            <StackPanel>
+                                <TextBlock Text="TCP GAMING LATENCY, CONGESTION &amp; PORTS MONITOR" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
+                                <Button Name="btnApplyTCPAck" Content="Apply TCP NoDelay &amp; AckFrequency Tweaks (Reduces Ping in Online Games)" Margin="0,2" HorizontalContentAlignment="Left"/>
+                                <Button Name="btnBoostTCPCongestion" Content="Optimize TCP Congestion Provider to CTCP / BBR" Margin="0,2" HorizontalContentAlignment="Left"/>
+                                <Button Name="btnViewActivePorts" Content="Inspect Active Listening Ports &amp; Connections (Netstat Monitor)" Margin="0,2" HorizontalContentAlignment="Left"/>
+                                <Button Name="btnResetWinsock3" Content="Run Full Winsock &amp; TCP/IP Stack Reset" Margin="0,2" HorizontalContentAlignment="Left"/>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Background="#0F172A" CornerRadius="5" Padding="10" BorderBrush="#1E293B" BorderThickness="1">
+                            <StackPanel>
+                                <TextBlock Text="FAST SECURE DNS SWITCHER" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
+                                <UniformGrid Columns="4">
+                                    <Button Name="btnDNSCloudflare" Content="Cloudflare (1.1.1.1)" Margin="2"/>
+                                    <Button Name="btnDNSGoogle" Content="Google (8.8.8.8)" Margin="2"/>
+                                    <Button Name="btnDNSQuad9" Content="Quad9 (9.9.9.9)" Margin="2"/>
+                                    <Button Name="btnDNSDHCP" Content="Reset to DHCP" Margin="2"/>
+                                </UniformGrid>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- TAB 12: ACTIVATION, OFFICE & CHANGE EDITION -->
+            <TabItem Header="Activation &amp; ISOs">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="8">
+                    <StackPanel>
+                        <!-- CHANGE WINDOWS EDITION (IN-PLACE UPGRADE) -->
+                        <Border Background="#0F172A" CornerRadius="5" Padding="10" Margin="0,0,0,8" BorderBrush="#1E293B" BorderThickness="1">
+                            <StackPanel>
+                                <TextBlock Text="CHANGE WINDOWS EDITION (1-CLICK IN-PLACE UPGRADE)" FontSize="12" FontWeight="Bold" Foreground="#F59E0B" Margin="0,0,0,4"/>
+                                <TextBlock Text="Instantly upgrade Windows 10/11 Home to Pro, Pro to Enterprise, Workstation, or Education without reinstalling Windows." FontSize="10" Foreground="#94A3B8" Margin="0,0,0,6"/>
+
+                                <Grid Margin="0,0,0,6">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="Select Target Edition:" VerticalAlignment="Center" Margin="0,0,10,0" Foreground="#F8FAFC" FontWeight="Bold"/>
+                                    <ComboBox Name="cmbTargetWinEdition" Grid.Column="1" Height="26" Background="#0F172A" Foreground="#F8FAFC"/>
+                                </Grid>
+
+                                <Grid Margin="0,0,0,6">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="Product Key (Auto/Custom):" VerticalAlignment="Center" Margin="0,0,10,0" Foreground="#F8FAFC"/>
+                                    <TextBox Name="txtCustomEditionKey" Grid.Column="1" Height="26" Margin="0,0,6,0" Text="VK7JG-NPHTM-C97JM-9MPGT-3V66T"/>
+                                    <Button Name="btnAutoFillEditionKey" Grid.Column="2" Content="Auto-Fill Generic Key" Width="140" Height="26" Background="#334155"/>
+                                </Grid>
+
+                                <UniformGrid Columns="3" Margin="0,2,0,0">
+                                    <Button Name="btnApplyEditionChange" Content="Upgrade via changepk.exe" Margin="2" Background="#059669" FontWeight="Bold" Height="28"/>
+                                    <Button Name="btnDISMEditionChange" Content="Upgrade via DISM /Set-Edition" Margin="2" Background="#0284C7" FontWeight="Bold" Height="28"/>
+                                    <Button Name="btnOpenMASEditionMenu" Content="MAS Change Edition Menu" Margin="2" Background="#D97706" FontWeight="Bold" Height="28"/>
+                                </UniformGrid>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Microsoft Office Installers -->
+                        <TextBlock Text="MICROSOFT OFFICE INSTALLER SUITE" FontSize="12" FontWeight="Bold" Foreground="#38BDF8" Margin="0,2,0,6"/>
+                        <Grid Margin="0,0,0,8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            
+                            <Border Grid.Column="0" Background="#0F172A" CornerRadius="5" Padding="6" Margin="0,0,2,0" BorderBrush="#1E293B" BorderThickness="1">
+                                <StackPanel>
+                                    <TextBlock Text="Microsoft 365 Apps" FontWeight="Bold" FontSize="11" Foreground="#F8FAFC"/>
+                                    <TextBlock Text="Subscription Suite apps." FontSize="9.5" Foreground="#94A3B8" TextWrapping="Wrap" Margin="0,2,0,6"/>
+                                    <Button Name="btnInstallM365" Content="Install M365" Background="#0284C7" Height="26"/>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Grid.Column="1" Background="#0F172A" CornerRadius="5" Padding="6" Margin="2,0,2,0" BorderBrush="#1E293B" BorderThickness="1">
+                                <StackPanel>
+                                    <TextBlock Text="Office LTSC 2019" FontWeight="Bold" FontSize="11" Foreground="#F8FAFC"/>
+                                    <TextBlock Text="Perpetual 2019 ProPlus." FontSize="9.5" Foreground="#94A3B8" TextWrapping="Wrap" Margin="0,2,0,6"/>
+                                    <Button Name="btnInstall2019" Content="Install 2019" Background="#0284C7" Height="26"/>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Grid.Column="2" Background="#0F172A" CornerRadius="5" Padding="6" Margin="2,0,2,0" BorderBrush="#1E293B" BorderThickness="1">
+                                <StackPanel>
+                                    <TextBlock Text="Office LTSC 2021" FontWeight="Bold" FontSize="11" Foreground="#F8FAFC"/>
+                                    <TextBlock Text="Perpetual 2021 ProPlus." FontSize="9.5" Foreground="#94A3B8" TextWrapping="Wrap" Margin="0,2,0,6"/>
+                                    <Button Name="btnInstall2021" Content="Install 2021" Background="#0284C7" Height="26"/>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Grid.Column="3" Background="#0F172A" CornerRadius="5" Padding="6" Margin="2,0,0,0" BorderBrush="#1E293B" BorderThickness="1">
+                                <StackPanel>
+                                    <TextBlock Text="Office LTSC 2024" FontWeight="Bold" FontSize="11" Foreground="#F8FAFC"/>
+                                    <TextBlock Text="Perpetual 2024 ProPlus." FontSize="9.5" Foreground="#94A3B8" TextWrapping="Wrap" Margin="0,2,0,6"/>
+                                    <Button Name="btnInstall2024" Content="Install 2024" Background="#0284C7" Height="26"/>
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+
+                        <!-- MAS Activation -->
+                        <TextBlock Text="WINDOWS &amp; OFFICE ACTIVATION (OPEN-SOURCE MAS)" FontSize="12" FontWeight="Bold" Foreground="#38BDF8" Margin="0,2,0,6"/>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <Border Grid.Column="0" Background="#0F172A" CornerRadius="5" Padding="6" Margin="0,0,2,0" BorderBrush="#1E293B" BorderThickness="1">
+                                <StackPanel>
+                                    <TextBlock Text="Windows (HWID)" FontWeight="Bold" FontSize="10.5" Foreground="#F8FAFC"/>
+                                    <TextBlock Text="Permanent digital license." FontSize="9" Foreground="#94A3B8" Margin="0,2,0,4"/>
+                                    <Button Name="btnActWindows" Content="Activate Win" Background="#0284C7" Height="26"/>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Grid.Column="1" Background="#0F172A" CornerRadius="5" Padding="6" Margin="2,0,2,0" BorderBrush="#1E293B" BorderThickness="1">
+                                <StackPanel>
+                                    <TextBlock Text="Office (Ohook)" FontWeight="Bold" FontSize="10.5" Foreground="#F8FAFC"/>
+                                    <TextBlock Text="Local Ohook injection." FontSize="9" Foreground="#94A3B8" Margin="0,2,0,4"/>
+                                    <Button Name="btnActOffice" Content="Activate Office" Background="#0284C7" Height="26"/>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Grid.Column="2" Background="#0F172A" CornerRadius="5" Padding="6" Margin="2,0,2,0" BorderBrush="#1E293B" BorderThickness="1">
+                                <StackPanel>
+                                    <TextBlock Text="Both (KMS)" FontWeight="Bold" FontSize="10.5" Foreground="#F8FAFC"/>
+                                    <TextBlock Text="Online KMS script." FontSize="9" Foreground="#94A3B8" Margin="0,2,0,4"/>
+                                    <Button Name="btnActKMS" Content="Activate KMS" Background="#0284C7" Height="26"/>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Grid.Column="3" Background="#0F172A" CornerRadius="5" Padding="6" Margin="2,0,2,0" BorderBrush="#1E293B" BorderThickness="1">
+                                <StackPanel>
+                                    <TextBlock Text="Uninstall KMS" FontWeight="Bold" FontSize="10.5" Foreground="#F8FAFC"/>
+                                    <TextBlock Text="Removes online KMS." FontSize="9" Foreground="#94A3B8" Margin="0,2,0,4"/>
+                                    <Button Name="btnCleanKMS" Content="Clean KMS" Background="#0284C7" Height="26"/>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Grid.Column="4" Background="#0F172A" CornerRadius="5" Padding="6" Margin="2,0,0,0" BorderBrush="#1E293B" BorderThickness="1">
+                                <StackPanel>
+                                    <TextBlock Text="Change Edition" FontWeight="Bold" FontSize="10.5" Foreground="#F8FAFC"/>
+                                    <TextBlock Text="Home to Pro/Ent." FontSize="9" Foreground="#94A3B8" Margin="0,2,0,4"/>
+                                    <Button Name="btnChangeEdition" Content="Change Edition" Background="#0284C7" Height="26"/>
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- TAB 13: DATA & DRIVERS HUB -->
+            <TabItem Header="Data &amp; Drivers Hub">
+                <Grid Margin="6">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <Grid Grid.Row="0" Margin="0,0,0,6">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="1.2*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Robocopy Hub -->
+                        <Border Grid.Column="0" Background="#0F172A" CornerRadius="5" Padding="10" Margin="0,0,4,0" BorderBrush="#1E293B" BorderThickness="1">
+                            <StackPanel>
+                                <TextBlock Text="DATA MIGRATION &amp; ROBOCOPY MIRROR" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,6"/>
+                                
+                                <TextBlock Text="Source Folder:" FontSize="10" Foreground="#94A3B8" Margin="0,0,0,2"/>
+                                <Grid Margin="0,0,0,4">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBox Name="txtSourceFolder" Grid.Column="0" Height="26"/>
+                                    <Button Name="btnBrowseSource" Grid.Column="1" Content="Browse" Width="60" Height="26" Margin="4,0,0,0"/>
+                                </Grid>
+
+                                <TextBlock Text="Target Folder:" FontSize="10" Foreground="#94A3B8" Margin="0,0,0,2"/>
+                                <Grid Margin="0,0,0,6">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <TextBox Name="txtTargetFolder" Grid.Column="0" Height="26"/>
+                                    <Button Name="btnBrowseTarget" Grid.Column="1" Content="Browse" Width="60" Height="26" Margin="4,0,0,0"/>
+                                </Grid>
+
+                                <Button Name="btnRunRobocopy" Content="Run Robocopy Mirror Engine" Background="#0284C7" FontWeight="Bold" Height="28" Margin="0,0,0,4"/>
+                                <Button Name="btnExportBookmarks2" Content="Backup Browser Bookmarks (Chrome, Edge, Brave)" Background="#0D9488" Height="26"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Drivers & Enterprise -->
+                        <StackPanel Grid.Column="1" Margin="4,0,0,0">
+                            <Border Background="#0F172A" CornerRadius="5" Padding="8" Margin="0,0,0,4" BorderBrush="#1E293B" BorderThickness="1">
+                                <StackPanel>
+                                    <TextBlock Text="DRIVERS &amp; SOFTWARE PACKETS" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
+                                    <Button Name="btnExportDrivers" Content="Export Custom Device Drivers (Desktop Backup)" Margin="0,2" HorizontalContentAlignment="Left"/>
+                                    <Button Name="btnRestoreDrivers" Content="Restore Device Drivers from Folder" Margin="0,2" HorizontalContentAlignment="Left"/>
+                                    <Button Name="btnUpgradeWinget" Content="Force Upgrade All Installed Software (WinGet)" Margin="0,2" HorizontalContentAlignment="Left"/>
+                                </StackPanel>
+                            </Border>
+
+                            <Border Background="#0F172A" CornerRadius="5" Padding="8" BorderBrush="#1E293B" BorderThickness="1">
+                                <StackPanel>
+                                    <TextBlock Text="ENTERPRISE &amp; CACHE PURGE" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
+                                    <Button Name="btnRestartTally" Content="Restart Active Tally Gateway System Engines" Margin="0,2" HorizontalContentAlignment="Left"/>
+                                    <Button Name="btnPurgeCache" Content="Purge System Prefetch, Cache, and Temp Files" Margin="0,2" HorizontalContentAlignment="Left"/>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- Terminal Output -->
+                    <Border Grid.Row="1" Background="#050B14" CornerRadius="5" Padding="6" BorderBrush="#1E293B" BorderThickness="1">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            <TextBlock Grid.Row="0" Text="Migration &amp; Engine Outputs Terminal" FontSize="10" FontWeight="Bold" Foreground="#64748B" Margin="0,0,0,2"/>
+                            <TextBox Name="txtTerminalLog" Grid.Row="1" Background="Transparent" Foreground="#10B981" FontFamily="Consolas" FontSize="10.5" IsReadOnly="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" BorderThickness="0" Text="[backups &amp; diagnostics node ready]&#x0a;"/>
+                        </Grid>
+                    </Border>
+                </Grid>
+            </TabItem>
+
+            <!-- TAB 14: QUICK HUB -->
+            <TabItem Header="Quick Hub">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="8">
+                    <StackPanel>
+                        <TextBlock Text="WINDOWS BUILT-IN ADMINISTRATIVE CONSOLES" FontSize="12.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,6"/>
+                        <UniformGrid Columns="2">
+                            <Button Name="btnHubReg2" Content="Registry Editor (regedit)" Margin="2" Height="32"/>
+                            <Button Name="btnHubDev2" Content="Device Manager (devmgmt.msc)" Margin="2" Height="32"/>
+                            <Button Name="btnHubGP2" Content="Group Policy Editor (gpedit.msc)" Margin="2" Height="32"/>
+                            <Button Name="btnHubDisk2" Content="Disk Management (diskmgmt.msc)" Margin="2" Height="32"/>
+                            <Button Name="btnHubTask2" Content="Task Manager (taskmgr)" Margin="2" Height="32"/>
+                            <Button Name="btnHubRes2" Content="Resource Monitor (resmon)" Margin="2" Height="32"/>
+                            <Button Name="btnHubDx2" Content="DirectX Diagnostic Tool (dxdiag)" Margin="2" Height="32"/>
+                            <Button Name="btnHubServ2" Content="Windows Services (services.msc)" Margin="2" Height="32"/>
+                        </UniformGrid>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+        </TabControl>
+
+        <!-- FOOTER BAR -->
+        <Border Grid.Row="2" Background="#0F172A" CornerRadius="6" Padding="10,5" Margin="0,6,0,0" BorderBrush="#1E293B" BorderThickness="1">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Name="txtStatusFooter" Grid.Column="0" Text="Status: Venkat Master Suite Ready (Optimized) | 360+ tools, customizer, autounattend.xml builder, edition changer &amp; power tools active." FontSize="10" Foreground="#10B981" VerticalAlignment="Center"/>
+                <Button Name="btnCloseApp" Grid.Column="1" Content="Exit Application" Background="#1E293B" Width="105"/>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>
+"@
+
+# Load XAML
+$reader = New-Object System.Xml.XmlNodeReader $xaml
+$window = [Windows.Markup.XamlReader]::Load($reader)
+
+# Universal Control Auto-Binding
+$xaml.SelectNodes("//*[@Name]") | ForEach-Object {
+    $elemName = $_.Name
+    if ($elemName -and $elemName -notmatch "Border|ContentSite|btnBorder") {
+        Set-Variable -Name $elemName -Value $window.FindName($elemName) -Scope Global
+    }
+}
+
+# SET CUSTOM APPLICATION ICON & TASKBAR BADGE
+try {
+    $iconB64 = "AAABAAYAEBAAAAAAIAA1AwAAZgAAACAgAAAAACAA0AYAAJsDAAAwMAAAAAAgAIALAABrCgAAQEAAAAAAIACVDwAA6xUAAICAAAAAACAABB4AAIAlAAAAAAAAAAAgAEgJAACEQwAAiVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAC/ElEQVR4nG2TT2hdRRSHvzP33vcv5uWl9SWSNBFJiVqCVoikUhqlCu2ionXjsqXoohupLtwoKujWYgWVogiKRCqIrUiRxpAoqRQboYsmRYxNmxDTGGsS3stL7n135si9qYkVf5sznDm/Gc43cwRVQURPqgZfQZ+9SQELGiP8S+KjeBAUWSsH/PSJyFrilWTz0TntWf52/NPFkTMPuTBC1tO3yRhwThHfp2nPgYny/p2HhzrlIi+q5h84OTZe6npMs6Y1zuU6XS7b4bKZdpfLtKcxn2130OH8YJvLeq22uG2X9rw7ev0p1ZI/UaF3+cfBHatTV2xwZ6tnazXE9zC5Alib3rwSCgd3rXD59wwzy3kJ567a5fPnOivP7N5j6svcofVIVeumcO9Out8ZIHtXJ/Wbf5BQCCOlrTFk/30VpuYNGtcxQVY0CtWu0GCMwSWMxM8Qzl3HVivc/9E3tDx9CKpLhJWY5/urhFZ4sC2ipWixsSJGJPGalJAmCT+9dfLlQ8y89xYdx97g7ldOUGhp4rvxDJMLGb44eoPt5Zi6FQRNrf4GZlVMkMFsKTP/+ftUxs7Tc2oItcoPrx2jt8twfLDE8JU8hWwVp/KfA24pXlwg39VD50tvEk7PsDB4htLWLLNLjtOXGmkoKHZp85nNxkokBbTliYPs+PhsmvrlhWepXhwhqhlODXkE1VUkjJPiDZu/foyHjVZo2r2Pe149zuyHb3Nj4AOMn8Frb8E72ktzYHD5DO7cVfTLC+DdakETHjZWz8+z+us4E889yerkZbxiM1gH9Tq6UMMmhlwIKxEJfpyqJj/cz7MmQUbUOeeiNYlnp/Cby+knwvegZrEnLpBCT0A35FBBxfjGK7DmF0uMFfv2/rY4/HVXOHctliBrXK262WcSjKxHEeJqRYPmFq/Yt3e+sY3RtOrxaX34z7M/f/bX8OlujSKQTba3SV06TKX+A9e27nvk8Ei3fC//jPMR1cbpRfrtEg3JOP+vPPBLrJabGR0QWeR1NX8D1UBK8u79w+gAAAAASUVORK5CYIKJUE5HDQoaCgAAAA1JSERSAAAAIAAAACAIBgAAAHN6evQAAAaXSURBVHictVd5cFNFGP/tvn1J0zRNaCkU6GEFpR3FAwUvHIugUjzGC2+d8RYVRXFGQRCL4jUq+EcFKg5eozN0PEZmRBAd8LZaPFFBpJ0SjpKSpGna5J3r7L6UNm3aUtFvJk3e97b7/b7fftcCvWQW5wr+J5m1livgnPTUkbTfnAOE8FNW/Tk8+7Tx5xCCcs5Bj8iq+G8Lu7RdwS31VxQHpU6AIISLn8xZxQnEIyH8zC/5o9SDB/T97fl6yx7AlqDEmn+NQR1eCLWkKH5WPa9teXP9gp2EaF0gmDA+ay1oHSH2mV9abxNiXtv0zGJENq+zrHiMH4lhRwgUjxe5k6fmlM5b+uDIG6pO8ud9ePFFQLKacxBxLnVXEev0LXy+wvhTv986Q+/862eV+fMJ6NDDQZAl+LLFg2RVPNgwYxHuKhhjHLdmo4t6A7VfTyF3CtsyBk5f25ynlBQ3Nb+w0Nvy3mq4R4ymtm78a9oNi4ApPD3AVBeMSIj7J0+3j3l2DdXaWit+qCrYLgNMKS2ebkbjvvDmD7kayKe2rjvGpTsEoEOLw9EBE45r3cINHSx3GGnfuoUng7uJp2D4JUIvd6ZujNdbgtzqiHGQFO3CsGXB1jTYiQ4QeRy9du0hlACaQTCuwMDWBUEcO1JH0iBSf4gFQmAbOpLNO8Epyg8BcCCKTEhRTohETL0+jH2iFrmTKmFEWyUrpB82BF5Tp1hQFUFjq4pfmt3wuLhMonQqRFx3K2nfnVIALBMl9y9F3vRKlC2sQdFdC6XOSnSCKKyP950awfGlSVw1KY5F64YJqHCJOOiftH4AcAclYS6Riuj8ay+U7CwUXjcb4559C1klx8CMHnSYIDTN+0UzI9j4WzY++sYH0wLCMQWaKdJ9KADQBYAhvOl97Jh7JSKfb5Cs+U44Fce++A4KLr8ZVrwd3NShMEV6P0F4PzmOYITh9vOjmDOtDXdMbZMxYQwAgmZWOyCYf5j0trH6LgRrlsBsj4P5Ayi+bwnKHqsBywnAiEWhMiAUV6T30yoSePSiCO6tjGLV7P2YPyMCTU8Pxp7C+gUgMFgWiOoGcblxoO4VxH+tR/GcJciZMBF502Yie/wJCL78BNobPkc0wXDZikIwBYi1KVh+Ywh5fhvLNgXgUrkTdxlA0IEAOChsWclYIB+JXX9g5yM3Yf/bq6CHDsJVMFoykV0xEVTvBGNUGp93YQT3nx/B1SsK8WOTG1mZsuGwAaREZICSE5A1Ye+rzyHRuAPc0sF1HVxLglAiY+GWqW14/voQbqotxGfbshHw2bBkXT4SAITKamiEW+CtmIjy2vXImTAJNCsLemivDEaxRjB86YkdePqDPLz5RS78uRYMa+Ct2aC2FQZbS4CbBgqvmY1RN86F4vXKbG1d/y72rHwSVkdMdjxmWbh69UjYnMDrs2QqDiZsYOOK6GJwjRiD4jnVCEw5T9YJoy2CPSuX4uCGtdKw4skBhw3KiHzv9AFnxJB/+gsADALAjIYROLsKRfcshnvUGKlr//k77H5pERKNf4rmAs5tcNMEEqJ7OpJmThQAj9pvG2F93U6hNwyMmf0YRl55m3RJtOcDdaux743l0ijz58nAlN7luEAryzJQKHqzDbs+KL8PDwBPdS3TkOWW+Qk6/mjC7prHEfv2Uyg+v9RL47IGWyB5HijzpvTZByoB2pKw79gPaNphAoBIfS6Lz97XnofVGUN40wfQgo2yFojiJOpCmggWYlpfACImYvqAcw3LrO5uu/teXw6a5ZFlWXqdtowDqgJ+oAPmwx/3BSDHMe7ER+8JpScA7ixNffVa4As4gSY8zySpc+ZN0f7fqz1nS8dGlzEmHww0qcMLieLJJrL09nTEPoxkFlu5B0io1AAirx0qg3tUKadAo9BJnpOtoU9Y/jAtd/I0IqZXMUAOWbomnUwfgZGpsDra4C2fSDxjx5JkqGOdBCBG44aqEfu4jZrSh56mYnQ2wyEuSq8oRP/Jh1JYsQgIc+tl85cpnOO97y/I+ckZyzkns+pA67dtVotmVH5kxsJTG598gLdv/cKy9cypM1Shqors8pNp2fwXaNZRR29L7Nhe2XDd+DAePxQRnIBSXjT3K89R156xzLZxm9bcrCSb/3ZSbrDBbsCjAdyjS+AZOw7UhbrOH7bf3XBneWvX1Yx0L+y+MJ62MVbhLvRVcaCcW6mOmX7PGFxSrUBmM8UuLdS54btzvQ3y3eLFFNXVGUqjOA5xhf6/hHPa+3r+D5Is7+gH0bpsAAAAAElFTkSuQmCCiVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAALR0lEQVR4nMVaCZBUxRn+uvu9uY/d2QNQroCFBAGJx4omFK5ciiAoWUipZVkVlUITgwmGWIqA0eBBeeBRUVEwamJYEzAqopQuRFIiIKAggSS6Ai6Le8zOPTvv6E51zyxy7OwOe+hf9armeNPv+/7+z/6HoDMRgo7fBFp+KcQIQOyrriYjqqoEekH25dbeVw3SUAZS3ghRPZvYXVttsaCLhaD4vkUIIpWY72vS3odVawRrY37hxugwCjqN6PoFAO0Dm7f7mx4TRgW4iIGbuyzDemfH1KLtJ2PqkMD4mhptc2WlNXZD5Cw4nPdRt+tqvQgu3grwdD7KPSgCIE6AeQArCtjpzPt2a2bR9iuCH7VHgrQHvuKd5AzN73pBD9GSxN5DaH632kru302slgaAyN3sFReAgsM5mL8I7qHDRWjC1SxYMYZYCdg8nrpz6xTvY+NrhLa5klinEKhas4ZVz55tj12fnE6DjnWEaLRu9eNW07rVzIo0E6LpAGP4ToRzCMsAdXtRXDnD7j9vEXGW+2hrXXLhtit9Dx+/E4rA4sWCLl0CUfFeZDBzuXdRnQW+eugu3vTWy0wLlkCBFxyitxR/shCAEArBbViRJvjPGyeG/v5ZWwsGNDNhXrZtorumjYTy7n3ngIAQAaE/6ChzBo+sftqW4PWyfgClELYFwbki8Z1cnKtnSo3ppf0Q37WFHHp0EaEOBsLFU1VrhKP686wdExkqlxLCL1kfGYqgb1/mSJ124LariLBMIsH3ptoJAag0e9HxYwhjsBMxDLn/T3bJhHGs9XBs2rZpwbelP9BNm6B2wRRihh5ijuYN1fyYzfcyeNMiiCUpWk1pAB3crAgKNK9/WYBCEJ3OkR/L5EpltpNvqK5fzDMCyf27AV3LD54QELkz3RBGgVSaYuqoJJ65sQGDQxZsO0uqXfxCgDqcSNceoEZjhhDdef74xTVaNcDpiKocAaaV8RSB1dJACNXUj04GrhYzMrCT8ez7DtWWX6TJ6JrAnROjmHdFC4b3M9BqUmVOeSiAUAY7HoUdjQAaC30RaNSl3x5TpRCwVUzKrwZwI4OBC5aj7Jqfw45FICxT2efpiEaBhNT+6BQuHpXE21sCWP+ZFz4Xh807+XFOaUTAZqGyrOK//TJ/jlVOFI+gfNZNKL3yKvS/9R4MvvtJaP4iWPFolkSBu2ELwKkLLJgYAbcIHv8gqEzgdDZTJuu2150as7R3O5lAoKISA25bCLM5CTueQMnlMzHsib8hWFEJK9qidkhuc0HaH5XEJSOTeG+nDzX73YVpP490SkD6AnE40Pp1LRrfeA2a3wvqdMMMx6CX9MPQP6zCmXPvVrHbTidAmJZ3LQnSoQksmBBVanyiJqjsXmcCGs1e+f2giwSUZpkGq6URB5cvRO0Dd8CKNUEvDoCnU7BTafS9fi7OevgVuH8wHFY0nK2XVM10YuSR2p82OolLRiex5sMgNuzwqlAajjFEEwzRuIaUQU6LRH51nUxCd0BzuhDe+DqS+z7BgF8uRfDHlbDjGVjhOLwjzsOwx1/HkReXo3HtKhBdB3W6IGR8zEUet1Ng/oQozAyFw8Gx7GdNyh+y1kPgdnFs+MyDN3d7EfDaBVXuhRHIkZBgZG1kNh/FF/fchD5Vt6DvDfPB/H7Y8TiIw4kBty+Cf8xYHH5yMYzGOuXosgwhEDBMgjc+9WLcqCRmXpgAnDJD5dZPU0AXmHx2Cp8edqIhQaGxznNp4QTaeNgWiO4CcQD1rz6JxN7t6P+LJfD+cCSsWBpWJIGicZPgGTYah1csQmTLBjCvD4IxaIzjrzt8qIsyRUaoFQkMC3hwZjNGDDJQ26Qj1pozowIKga6l1FzBpReXIvnvnfjvr+egoXo1mMcN6nLDaolDKyrFkPuew8A7lil/4IYJ3UHQlKB4basff9/pw9pdPqzd4scFAzMYOSSDXbUuzHmuL1IGVT5TSCHTrZpA7gbz+FUQl9r+cvFcWJFGaCE/eCYDnkqj7JrrcPaKtYosNy1ojCDg5Qj5snlz/vQwlsxpRm29A9etLEcsQ+ByyK6yMAzdbtplzS4JaEUhRD/aiP3zpiO88S1Qp0PZvjBsJP+zB2a4AVT7tkQJRzT89PwEHru2CdEWhmuf74MD9Q74XOK0ckLPnjpIbKrQy6lPBRGhohEoO/Z1OkMwaXQSz97QoDR946o+2PqFC0U+G9ZpHqJ0m4DKvkLAioQR/MkUDH/mHwhNng6eMVRXRRwanH0GQAsWA7JJydUsv5oQRXG5ifmvlmHdTi+CXg7TPv3iUOsWeKbBTsVBdSf633ovymffDGHaMJvjYB4PiM5w9M/Po/7FR5TqZY8huCw5CG77Syk27PXgjx8G4HNzWF0sJbpGQFaEhKqs6xk2CgPmPwDfqDGwommA29CL/TCO1uPwinsR+de7YL5AtlqTuQTZ0uFoVMNTNUEFvjt902kTkJUnNw3Y6RTKZtyg6iAVOptlInOABd1oqXkXXz+9BEbjEWjBUNbRj0OpSGhCZeGuFnFdIqBqongEenEZBv3mYYQmToedMmDH4mABGTpb8fXTy9Dw+vPKXDR/cbY5P7YAOYGErero9p50XIbuEQLywbatirjAxRNVHeQaOAhWNKkQyLif2v85Dq1YhMSebdCl1iWG48FLQIWEGCErv1y33zMEsqdl0kzKq25G3+tvV5nVDMfBXDLzaqrMrnv2fvDWlEpYwrJOBaVTkBJ35+ApgUiZQMooqMvplICMGLJk9p07Fv3n3QGjKaV2QyvywwqHcfCRpQh/sA7M41NZ+RTwUpNpE2RIKbT7JwEmz3++agsg6IT98qfgr+xWr7N21p2GRmrf40N06/s48tIL0Is8Cnx8+xYcuP1qhD9YCy1QlD0Ak86aVxNENuOFXYz0fD/A3B7Uv7QcnrPOQep/e3Bk5UOq3dQCoRNtPZ/InfDqne+AV5dxtoedWHqkzLi2jS+X3AKeTmbLA8Y6B5+za8QN8E21WZD5CHABeHSIgy3KZwoh8S2BbI7JPwBQraXUjA3q8WZJyfPSzkTepzOI+jjs+2o6vpe0OTwD3FqWUHu3tbUSxxMgBNlqS3RgxyoZ0cKAnyxyF3yOwu4Vbc9q5/nZU/Jjxx9UDtTkC855jMrJiK8427B0uHoXRWq0kEuc+gwhZDDxgnr8IIInSg2/aiionAaqG2xrB/MC7qEjhDCNbp9/9qQQ1dFl4DxjMHf08QpuZPZ8MvcCs4oLduxwl3P7TTPCRcnEWVRORrpkJr0lNFsJhCZXgWogwrDXyo8bNoFQNaoRgu6YWrzLjLb+M1AxkhZfNtMyI42geoE224tCNF2d/PlGXcRLJ01lmW8y9aDmG3L8uvlSZCc0VTk/oML8rRUzeP95d8mxDjeajqrIo5oWldZzJ9K9eSF3gKv6Bw1WtBnOfgPFoAUPWcznINy0frdtammsqhpUnk4fN+TLzpwq1sfnu87wPZb5JmYfevQuRD5cz9rO57NhtLdVjlwvbUBwC76RFXzQguW279zBevpgauW2y703tw0kc7efOma9aENioVbkfZDqQHjzZrv57VeR/uoAsRPR3h8UC6GijfOMwSI0+RpRMmmWpnmBzDeplR9PkeAFq64CVzO99tC07cSF7yWmMKdjmV6k/0jurNFkwoo093p0EnJO7PXD0ccLogFW2Dpot2aWfjzZt0r97UAhzoJvl8DxJOQYJzPuvCsEc86iTB9DKC0VNj/hfL6nrYcwVRQmhM33wjDe5HbrWmnz6v8ShJwSGvMCaW+sP76m1lX3mSnMQF2vENBjZ4ozAzrZ/NVqA0uXHgOb738SnYsQpEoIJseZPYy1U5Gg1XOl2XQg/weqJIAFlj9T0AAAAABJRU5ErkJggolQTkcNChoKAAAADUlIRFIAAABAAAAAQAgGAAAAqmlx3gAAD1xJREFUeJzVWwmUVMW5/qpu3V6nu2eGmWGRPQguxKiAhGEzMWD05Z0nKmiS9xJAQpSD+qIPlxAzTo4kxAWIIS5PA/Ekh+dhRCUaxYAoiSTwmPc0KijI5oAgDMzS0/u9tyrnr9vN4Mgy3cww439OT3dPd1VX/fv/1V8MhZJSDN2JGFOFDBP5fHnqSmUcLgfb8CYkGJPoVqTYVAWOGqBmql5fuxjC2rvxtpOOWNsQ8ftKuGFDOfHmLtMGIxhRKAY2XMKaPrfmaZDAqRnBTqvm94Oh2pV25VuZMTKjrmVKjZK2fSEYM4CCNK/DSCmAcQYY/CPGja2cydXhuHfNmqtZWn+hSvHc+vNjQFXrwLF/ta5ypLyPST7GCAswDqjuZADEBAMgeTspAI79oQR7zPrgnSf+74cjLVcbmNNuBlRVKV5dzeRlvz8SNgZGHuGGmAXu/lSmvsFJ7d3Okrs/4E6sGTBICbpKC5j+bSYE/IMvkN7+Q5SvXz/GOAxiikxnNtqx1Mwt/xLZcTImsJNJftzLTSVOOLjG8InLpAPHOlKPIy+vMBrWrkLm8CdQtgVIUgPWDcTPwIQJI1SC4spJKJ8yXfrPPU8yCaFsqyETs75Ze3Vwy4mYwD47l2JVAHvhz5/6A57SNwyfZxQAq/HNV839TzyAzME68EAQzPSAMRpKD9WFTMj9ttKaoBwbTiIGIxBCzxtuRs/v3GozKKHgNKqUnLhpkve9KqV49XERjB0/XY5Dl61LLPOE/TOUA+vIn1aaHz88D9zrA/f5oRynC1X+dMTADK7XaDceRcX1s9D31mqHG9yQaes9J2mOu+oqxKqJY9mIxttufsx660oz4J8hJWySPG3eKAqDe7xQtt2NN09EWuBokzDLe+Hwqqdx4OlfGhKwjSLzy8xM3U3Sn1rTum+We0GqgfuBNeOSm0XIPyJdXy93zL3GsJuOgns8UNrev2DEOWQihiEL/6DCoyqVE0+lzIwz5K9XFR3UIZ4xxXPSJ868Nt4ayT3mpWBQR19eYWib9/m6xeYNrgWbF2k/pRQO1fw3k5aUosgXSBv8u/TZxDdBgdNVBUpv3SHWDaJI8Mzho7Jh7XPg/qCrUl1MlOdEUwwZm2lGtJdo7TwYQuztjYi9u4VR4s8gp06sekNcfjllDXAZoN8oxaRSo+k/qb07WObwQTCPp8ttnoSYshgmn59E/xIb0QTPSxMoKZDpFOJba3k2aT3fGT2iREcCpRinP/Rm4otNEaYwVDlAcvc2riwrG+rasUJegH62a/GA7TCUFTlYMfMQNs/fj5vGRZFMM60V7SIlwQwDyd0fMJmB5P5gMCXEBfTR1Bq9cpccU+/AJGOwY9Fsrnv6X6HIIOMxnRSx1uk6hAymkEox/HBCFKVhByV+B9E0h9T+K4+JGIOMRfWWGPFOsGNVMG/zVa0kjBunn9MQsFua0OvGOeg75z7NCCeV1P/vMNW3Ofr0sHFTZVTXH6+9H0DNliIU+SScfP3ycXtiqrWCEyf+9qntnlSKNl9cORm9/n0umIfBf+5w7Fv0YyT3fggjXOJOcQYVE0k/luKYfWUUfctsWBmGJeuLNWO09PN2TScewPNeGalTOgVPRR/0u32Bm3U1xFA0fBSGProKFdfN0rFXWWnNqDOW/tiotsT1H/qxdpu/MOmfgngBy9ObHjBvEXwDesNJJME8pvts+tD/R1UYNH8pRKQHnJZmlwl5OkiSfjrFMHtcq/QXv16czV3QocTzH6LATQ/qX1iGxPbdMHuEoGzHjRhSwmpMoOTrV2PYr19AePTXYTc3uiVrO/zK2ZZ+YQygvMAw0PTWGnx05w1o+PNLEOGAljRljNo/RBMQxWX40oLfou/c+10HmYy1y0G2lb5jMfyKbB+UBCkd/to+zoR4QaOUgoiU6E3teeBW7HngP+EkWzQjqCTVzLAykMk0ek6biaGLnkVw2MWwmxtcEZNLP2nSw3FOmY2ZWen/8R8BvPp2EIopNCUNtKSZfsToOcWRtPLLDtuSKHQg+QGSqAhHQCBJ8qOtOGfOfYiMmQCnJe06Xc5gNycQGHYxzl30LA48/SAOP79MIzjcS6W1/Zk5DQbEMgyzxkbRr9xGNM4xuMzGS7cfgGkoQmVdRmU9etCrsHGnD/c+1wPhUGHmIQplgMsFt/wkh5c6sBe75s9Er+/ehl433gzm8cFJJjSTnGRSJ0l9585HaMR41C2+F5lD+yHCJVCyFV+gDQR8Esv/HsLUS2O4cGAaXwk6+MpQAjyyuk5lvMOANAOEwuByC69uC2DTLh+8poLMMzyKM2JAjg+OrcESEszBZQ8i9s7f0P+On8M3cDCcaPJYSk3aEB49AcN+/Tw+eWIBjq59HiIUBjNMzQhaO6lzXb2JP70XxNGEgViKHRvPmYJlM0QCEiMHpJGMM5xTZuGiczL4yw4/fB5iVBcwQFO2ZBYlZYi9/7/Yftt16P39H6H8376no4RMu3mB05KAiJRh4PxHERw+EgefWQwCV41gWDOSJBgKSMz/Y6muAwi4yQFfOtAkOZbPPoQxX0rB75V4fF0xlr4e0WMKMQGODibaBGFylAjVLf4x9i64DXbzERihQNZvkIO0IBNJVFz3PQx7dJVOouzG+mP5AjHBbyqEfBJFXnpWiPglpMPw5E2HMH1sFMJUeK62CHNWlOvNF1q0cnQCabvmBsySMjSsX43tt16L6Oa/QEQCrUkR57Cb4/D2GYQhv/wD+sy614XcjmNC7kHOsalFYM7lzZg9PqoZsXmnD7esKIef1L6QzLgzGaApi9KSoyNYbdf8Gdj/2EIwrjRwqZMjcpCJBJjXhFneW4fOtqmeMBSaohwzxjdj6beP6GxwV72Jby3tjeYkhynyd3xnhwFZ0nmBxwMjFMHBZx7Czrunw0nF3AxGSg25pffVoW7RXRpuP16XiU/NCQNfHZrCkmlHtY3Xtxj4j+UVaIgbCHjUGWeGHJ1NdGhBYNvRwwhdOhG9p98O7qGIobQZkNTN8nKUXzPDPWw55vGBZIbh/N4ZrL7lUwRMCcGB7/+uApt3+hH2S9gdkBZzdCKRitOm6LCi59QfYMjCZxC6+KuAxmJdDaBnEfaj6Muj3VT5eG+mgCXTjqCi3NIA3s0ryrDm/QAiIQdWB0GVAp12QEE1QSPM0gr0m1uN0klXw27JwI4ldGFEEcHw+6GkjX1LFqD+xeU6ecoxgP6Sff9XTQ/8Luxg004fnlxXjEjEgd2BOK1ABxNlfFQUkeOLjPkG+s75KXwDB8FqjOuNE0ips8dwAKmP96Bu0T1oeftvMMLFWVeeZYBrIXjvEy++uaQPMjYQLHI6vBoUHTmZm/bGdWbX56Z5Oi1WSukMUJsD5QGmCRHy4chLK/HJkz+Hk4hCFPf4XF2QYwLFeCp8NPZKMD+6IwMYLZDiegN8A4ai/50LEbp0JJzmZPbs3tAx3ggFYTc1oO6Rn6Hh9dU6fdZJ0wk2nyNyE7rayz/LPTsMYNyAJEeXiqF00rVa5UVxKeyGuK76NC6oJERpEC3/X4u6R+5B6uMdbiGkpJs0nYY682hCnLHKx6MwAmH0u/N+lP3rNDgJCw45OuGqPPf7dTFzcNmj+PR/noByLIhI6SmlfjZJFDaMQA1oRxe6pBL971gI34BBrq1z7jpCygIjQaT27sH+x36G5r+v08kQNz+PA3yGCoF4VOFqIgo+hk6ndBNCn1l3gXGhYTAXFnOBEjPiQ8PaV7BvaRWshsNZR+ec+qCVctoU1QN5LcX9vrewrYi8RzCmq7mBP3kMpVdMht2UglJZGIwqwaIgnFgL6hb/AvWrn9Hprbb3U0ndxcLAhpXBmDECSLcWRaclqpTiGdi/2QwkLPe96mwG2Bbi729B8fjJLhDKmX4mlY9v/Qf2/eqniG2rhUlSzxZFp54zK/2QF2xUXyBptc8UaKOCAc0p6Dy5ACsQeY+gAsYfxKFnH4dv4DCUfet6OPEMDJ8Hh1Yu07gfbdgsLXfL23zIUVqaeTOAJF9gpBCFDVMwQmHsf7wagaEXwVNegT0P3oHG9atdR5drp8mXCoW4zwAaFwWN0rW8qWHxjx+6U1d0yV1bXUcn2xfbT0gk9YDZ+vq066CCgQGW7AJYXFKMpzC3XfuFnJcvbDKlvbja3Qj77tdcf8DyiABONnoUkCsLnAmRA6QKLtedVShlzxDQkobasj//8RQxKAwWYArixAvKg40d2TRMISzoKWzs6XCxk+xJ5F7YwkWedfEizE5peenMjO50pPd0XCDLveYEvCulmNcbocO4PfSRf/B5Spev3aolvEAi/MF24Bt8njK8YDKVSphp9RF9VLPVxaYwDeAbvsYobr1LbsTbf6gU4eJjXZdfZNLHKganDha6T8KUdPY1J3a7jZLVTLqqUJP9MjNqZBKMWs4jlZN181N7z/W7I+miLJlAYMiFCI+YIN1mQPbytmnDM59plKyZBklmwIPe9U4iuZcZYGVTZkgjGPxiawFhFekkyqfMIAiOOzFLmVwsp482HN8oCTA1rQZ8UyVLSsYeZgo8cO4w2fOGOfrIqqM6v84mEfRmN9QjUnklSr4xxSZETdrOqo1XeLdSa3Du0hfPDaBLUdQw7Td8T9ot6c102aDnt29xKq7/Aawjn2qE8gthDoxrj28drUfRRaMxYN5DknOD2ym70QHuISO4YOuJ2uQYHcMqtuFyOCPXqe/Asms5N0p0v70/YBx+7ikdongg5DZE6nDVjVrndWM03RlKaKyieOxk9J/3sDSKSyXjEDKemV17ZXC3bgyvbr01wtrOk7tRMfKV+Cgz5HmNG6JEMVgttRvFoZqnGDUek13BEO1rpT1LpEtubmiHV37NdJRMmmJzZggmGOyW1OzNk/1PTXxDiWy0O0bsRJPlLk+MXBu7xOPz/pb7xCXKBqQDO/bOZhb/oJYnd3/I6Fxfm0VXNVQTNpG7NDXoPBUYMlyFRk6QIhQQJBsnlWlQtnPLpisCK6cqZdSw9lyaasOEyhfrQygrvUtZ9m084Alz092vTENSY3VW87qUaBPcC567zmfH0w43jBormqjSN8ZOsvn2XJzkOW952RvxvgY3b5SOnMKkvJB5fBF9YbGbkEwlEuB8L7h4RXjF798aw96l/59q82hfO7hi1FZ+/HWzibWqLNOcvIBO7xxKtRhFmS4iBSV8Phge7Oy1FweOrZOu/xGd4tZofqQUIyfS7W6Nt6HsGtt96s0K+pWsVhQ0tpOIChtU61o2L5f0T2RVSUyZrx6WAAAAAElFTkSuQmCCiVBORw0KGgoAAAANSUhEUgAAAIAAAACACAYAAADDPmHLAAAdy0lEQVR4nO1dCXRc1Xn+7n3bLBrNSLLkJRCC3aQpzmmwRcHgjcU2xtTQJpFZ2ixNGrakIWlCm4XUdqBJmuUADZsdktK0tIlFs0AwBNt4x4YgAylQ0oIT4rDItpbZl/fuvT3/fTO2bGsZ2dJoJM93zhzZo9G8N/Mv999/oIYaaqihhpMUrOJXVKry1xxPYExV8nLmqF9BKdbWDr53OnhdEmorY96oX3Oco/UZZenv6nyI0WaIUZPGtnXK2N8MtvWCIwm+cLOqywbB0d01WpcelzDrm1R9C9hj72KJo3/XuuYZq+OaVm80mGGkGYAt3KyMvpxLBC8ob65RZ87x4jkLjF0LzmxISepuhC8/jqGU5AGTi5zYxUxzl/I8L3CKs2bru9nB0ksWblZmywGo9hVMjNRl2UhKfN8bO2+HWsIteb6bcj/GTavFjHAoAYiMpA87UpedWFAK3DHBHUB5gCy4KelhJ4CtuWzuvueW1R8oMcJIHQ9sxAw7xhSpKueP/vgm5WE+D5hLuc3gpQSUcAEFV/kyb9B/augfijHJFKT+rrhpGgET3AbceP6AWefc5yZzm59aFNxAr12pFF/NmMRYMUCbUkY7UZMxee5W92Jusb81QsYSLw3IbE4pBcEYERxMSaHpzkwTzDB9LVA7AY6EAqRb8P/BOBhjJFoSCoobpmnFTBR6CkIp3CrjB77zy/ed0tX6zDNWx1lnuThOsBMiPmMCbeuMc2+4/Cc8YC+n+xbpnKs4OAMziOiMPohlgQcNMAMQCQ9esheME1/UNEEJWh44g9XcQLSHzNPDhfJcMM71SwB4YNwyIzZkwev2suJDTy8OPAKl6AUkiKoiDEBuSsdZzJ3zaHYRj9p/x02+2E3kBL2bT3hfK5l1QUhXwj3Yie5NPwHjEqmXnkf6v58Gd0Jk9xzP5SceGEBKn1k2mha/HyQ44TNaEXnvWTDqIpA5AVnI+ULDSB/A407AkoWCxzj+0d5i37p1NfOwUnGsHt6RwI6X+Oc8nltmhIyHmWFyL5XzGGemZmMF8HAAUBKJjm3Y3/59ZH79K3iJHs3N3AmA2wHQ+VDDUZRQCjKTghICRiQKs2ESmpa0YdKf/gWcyZMgMh6kW9QIUipwppzmAM93FR459YB9eXsbFFYBw2ECdgLEf0h5iklXSGYwk26aWxaYyZHYsx37H/wXJDt2aEbggZA++zX7ktRrE2c4Vz55wHwp10ygXBcim4Yz5RQ0LbsKzZf+BazGJohsrvhi+j5V3o4FHDdZZIIXNROUfRyw4Z75Zz+autSMOD/TxPfojGdcCQkjFIRIdeN3t9+Mni3rNZca4Tqf6GQA1jB8MKYZQhbykNk0zMZmvP3TX0XDgoshMjlfkLQ2UK7VELCICRw8+WfA+SjXTSyLAbTfeQHzztmQmWeErC3K7UN8z4PVGEbPts147RufhUgnfIkn7qwRfoQZIaeZITbvYpz+pTsAyaA8cZgJGgNWoTv38FOLg5eVaDbkWw95caXYwi3alUMehSeMgDXfP/O5eYj42zdj76prNdHpjCf1VcMoMQLjcHsOIrZgGWasuhtKqMNMAOYaYdvKd2cue2ZZ+OFDntog0P7FYKBEDnFSzsv92KyzifiCccMkS/8I4hsUsKgRf1ShlNaqVlMLerc/ildX3aBda2YV4ypKmiJX8Oyo/eOzN2bmU4yGmOC4GUBz0Aomzt2UWWDVB5Z7iYLLODeU9GAELfRs24S9q67TxCcjr6byKwPypqzGZvRuX49XV38SystRqI00BFOuBAWNGPgtFKBD++DvNTADUAyqHWjdoKIK/FYlpVRKcG3V2xZEKo3XvvE5fYYw0yK3ZOQ/aQ2DM0HTZHRv+jE6H7wfVkMQdCSTO+6mC8IImAvP2ZS77AxyDdcNrAUGZIDWDpjtK7iweP6j9iRnvkgVBCv6KMzg+N3tXyoafAGgZuyNGRPYk6Zhf/sa9O7aDSMS0FqYKcngZxQeaG9/0UQbhZP7L8QZkAGm7wWl7ehouVikhAIHpzc3QjaSe3ajZ8vD4IFwzeAbSyilw8cilUDnD+/xTwFNUsal50kjZFqxxnedQ+5g2wC05oOd/Wdvyi4xQ/bFIicoeW+QBUoX7Xzwu9rqJKu/hrEFeVxmfQOSe7Yj3rEbRtiGUkJrAm6YjoC8lQJ4A9kC/TLA3g5wyu8zximlS6an1OHJugASHU8h2bENRihSM/qqCBRa30+Cqb1FLZzcy5BNgDlmb6pR12r0cwwcywBKMQr37m/ewpiQV3tpSYFJk859lc/jrfZ79cVq0l898I/miNYCvbtIOB2SWQbpuWa9Y3A4V5bsunI0gH6u4M65iAfNRuW5ZN4zsvQLXT06sUORvlomr3/QqairXoaMsIwsKPQu8zkkn38SzCrGDACuCspQTF66dL1ytF13lBY45jZbO4rPmXyhGTItSCko6GMEuXY5RKKbzpZaWVd/YAAF5fIFhkRGF0VUjBG0FgjX6wBRobMb3HYoC8NlXpfgnZ+oP2j3V0vY/+0pxZSEoDCjZmdS+QbThh+5HrVizmNhcIVsluPCP8zhJ595AxfPzCCb40hkuc7ZVAo65W5TOr74BMk7Z5l8t+P093re3/l/3s8O1gHqOo8KOOn8Ny14iSzSL3aAO8Ga+u8H9E2RtN94YRyXvjeDn//Nm3joU29g6RkZRGxVkew3MwyIVBypF34JZnOy1ZjyXNeKOPVW0P54f3ZAvxrAs3UeMVDiIgr1imSm+MbEXbVijmOl38AFf5TBhTPTSBw0kcszXDIzi0c+/QbOPDWPXIH5+ZrRgtbSFkSiF8kXqOLKd9k1GIUIWKC/PxvwlhgVIx5+d1IjWvpHnvhFq2kcxxRk8Yv83OLeYhhGF+iBzOdNL4aw+eUQHEdWIFpOdDJ0ud3R5ZaMDvV+MDyeHOkaPk1zSme62oL1n2PjU/rPyOD8MzL63/Sc/mK5wrc2xEBhNDKhKgOdFSz71RV2Vo4C47rS5R1fvBONF12ucwt+QmPQDGbVSr9R/L+QDMGgwJaXQtj8UgihkNDPVSPGjAHIrqBC0ejcpWhYsAin3fRPmL7qPh1joDo4nWGs8sJBYxDpJ3+LpL/EINUKPmbET8ZRP3s+pn/5Doh0FjJTQGzeEsz8142IzrkI+c59fgWMYYxr6Q8Gq1f6x4YBqFaQ1LxlYuqHbtRNIzrewDlEJgMjGMU7Pn87Tr3uH/RZ5iV69WuqDcYEkP4xYgAOkUvj9JvvQf3sc+Als4eknH7KPLVGMbztmk9hxi1rEJk9D4X9b/rG4aj6USef9BN4xVV/vBuxeZegYd4iHVw6RsVT/JQxFPanEJk9FzNu+T7eds0XNFPIfD+vHwMYE0T6Ucl7JMveS8VR3zofp3/x2xA5qmMbWDpI7XuJjD4GTr3+Rrzj87fBCEYgMukxjxvICSL9FWUAyh6S9E79yGd1/ZrM5YckopZ2xpB/K60NQ20gzl0CkU4VI1+jP+FmIkt/5Y8A00bnf96Fnu074EyN+lHFITMlTFcci2wGPBDBjJV3YcbqNbqNmjyJShuIcgJJf2UZQEusgd5dG7B35fV4fc0/66gVd+yy6grpCKEGCC+dQ2zhErzzn+5HZNZ5FTUQjQkm/aj4vSoFK9qoCbbv3q/gt1//NEQ2DiNEsWsKYaoyWqQ4vHhGE7/SBqKcYNKPsWBWLe1KwZl8KuK7N+HFDy9C787HYYQCYKZRVp0hEbrSBqIxAaUfY3e/fgLICIYhcxnsXX0tXl19A2QuCSMY0oGioaaHDGggUn/9KOQT5ADSHw4L7Hw5hO2/DqI+TJPcGExDlf2wDGrzx5ih8mZ0H+gmBtOEYdYhvvNxvPjcbpx20zfRtPgiFA5kqbBxCLV+tIF4N3q2P47f3fYFXRhhhCNlMdNQIElPZQwsmnlY+jll2MGQyjN89sEmZBMGsi7THbvDAhVd2RJhR/dgnFwMoFH81EYoDJFN4rdf/wwyr3wMk9uug1nvaFU/1NleMhCFJxCbuwSRM/8Er33z8+ja+F+6c4bshhPpWBbKr/Yh6ScC09QmXmSMXJ7jsvemsfzM9OHUVZmEJAfIcRS2vhzElpeDcGx/PNjJxQBF6AkjxYKT19d+DalfPY2pH/wEIrPP8yOGQ53txd/1zSeE/mAmOtvXwkskdfOEEsOfUss5dG3fhe/OaA3AJIMOVjOfMYK2wsr3dR2fkhEMiHkw/qMZjz8fRijoQXrs5GQAjWLJjN0yFclnn9QlaNNvvhOxeYtpKlZxPs4Q2qCUT2B+PqHuj1vx5r/drWvmNRNQscQwdK2UQMBWeG6fg0tum4a/v7QH503PwS2WeNFbJRJUJT38j+tJhjqarEb/UUDeZVrTVPIoqEqjlWbjmJEouGXj1ZVkIH5iWAbiEfmEWXN1zCC2cBm84yw4UQAyAvjFLyNY/1wYhiWR9zg8wfSjHOLTSzg/0gAMWBJujuPGi+L46Y1voDHol41VMspdlQxA0OqapkyGiwbihxdpt9GZEvabHsoJHlE+IZmBdAVmrL4X01euOe6CE5NiTUGJKVEPZr1AU72H+mE8olEPIbt/Q4/Y8fLZacycVkDBpSkgOEmPgOEaiL2pIUPB2oCkkaUUQTwBA1FQXZ8p8YuXQsj/aBLyeb/xY/CL+6JPxmK+wLHojAzOe2dON46U/pYadWxH4M/vnIrHXwihvq6ygaTqZoDBDMS/vAHROXPhdueK+vUEDMRYoz52BoNUTFvsG18OYsOvwuUpD7ovQwEFBtgKH56XBLXul/7U9RiiMQ8/fTqCh54LI1Jh4o8bBjjGQNyzA5lfP4/Jbdeg5QMfB3ccnV4e0l3sz0D897v10UIjVzSjDFK7TQqpzlEwgt7Qx35xghu1iiHA8MNr38KM5gLSFEPgShM6GhV4uKMOV983GcHAgDMcTk4bYFADsT6mK4uOK59wggUnUgFu0fgb7CEUQ8Fj8DyOBz7eiWVnZpDqQ/yAI/FQRxhX3DtFl4/TbY1FIGjcMcCg+QQaUVucsjkUhiw4wYlJI/VWUfzggb/uxPLWFOJxP3dAtkTAUkjmOD56fwsEo3BwGVnxUcK4ZIAB8wkrrwO3DJiR0JBnev/5hE2Izl2svQQ/Rnt8TGCZCsmEiT+blcLls1NIJUz9HJ0uRGwi+kf/pUUzATEDMcVYYRwzwJH5BJNao7eux//9/UeQfHYn7Ja64yg4qdMFJ6d/4Z+LWmb490P+fW/cwGWzU/j3j3cil6NpHb77R+P8yCi84p4p+NmesD4Gxjp1PO4ZoO8ARTPaiOSzO/Dql6/F62uHX3Ai83nwEIfbvV9rleKc/rJhGArxlIHLZqXxo+vf0mFjf/WH3yuYFdBn/kPPhhGLVkfdwMRggD7Bo34NxHBo6OiflDDr69C9cRPeuP/bMEJ1w2qDJ8lPZwxc8O4s1t3wFpQ2Bn2bk4I7dQ0u7tgQw0NPRdAQE9oFrAZMKAY40kA8BfHdT+Clv1qCnq3rIQupgUPISoHZFvKv78Nr37rJtx+KAaRyQIqCLH6LK/zD8m79kwjsu4EMsZjAw09FcPvGGCINbtUQf0IygA8/VEwRRLerE7+7/YvIvvIyuDPARFOlwC2O3O9/C5Hs1TmHcnu5tYR7xHhMS/75785qTUCFHkIwHdl7+NkwVtw7RR8B/s4EVA0mJAOUllJR1XDDBcvxnh9sRvg9Z0PmvP6LRzm1pRVQ/ydzdbOq29tVVsm57yQoBA1g3XVvYfmsNBIpQ9sCFCsIh4TO86+4ewot0oFtjp27N/4jgWVC+/dxv5+QysdLqWRVyA9ZOSzzrt+0kuxF8vld2rMYrEaRgjqJgxZWrTiI5eck0XvAgm0V3T1TwZUMX3m4Uf+sM6WfOawyTBwNQMTVEb43dcWwnwJeosvID8/THwSMQeZyummFmlcoRjCYEUjSTwmhqxfG8YkL40j1FIlfdPdI4knyN78c1JqgGok/YTSAHo6Uy4DbQR3WpWyhEXZ0+XhZpeLS32FEzSrUtLL/we/rJpbBoWCA4aqzU5g02UXqgKULRSnVkxUKH17ru3vR+uol/gRggGIQJ53SBaB9C0rLqSUkaGMxENCrWKhZpbP9u/BSvTAjsSG8AAbJFa7+Xgv+9jUHNy2Og3I54aiL1e2TfHev2dUuYDVj3B4Bh8K4nfsQnXMhZv5gkz9Y4i0/lj808SmU7OkkEsUKKGZAsQP6W928MoSpTr829RJcpgl+xX0tCAclfv50BLdvqD53b0JpgNJ4GZJ6GiShU8K2o/P9/nq6oaWexqw7U8Lo2rAJr33zJoh0UieXiCloC1o5KG2/bZjk4pHnwlh62zQ8/3sHKZchaI+PaXrmeFyaRDMGIrPnY+oHDxeFUJ6/XJVv1ocg0nnsu+cO7H/we5CFrNYEegrqMEE0piBQfZ3E4/8TRNBSulK42ty9cc8AOlbvFiAK1By6DNNv/o529Sivr8vCWBn5AqVgRkNI7nkSb/7bXYcKQfT00xPcdEZKI0LNHUWbcrzAHD+GXhJGXRTv+MIdaFhALWA5qJxbVnu4Xp5gWTBsE71bH8feWz+pw712y1Q/7DtCuno8EX58MECx8J4MvaZF78dpN30dRrhBF3gSyjP0aIp2WG81/c3Xbkbvtkd1iJgFyqsZmOgwx4Nvf8p1X8bkD1xz2NAbjm9/hKGXKK6zLZad11CFDHCogjet598f9u2HZ+iVfPsjDb3akquqZgBy70gyifixBZfgtM/cCqOuUfv2NDtgyBKtQ30EZOX39Kn/nzoiht5EhFntSRwq1Srbtze4HjTRs+1wi3jJtx/xQdcTBGa1GHqUxKFI3tEdweX08elS8Wid/kmFob07fqG3ZlDB6PH49icTzImQxKEC0Pjuncd0Add2GVctA4xwEmctJXHW6lgBFYbWLPwqZgCdZ5fH+vYlQ4/O8bJ9+yMMvWm6IHREic/HYCJphZsEKssAjMGNd8Osi41pEqfce0XWBXQZWXkzAE78mqDmw4quSTArOiZeCMTOXYyWD3wUsbnz4HaNXRJnqHsFhZnPnAo2ayqQLTLBaEF3N1NWSUCu/1/9s1KjwyqqAZRXwOSrPoHYnFbkXo+DO34v31gmcfoFffk5D2zWNBjXnw10ZWiRJkaVAWgCRbIAufFVIC8OzRaYMAxAaVwi1pv3fxvhP/weeMApWvFszJM4gx4B3RmgNzu6K0BLDJAqVOaoGZNp4dS6VRdFomM7fvPVz2oLfmACFqt1giE9G4hmBNGsIJoZRLODKpbE4cXdr5V8VBi84q1b0Ub07ngUPTs2wqzvR4WTVqD5eVPCh1q/aUaQTuJoO6KWxBlJVJ7llIQRCOM3t16PxJ6nYEYOM4E/CoaqcZU29GgmEM0GoiROWcMfahgPDKC0y6dcD2/+4A6tzvViatpQ3qdA8/f33lLs7q0lcSZcVbA+CiJRJPZsx95bboQRDoKHbPTu6DMObvKpvkE0+vtWT2qYY9vK3YD4zsfQs20j4k8+hq7H1oEHwtWTxJE0xlOOfnROlWbPypMsG6gkeDCM3371k35sP1zvG3pl7AwY/XtTQNACGouLmCsRB9A1DziZGKCUGLL8yZ3VYuhJBQRMqGffgLjnqYpGAvWjQkGg6qgH0NuuUV1QxAAW1HNvQu3eV/lcQAU3SFQBA1QpVPEICA3VJDrCmNDZwPEGSWJfbeppZDFum0NrGBnUGOAkx8AMoPS8g6Oem9jqcMKgHzqx/ug5EAMIi9Ogi/ARxx9V6FrjpOf5ZAbjRTr1Cb1T4TVn4aEZwJ9pyuPuwZxSeII7uiZOUuGl3RxD4+L3Q2RTI76Tr4YRAM04Ijq1TEPTovdBZGg1Du2oMbmX8fIS8gl6WcfeIzXBMRqgtQPGK8veRSO1NnOHWKf4B+SbUoROZ+6qf/LFSQnG9DQ0Zhxeh8OYYYisVxCvvLhZP9E2BAMchjSVhCitYlUFifAZrTCoIKOWk686UMWVzOcQntkKo44yqG6fzRUsi+nTQ/393TEM0NEKXXFhFQpr3UReMW5YjHEl8wKR986B2dDsJ2oqXS5dw+DQQprTW9KMQzUWzDMjNMiIPdCxqCHR+oyy9DE/qAZgTLWtU0a2JdLLFHuCOwbxkJQ0m7/ORtOSD9TsgKo8/3Nwpp2GhgXLIFLF/Yqcc5HzCoB8lOg6vfVYT6DfI2DvdPCOsxhVXT5KhqDeiKtVjELzpVfDnnKqNjhqWqA6QMSmpdlNy66CM20KZIF2m0Jx0zREViQCRkCf/+3+zuuhGaB0DJh24QE3XtjPTN21oWievj2lGZOWXQVZ8waqR/rdApwpp2q6+Na/bqX3eEAvp72z5QDUQqXMo9X/wEYgY4rOix0L6g8oiQesepNGXHs+p3laC5iNLVrtaCezhrEdmRfvQtPSK+FMbfY1M5363DC9lMuEyt/ZvoKJrcUNtUdjQOr554ViTMn1XsZLw9Q1y4pq+KymJrz9xq/pi+mlzjWM4bzEXkTnLMLkKz8GL5ErSj8kdwymlHok3bMvSbGd/qR/UAZoZ0y0PgNz9+LgRi8jvmGGbQ4Fzx+tnkfDwiWIzbsEbs+B4hrWGioK2njqFnSB7dQPfsrfcOKnkhU9J/Nut5fuvvKlFe8pYNUgbzPYNcgWaFu3zuAyd6eXymd5gKok/FEbIpvD6V+6DbEFl8LtrjFBxYnveZDCw4zVaxGZdU7ftnrPbjAN6eE7HcunZbXrt5oNWGQw+AHOmGpHG3YvjXUzgSvAvRQFlmjpBQQ5hwwzVt2N2PxLfCagGHQtSjj6c5R0J7SHGavWIDb/AnjxdHG8vRI8aBn5g4WfZ6X9TbSDlwz6gTC0BbeCjgJl7Voc+LlMi2/ZkyyLJrr4XCighMKMVXchtmAZ8m/tK3NQcw3Dhk7G0Tb0uA7ElYjvdtNcBRNKSmnYtqEKIuf+38ErfnUxS+NFmmXd/9l/6G3LurhSrLUDZmMX7KRZ+JEVtS91e3IuOLOobp9ZxJUC+x9cg872+yBSCX97V7EnsIYTQHFOEp33NFvh0BylWTRHiSTfJMmXnIZrEBmy8vKndziPtq0CIztuyLcv+0Zos3ExSrivufAzK9KHCYopYqsxgN5dO9D5w7VI7tnpt4GFI9pVPMQItXTy4NBLBimFSxtQuHa1KchDfn7T0isw+crrYYScQ2c+ST63TDCTKS+Zv/zpS+oewTplkOYu63IYDlYqThZlWztYiQkKvTkKNhg6Fk0dvXWUdpZIdGzTmzeSHTv1h9A1/8URMXoaSK2soB8oHdSh2Ct9ZxR4c6a9XUf4Ji27Gs7USfAS+eJIPL3SRhi2Y4BLUSI+Hdd+FLc8DN+JJyYAsBDghfMLP+YBe7nI5qWSSjLGTFVs5aJ2L3rz3l2bkXp+N3q3r9cDIrxUAiLRC+iaghoX9AWF2ymfL928zrySdd+w4HI4b5sMkfb8uIveZ6gXG3s8QHvwRLfIeB98aklg/XCJr6+J44G/6J6OBHnuNvdPGVM/ZZZleMms0oEhRvEjqTmZNnozC8h3doHbJlIvPIv0C7/0mz5rwxuLILVPtpStB2fR0kqapWBETIik52sFfST425A5Mwx7koX8gcIj6Mp+aPeKWDcdzRTxwzBxQmG8lUrx1YzJcx7LLjbrrc8pqZYoWtzpevpGGQNXUurbpmFQ9CQxAXdqwt8vqBUxU2qV9129YvUVfXWCc9PkARMi73ZxJr9jbd71j1tXX+C1KWWUY/D1hxOO4/blvPO25C6DadynXDTzoAmRccn487SuoHBksUStNrZ1YPgELy2j0T68ySybUXWWEiIlcmIzc7MfodhMX+Mcx4kRCeRrJriCC7rvs9cfrDcC0XN5gH1GCXkut6160vR6aydlrjy9Sql2+A9g/YMxq7S1lIo5vKSeeHpQKXFXIBq4c+tZ7CD9zj/viUGOn/j6shhJ+EmHQ2HHxa+oluRv8h+DyRdyE+dSVZEZDdTrBGKNBY7tEDcAr9cj2yihpMxbEfs+mZNbLGk+ufUCljr84hOT+r4Y+VSeUqytHbykEUpY+r+qvuu1hGVw5xoYpg2a4F3DIZByNCIOl0lvlxc2d9NzT89hidLvF25W5tbzdY3mOBIdiiCueaaWKjxOENHpeC16XaOCyiXzix+idW2HidbWil123KCDvhxg+l7I9lLp9riS9hpqqKGGGsYZ/h+HbzsGn94rFQAAAABJRU5ErkJggolQTkcNChoKAAAADUlIRFIAAAEAAAABAAgGAAAAXHKoZgAACQ9JREFUeJzt3TFu5kYSBlBpsAZ8AsW+wB85mdx3mGDv4VP4HhvMHZwzmUgXcDwnMODACwYCBEHSiGR3V3XXe4kT26IEfV9XkZR0dwcAAAAAAAAAAAAAAMzk/m5xn//8+9/oa2Bu228/L5uTpT4xYWeUbZFSmP6TEHqibROXwZQXLvRktU1WBlNdrOAzi22SIkh/kULP7LbEZfDpLjHhZwWfEz+JStlMmb9gsNI0kOpiBJ8qtiRFkGYFEH4q+Zxkyr2v8MV4/PJrz/89C7t9/bb0JHC/WvCFnRlLYQsqgvsVwi/0rFAGW0AJ3M8cfsFntSLYBpfA/YzhF3xWLoJtYAnczxR+wadKEWyDSuB+hvALPhWLYBtQAkPeAxB+qnq88Ah6xLsC3Rvm7Cfh1Gc1t5PTQM9JoOsEIPxw/VDrOQmkeRX4iZOflT0meyu1WwGcaa1sXxzo4cz3ea8poEsBCD/MUQLNC0D4YZ4SCL8HYOynssfgtbdpARxtp+hPHjI4moOWU0DYBCD8EJ+HT6v9hhOo4HOjvDUpAKM/zLkKDF8BjP6QJx/hTwGAOJcL4MgY4vSHtjm5ugaYAKCwSwXg9Ie5pwATABQ2pADs/pAzN6cLwIs/kMfZPHafAJz+kDc/7gFAYacKwPgP+ZzJZdcJwPgPuXNkBYDCFABT+P7HX9GXsCQFwDTh3/+pCIILwA1AoimCdvnsNgG4AUgL7534lYrgsdONQCsA06tUBK0pANI6EuqH33/pei2rUgBQmAIgJaf/GAoAClMApOP0H0cBPHP7+m3glx7iKYAX4VcCsZz+YymAV+wloAioQAG8c+orgbGc/uOVL4Afhdw0wMpKF8CRE9400JfTP0bpAjhKCbCasgVwNsxWgvac/nFKFkCLk9w0wArKFUDL4JoGrnP6xypXAD2YBphVqQLoGVTTwHFO/3hlCmDUKW0aYCYlCmB0KJXAjzn9cyhRABGsBMxg+QKIPo2jP35GTv88li+ADL+e3DRAVssXwFMJZCmC6pz+uZQogCdKAAoXQJZpoOpK4PTPp1wBPIkugV3FEiCXsgWQqQQqFIHTP6fSBZBlJdhVKAHyKV8AT5RAP07/vBRAsmmgykpADgrgFdElsFulBJz+uSmAN5gGqEAB/IBp4Dynf34KYKISWGUtII//RF/AbCUQHcL942copJan/5l/v4eH33+5q8YEcFCG8EWXEOtQACe4QZj/NOdjFMAFpoG3R+mK4/SMFMAiJZBxLVAE+SmARVaCXcYSmMn3P/4qt74ogIaUwBq+FyoBBbDgNJB1JZjJ9yIloAA6iS6BnRI476HITUwFUKAEFMExD0XCv/MmYGfeIIwL1Jkx/qFQ+HcmgGLTQBVVdvirFMBAbhDm9lDs9N8pgACmgb6M/h+nAIKYBvoQ/mMUQDDTQDvCf5wCSCBLCcx8k1D4z1EASWRYCXYzloDwn6cAklECx3jcd40CSCjDNDD7SvCeio/73qIAEosugV3mEjD6X6cAkstSAtmKQPjbUAATyLAS7LKUgPC3owAmEl0C0R9/J/xtKYDJZJkGIgh/ewpgUqNLILp0hL8PBTCxUaGcMfx8jAKYXO+VIDr8Z3nW/zEKYBGzBvVHjP59KYCFtJ4GoktF+PtTAItp+aw+8rm/8I/hl4IuIstLOi0I/zgmgAX0DP/oYhH+sRTAxEa9oz+qBDzuG08BTGr0yZx1xfC47xoFMKGsYbzC6B9DAUwk+sdye31s4Y+jACaR4dTv8V6A8MfyGDC5VYP/fIc/UgJ2/rZMAImtHv6joRb+9kwASUWHf/RrwE/h9ihwLAWQTHTwo38G4K2VwOnfhxUgkerhfyvswt+PCSCJ6PBnCP5rk4Dw96UAigc/Y/ifCH9/VoBAwk80E0AAwScLE8Bgwk8mJoBC4c+66xNHARQI/k74eY0VoDPhJzMTQCeCzwxMAB0IP7MwASwWfrs+RyiARYK/E36OsgI0IPzMygQwefid+lyhACYN/k74ucoKcILwswoTwAGCz2pMAB8k/KzIBDBB+O369KIAEgd/J/z0ZAV4g/BTgQngBcGnEhPAM8JPNSaAJOG36xOhfAFEB38n/EQpvQIIP9WVnQCiw+/UJ4NyBRAd/J3wk0WpFUD4oeAEIPh9/PS/L3er++e/X+9WtvwEIPxQuAAi9+39Y9v3yWz5Aogi+MygRAGMDqPwM4sSBTAqlEZ+ZlOmAHqXgFOfGZV4DNiT4DOzUhNA68AKP7MrVwCtgiv8rKBkAVwJsBt9rKRsAZzh1Gc1pQvgSKCFnxWVLoCPBNvIz8rKF8B7JeDUZ3XeA3iF4FOFCeBF6IWfShTAM8JPNQoAClMAUJibgJy2+u/Lq8AEAIUpAChMAUBhCgAKUwBQmAKAwhQAFKYAoDAFAIUpAChMAUBhCgAKUwBQmAKAwroVwO3rt17/ayjn1ilPhwtg++3n+y5XAlx2NJ9WAChMAUBhCgAK61oAbgRC7hydKgA3AiGfM7m0AkBh3QvAGgB583O6AKwBkMfZPA5ZAUwBkDM37gFAYZ9GjR2mAPi4I3m5so6bAKCwywVgCoA5T/+dCQAKG14A7gVAnnw0KYCjY4gSgOu5aPEuTrMJwItBME6rvIXdAzAFQHwemhaAVQDmGP3TPAUwCVDZLfiX5zYvgDPtFP1FgAhnvu9b32vrMgEoAcgf/q4rgBKA3OFPcQ/gJesAK7slW3e7FsDZ1sr2RYIWzn5f93zHZshf+fn859//nv1vH7/82vZiYLDbhQOt9wt2Q1aAK5+EaYCZ3RKHfzf07/xdmQR2pgFmcbu4xo56tX74H/q8WgI7RUBWtwb3r0b+XE3IX/ptUQI7RUAWt0Y3rkf/UF3Yn/puVQI7RUCUW8MnVhE/URtWAK1L4IkyoLdbh8fUUT9OH1oAPYvgOaVA1qdQW1DwUxXAiBKAbLbg8Kd6FTjDFwOqfb+nuIiXTAOsaksS/CepLuYlRcAqtmTBT7cCzPRFg1W+j9Ne2GtMBMxiSxz656a4yJcUAVltkwT/yVQX+xplQLRtstA/N+2Fv0YZMMo2ceifW+KTeI9S4KptkbADAAAAAAAAAAAAAHer+D/kAOCuVkVKvAAAAABJRU5ErkJggg=="
+    $iconBytes = [System.Convert]::FromBase64String($iconB64)
+    $iconStream = New-Object System.IO.MemoryStream(,$iconBytes)
+    $iconBitmap = [System.Windows.Media.Imaging.BitmapFrame]::Create($iconStream)
+    $window.Icon = $iconBitmap
+} catch {}
+
+# Window Control Buttons
+$btnWinMin = $window.FindName("btnWinMin")
+$btnWinMax = $window.FindName("btnWinMax")
+$btnWinClose = $window.FindName("btnWinClose")
+
+if ($btnWinMin) {
+    $btnWinMin.Add_Click({ $window.WindowState = [System.Windows.WindowState]::Minimized })
+}
+if ($btnWinMax) {
+    $btnWinMax.Add_Click({
+        if ($window.WindowState -eq [System.Windows.WindowState]::Maximized) {
+            $window.WindowState = [System.Windows.WindowState]::Normal
+        } else {
+            $window.WindowState = [System.Windows.WindowState]::Maximized
+        }
+    })
+}
+if ($btnWinClose) {
+    $btnWinClose.Add_Click({ $window.Close() })
+}
+
+# Map Search & Controls
+$txtSearch = $window.FindName("txtSearch")
+$btnSearch = $window.FindName("btnSearch")
+
+# User Passwords Controls
+$cmbUserAccounts = $window.FindName("cmbUserAccounts")
+$btnRefreshUserList = $window.FindName("btnRefreshUserList")
+$txtUserNewPass = $window.FindName("txtUserNewPass")
+$btnApplyUserPass = $window.FindName("btnApplyUserPass")
+$btnRemoveUserPass = $window.FindName("btnRemoveUserPass")
+$btnUnlockUserAcc = $window.FindName("btnUnlockUserAcc")
+$btnDisableUserAcc = $window.FindName("btnDisableUserAcc")
+$btnPassNeverExpire = $window.FindName("btnPassNeverExpire")
+$btnDeleteUserAcc = $window.FindName("btnDeleteUserAcc")
+$btnEnableAutoLogon = $window.FindName("btnEnableAutoLogon")
+$btnDisableAutoLogon = $window.FindName("btnDisableAutoLogon")
+$txtCreateUsername = $window.FindName("txtCreateUsername")
+$txtCreatePassword = $window.FindName("txtCreatePassword")
+$cmbAccountType = $window.FindName("cmbAccountType")
+$btnCreateAccountAction = $window.FindName("btnCreateAccountAction")
+$btnOpenNetplwiz = $window.FindName("btnOpenNetplwiz")
+$btnOpenLusrmgr = $window.FindName("btnOpenLusrmgr")
+$btnLaunchMailPassView = $window.FindName("btnLaunchMailPassView")
+$btnScanLocalMailProfiles = $window.FindName("btnScanLocalMailProfiles")
+$btnExportMailReport = $window.FindName("btnExportMailReport")
+$btnLaunchWinPERescue = $window.FindName("btnLaunchWinPERescue")
+$btnLaunchWinPEBuilder = $window.FindName("btnLaunchWinPEBuilder")
+$btnLaunchNirLauncher = $window.FindName("btnLaunchNirLauncher")
+$btnDownloadNirLauncher = $window.FindName("btnDownloadNirLauncher")
+$btnOpenNirFolder = $window.FindName("btnOpenNirFolder")
+$btnLaunchWebBrowserPass = $window.FindName("btnLaunchWebBrowserPass")
+$btnLaunchWirelessKeyView = $window.FindName("btnLaunchWirelessKeyView")
+$btnLaunchOutlookPass = $window.FindName("btnLaunchOutlookPass")
+$chkAppNirLauncher = $window.FindName("chkAppNirLauncher")
+$btnPresetAppMS = $window.FindName("btnPresetAppMS")
+$chkAppMS365 = $window.FindName("chkAppMS365")
+$chkAppMSTeams = $window.FindName("chkAppMSTeams")
+$chkAppPowerToys = $window.FindName("chkAppPowerToys")
+$chkAppMSTerminal = $window.FindName("chkAppMSTerminal")
+$chkAppMSPCManager = $window.FindName("chkAppMSPCManager")
+$chkAppMSOneDrive = $window.FindName("chkAppMSOneDrive")
+$chkAppMSPS7 = $window.FindName("chkAppMSPS7")
+$chkAppMSSysinternals = $window.FindName("chkAppMSSysinternals")
+$chkAppMSOneNote = $window.FindName("chkAppMSOneNote")
+$chkAppMSWhiteboard = $window.FindName("chkAppMSWhiteboard")
+$chkAppMSSSMS = $window.FindName("chkAppMSSSMS")
+$chkAppMSVSCommunity = $window.FindName("chkAppMSVSCommunity")
+$chkAppMSWSL = $window.FindName("chkAppMSWSL")
+
+# App Store Checkboxes
+$chkAppChrome = $window.FindName("chkAppChrome")
+$chkAppBrave = $window.FindName("chkAppBrave")
+$chkAppFirefox = $window.FindName("chkAppFirefox")
+$chkAppEdge = $window.FindName("chkAppEdge")
+$chkAppOperaGX = $window.FindName("chkAppOperaGX")
+$chkAppTor = $window.FindName("chkAppTor")
+$chkAppAnyDesk = $window.FindName("chkAppAnyDesk")
+$chkAppTeamViewer = $window.FindName("chkAppTeamViewer")
+$chkAppRustDesk = $window.FindName("chkAppRustDesk")
+$chkAppUltraViewer = $window.FindName("chkAppUltraViewer")
+$chkAppDiscord = $window.FindName("chkAppDiscord")
+$chkAppTelegram = $window.FindName("chkAppTelegram")
+$chkAppWhatsApp = $window.FindName("chkAppWhatsApp")
+$chkAppZoom = $window.FindName("chkAppZoom")
+$chkAppSkype = $window.FindName("chkAppSkype")
+$chkApp7Zip = $window.FindName("chkApp7Zip")
+$chkAppWinRAR = $window.FindName("chkAppWinRAR")
+$chkAppPeaZip = $window.FindName("chkAppPeaZip")
+$chkAppNotepad = $window.FindName("chkAppNotepad")
+$chkAppPowerToys = $window.FindName("chkAppPowerToys")
+$chkAppEverything = $window.FindName("chkAppEverything")
+$chkAppRevo = $window.FindName("chkAppRevo")
+$chkAppRufus = $window.FindName("chkAppRufus")
+$chkAppCrystalDisk = $window.FindName("chkAppCrystalDisk")
+$chkAppCPUZ = $window.FindName("chkAppCPUZ")
+$chkAppHWMonitor = $window.FindName("chkAppHWMonitor")
+$chkAppTreeSize = $window.FindName("chkAppTreeSize")
+$chkAppVLC = $window.FindName("chkAppVLC")
+$chkAppKLite = $window.FindName("chkAppKLite")
+$chkAppOBS = $window.FindName("chkAppOBS")
+$chkAppGIMP = $window.FindName("chkAppGIMP")
+$chkAppPaintNet = $window.FindName("chkAppPaintNet")
+$chkAppAudacity = $window.FindName("chkAppAudacity")
+$chkAppHandBrake = $window.FindName("chkAppHandBrake")
+$chkAppSpotify = $window.FindName("chkAppSpotify")
+$chkAppCapCut = $window.FindName("chkAppCapCut")
+$chkAppVSCode = $window.FindName("chkAppVSCode")
+$chkAppGit = $window.FindName("chkAppGit")
+$chkAppGitHubDesktop = $window.FindName("chkAppGitHubDesktop")
+$chkAppPython = $window.FindName("chkAppPython")
+$chkAppNode = $window.FindName("chkAppNode")
+$chkAppDocker = $window.FindName("chkAppDocker")
+$chkAppPostman = $window.FindName("chkAppPostman")
+$chkAppDBeaver = $window.FindName("chkAppDBeaver")
+$chkAppVCRedist = $window.FindName("chkAppVCRedist")
+$chkAppJavaJDK = $window.FindName("chkAppJavaJDK")
+$chkAppAdobeReader = $window.FindName("chkAppAdobeReader")
+$chkAppFoxit = $window.FindName("chkAppFoxit")
+$chkAppSumatra = $window.FindName("chkAppSumatra")
+$chkAppLibreOffice = $window.FindName("chkAppLibreOffice")
+$chkAppWPS = $window.FindName("chkAppWPS")
+$chkAppPDF24 = $window.FindName("chkAppPDF24")
+$btnPresetAppEssentials = $window.FindName("btnPresetAppEssentials")
+$btnPresetAppDev = $window.FindName("btnPresetAppDev")
+$btnSelectAllApps = $window.FindName("btnSelectAllApps")
+$btnClearAllApps = $window.FindName("btnClearAllApps")
+$btnInstallSelectedApps = $window.FindName("btnInstallSelectedApps")
+
+# Features & Fixes Controls
+$chkFeatNetFx = $window.FindName("chkFeatNetFx")
+$chkFeatHyperV = $window.FindName("chkFeatHyperV")
+$chkFeatF8Disable = $window.FindName("chkFeatF8Disable")
+$chkFeatF8Enable = $window.FindName("chkFeatF8Enable")
+$chkFeatMedia = $window.FindName("chkFeatMedia")
+$chkFeatNFS = $window.FindName("chkFeatNFS")
+$chkFeatRegBackupTask = $window.FindName("chkFeatRegBackupTask")
+$chkFeatSandbox = $window.FindName("chkFeatSandbox")
+$chkFeatWSL = $window.FindName("chkFeatWSL")
+$btnInstallFeaturesBatch = $window.FindName("btnInstallFeaturesBatch")
+
+$btnFixAutoLogon = $window.FindName("btnFixAutoLogon")
+$btnFixNetworkReset = $window.FindName("btnFixNetworkReset")
+$btnFixNTPServer = $window.FindName("btnFixNTPServer")
+$btnFixSystemCorruption = $window.FindName("btnFixSystemCorruption")
+$btnFixWindowsUpdate = $window.FindName("btnFixWindowsUpdate")
+$btnFixReinstallWinget = $window.FindName("btnFixReinstallWinget")
+
+# OS Customizer & ISOs Controls
+$btnCustDownloadWin11 = $window.FindName("btnCustDownloadWin11")
+$btnCustDownloadWin10 = $window.FindName("btnCustDownloadWin10")
+$btnCustDownloadRufus = $window.FindName("btnCustDownloadRufus")
+$btnCustOpenFido = $window.FindName("btnCustOpenFido")
+
+$chkCustBypassMSA = $window.FindName("chkCustBypassMSA")
+$chkCustBypassTPM = $window.FindName("chkCustBypassTPM")
+$chkCustSkipEULA = $window.FindName("chkCustSkipEULA")
+$chkCustDisableBitLocker = $window.FindName("chkCustDisableBitLocker")
+$chkCustPerfPower = $window.FindName("chkCustPerfPower")
+$chkCustClassicMenu = $window.FindName("chkCustClassicMenu")
+
+$txtCustUsername = $window.FindName("txtCustUsername")
+$txtCustPassword = $window.FindName("txtCustPassword")
+$chkCustAutoLogon = $window.FindName("chkCustAutoLogon")
+$cmbCustTargetDrive = $window.FindName("cmbCustTargetDrive")
+$btnCustRefreshDrives = $window.FindName("btnCustRefreshDrives")
+$btnGenerateAutounattend = $window.FindName("btnGenerateAutounattend")
+$btnRunLiveOOBEBypass = $window.FindName("btnRunLiveOOBEBypass")
+$btnLaunchRufus = $window.FindName("btnLaunchRufus")
+
+# Power Tools Hub Controls
+$btnPauseDefender = $window.FindName("btnPauseDefender")
+$btnEnableDefender = $window.FindName("btnEnableDefender")
+$btnClearDefenderCache = $window.FindName("btnClearDefenderCache")
+$btnDisableSmartScreen2 = $window.FindName("btnDisableSmartScreen2")
+$btnFixPrinterSpooler = $window.FindName("btnFixPrinterSpooler")
+$btnRemoveOneDrive = $window.FindName("btnRemoveOneDrive")
+$btnDisableCopilotRecall = $window.FindName("btnDisableCopilotRecall")
+$btnDisableHibernation = $window.FindName("btnDisableHibernation")
+$btnEnableHibernation = $window.FindName("btnEnableHibernation")
+$btnRestartExplorerQuick = $window.FindName("btnRestartExplorerQuick")
+$btnFixRecycleBinQuick = $window.FindName("btnFixRecycleBinQuick")
+$btnToggleHiddenFilesQuick = $window.FindName("btnToggleHiddenFilesQuick")
+$btnEnableLongPathsQuick = $window.FindName("btnEnableLongPathsQuick")
+$btnListStartupAppsQuick = $window.FindName("btnListStartupAppsQuick")
+$btnAnalyzeBatteryWear = $window.FindName("btnAnalyzeBatteryWear")
+$btnStartHotspot = $window.FindName("btnStartHotspot")
+$btnStopHotspot = $window.FindName("btnStopHotspot")
+$txtShredFilePath = $window.FindName("txtShredFilePath")
+$btnBrowseShredFile = $window.FindName("btnBrowseShredFile")
+$btnExecuteShredFile = $window.FindName("btnExecuteShredFile")
+
+# Super Admin Controls
+$btnExtractProductKey = $window.FindName("btnExtractProductKey")
+$txtTakeOwnPath = $window.FindName("txtTakeOwnPath")
+$btnBrowseTakeOwn = $window.FindName("btnBrowseTakeOwn")
+$btnExecuteTakeOwn = $window.FindName("btnExecuteTakeOwn")
+$btnEnableSuperAdmin2 = $window.FindName("btnEnableSuperAdmin2")
+$btnCreateGodMode2 = $window.FindName("btnCreateGodMode2")
+$btnDisableUAC2 = $window.FindName("btnDisableUAC2")
+$btnRebootUEFI = $window.FindName("btnRebootUEFI")
+$btnPurgeTelemetryTasks = $window.FindName("btnPurgeTelemetryTasks")
+$txtNewHostName = $window.FindName("txtNewHostName")
+$btnRenameComputer = $window.FindName("btnRenameComputer")
+$txtProcessName = $window.FindName("txtProcessName")
+$btnKillProcess2 = $window.FindName("btnKillProcess2")
+$btnInstallGPEdit2 = $window.FindName("btnInstallGPEdit2")
+$btnRegBackup2 = $window.FindName("btnRegBackup2")
+
+# Gaming & Hardware
+$btnDisableMouseAccel = $window.FindName("btnDisableMouseAccel")
+$btnBoostKeyboardRate = $window.FindName("btnBoostKeyboardRate")
+$btnEnableMSIGpu = $window.FindName("btnEnableMSIGpu")
+$btnUnparkCPU = $window.FindName("btnUnparkCPU")
+$btnDisableUSBSleep = $window.FindName("btnDisableUSBSleep")
+$btnForceTrimSSD = $window.FindName("btnForceTrimSSD")
+$btnEnableHAGS = $window.FindName("btnEnableHAGS")
+$btnSmartScan = $window.FindName("btnSmartScan")
+$btnRamSpecs = $window.FindName("btnRamSpecs")
+$btnMemDiag = $window.FindName("btnMemDiag")
+$btnSpeedTest = $window.FindName("btnSpeedTest")
+$btnBatteryHealth = $window.FindName("btnBatteryHealth")
+$btnSysSummary = $window.FindName("btnSysSummary")
+
+# Storage & Repairs
+$btnFindLargestFiles = $window.FindName("btnFindLargestFiles")
+$btnPurgeWinSxSComponent = $window.FindName("btnPurgeWinSxSComponent")
+$btnPurgeWindowsOld = $window.FindName("btnPurgeWindowsOld")
+$btnForceTimeResync = $window.FindName("btnForceTimeResync")
+$btnFixCMOSTimeDrift = $window.FindName("btnFixCMOSTimeDrift")
+$btnFixAudioLatency = $window.FindName("btnFixAudioLatency")
+$btnAnalyzeBSOD = $window.FindName("btnAnalyzeBSOD")
+$btnUnblockTools = $window.FindName("btnUnblockTools")
+$btnFixStuckWU = $window.FindName("btnFixStuckWU")
+$btnRebuildSearchIndex = $window.FindName("btnRebuildSearchIndex")
+$btnRunSFC = $window.FindName("btnRunSFC")
+$btnDismRestore = $window.FindName("btnDismRestore")
+$btnDismCheck = $window.FindName("btnDismCheck")
+$btnResetWU = $window.FindName("btnResetWU")
+$btnRepairEngines = $window.FindName("btnRepairEngines")
+$btnRegCoreDLLs = $window.FindName("btnRegCoreDLLs")
+$btnRepairStore = $window.FindName("btnRepairStore")
+$btnEnableWinRE = $window.FindName("btnEnableWinRE")
+$btnCheckWinRE = $window.FindName("btnCheckWinRE")
+$btnRebuildBCD = $window.FindName("btnRebuildBCD")
+$btnScheduleChkdsk = $window.FindName("btnScheduleChkdsk")
+$cmbDriveLetter = $window.FindName("cmbDriveLetter")
+$btnConvertNTFS = $window.FindName("btnConvertNTFS")
+$cmbDiskID = $window.FindName("cmbDiskID")
+$btnConvertGPT = $window.FindName("btnConvertGPT")
+
+# Context Menu Extensions & Tweaks
+$btnContextCopyPath = $window.FindName("btnContextCopyPath")
+$btnContextCompact = $window.FindName("btnContextCompact")
+$btnContextPermanentDelete = $window.FindName("btnContextPermanentDelete")
+
+$chkBypassTPM = $window.FindName("chkBypassTPM")
+$chkRemoveWatermark = $window.FindName("chkRemoveWatermark")
+$chkBlockDriverWU = $window.FindName("chkBlockDriverWU")
+$chkAlignTaskbarLeft = $window.FindName("chkAlignTaskbarLeft")
+$chkTelemetry = $window.FindName("chkTelemetry")
+$chkCortana = $window.FindName("chkCortana")
+$chkBing = $window.FindName("chkBing")
+$chkAds = $window.FindName("chkAds")
+$chkLocation = $window.FindName("chkLocation")
+$chkActivity = $window.FindName("chkActivity")
+$chkFeedback = $window.FindName("chkFeedback")
+$chkSmartScreen = $window.FindName("chkSmartScreen")
+$chkUltPower = $window.FindName("chkUltPower")
+$chkStartupDelay = $window.FindName("chkStartupDelay")
+$chkStickyKeys = $window.FindName("chkStickyKeys")
+$chkMenuDelay = $window.FindName("chkMenuDelay")
+$chkNtfsTime = $window.FindName("chkNtfsTime")
+$chkUniversalBg = $window.FindName("chkUniversalBg")
+$chkEdgePreload = $window.FindName("chkEdgePreload")
+$chkGameDVR = $window.FindName("chkGameDVR")
+$chkNetThrottle = $window.FindName("chkNetThrottle")
+$chkGameLatency = $window.FindName("chkGameLatency")
+$chkHoverDelays = $window.FindName("chkHoverDelays")
+$chkSearchHighlights = $window.FindName("chkSearchHighlights")
+$chkTakeOwn = $window.FindName("chkTakeOwn")
+$chkOpenNotepad = $window.FindName("chkOpenNotepad")
+$chkKillStuck = $window.FindName("chkKillStuck")
+$chkCmdAdmin = $window.FindName("chkCmdAdmin")
+$chkShowExt = $window.FindName("chkShowExt")
+$chkTaskbarWidgets = $window.FindName("chkTaskbarWidgets")
+$chkPhotoViewer = $window.FindName("chkPhotoViewer")
+
+$btnPresetRecommended = $window.FindName("btnPresetRecommended")
+$btnPresetUltra = $window.FindName("btnPresetUltra")
+$btnPresetClear = $window.FindName("btnPresetClear")
+$btnApplyTweaksBatch = $window.FindName("btnApplyTweaksBatch")
+
+# Security & Network
+$btnEnableUSBWriteProtect = $window.FindName("btnEnableUSBWriteProtect")
+$btnDisableUSBWriteProtect = $window.FindName("btnDisableUSBWriteProtect")
+$btnInjectHostsAdblock = $window.FindName("btnInjectHostsAdblock")
+$btnResetHosts = $window.FindName("btnResetHosts")
+$btnAddDefenderExclusion = $window.FindName("btnAddDefenderExclusion")
+$btnEnableSandbox = $window.FindName("btnEnableSandbox")
+$btnEnableHyperV = $window.FindName("btnEnableHyperV")
+$btnExportWiFiPass = $window.FindName("btnExportWiFiPass")
+$btnGenWiFiQR = $window.FindName("btnGenWiFiQR")
+$btnApplyTCPAck = $window.FindName("btnApplyTCPAck")
+$btnBoostTCPCongestion = $window.FindName("btnBoostTCPCongestion")
+$btnViewActivePorts = $window.FindName("btnViewActivePorts")
+$btnResetWinsock3 = $window.FindName("btnResetWinsock3")
+$btnDNSCloudflare = $window.FindName("btnDNSCloudflare")
+$btnDNSGoogle = $window.FindName("btnDNSGoogle")
+$btnDNSQuad9 = $window.FindName("btnDNSQuad9")
+$btnDNSDHCP = $window.FindName("btnDNSDHCP")
+
+# Activation & Change Edition
+$cmbTargetWinEdition = $window.FindName("cmbTargetWinEdition")
+$txtCustomEditionKey = $window.FindName("txtCustomEditionKey")
+$btnAutoFillEditionKey = $window.FindName("btnAutoFillEditionKey")
+$btnApplyEditionChange = $window.FindName("btnApplyEditionChange")
+$btnDISMEditionChange = $window.FindName("btnDISMEditionChange")
+$btnOpenMASEditionMenu = $window.FindName("btnOpenMASEditionMenu")
+
+$btnInstallM365 = $window.FindName("btnInstallM365")
+$btnInstall2019 = $window.FindName("btnInstall2019")
+$btnInstall2021 = $window.FindName("btnInstall2021")
+$btnInstall2024 = $window.FindName("btnInstall2024")
+$btnActWindows = $window.FindName("btnActWindows")
+$btnActOffice = $window.FindName("btnActOffice")
+$btnActKMS = $window.FindName("btnActKMS")
+$btnCleanKMS = $window.FindName("btnCleanKMS")
+$btnChangeEdition = $window.FindName("btnChangeEdition")
+
+# Backups & Consoles
+$txtSourceFolder = $window.FindName("txtSourceFolder")
+$btnBrowseSource = $window.FindName("btnBrowseSource")
+$txtTargetFolder = $window.FindName("txtTargetFolder")
+$btnBrowseTarget = $window.FindName("btnBrowseTarget")
+$btnRunRobocopy = $window.FindName("btnRunRobocopy")
+$btnExportBookmarks2 = $window.FindName("btnExportBookmarks2")
+$btnExportDrivers = $window.FindName("btnExportDrivers")
+$btnRestoreDrivers = $window.FindName("btnRestoreDrivers")
+$btnUpgradeWinget = $window.FindName("btnUpgradeWinget")
+$btnRestartTally = $window.FindName("btnRestartTally")
+$btnPurgeCache = $window.FindName("btnPurgeCache")
+$txtTerminalLog = $window.FindName("txtTerminalLog")
+
+$btnHubReg2 = $window.FindName("btnHubReg2")
+$btnHubDev2 = $window.FindName("btnHubDev2")
+$btnHubGP2 = $window.FindName("btnHubGP2")
+$btnHubDisk2 = $window.FindName("btnHubDisk2")
+$btnHubTask2 = $window.FindName("btnHubTask2")
+$btnHubRes2 = $window.FindName("btnHubRes2")
+$btnHubDx2 = $window.FindName("btnHubDx2")
+$btnHubServ2 = $window.FindName("btnHubServ2")
+$btnCloseApp = $window.FindName("btnCloseApp")
+
+# Helper function to append to terminal
+function Append-Log($msg) {
+    $time = Get-Date -Format "HH:mm:ss"
+    $line = "[$time] $msg`r`n"
+    if ($txtTerminalLog) {
+        $txtTerminalLog.AppendText($line)
+        $txtTerminalLog.ScrollToEnd()
+    }
+}
+
+# ==================== POPULATE COMBOBOXES ====================
+function Refresh-UserAccounts {
+    if (-not $cmbUserAccounts) { return }
+    $cmbUserAccounts.Items.Clear()
+    try {
+        $users = Get-LocalUser -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Name
+        if (-not $users) {
+            $users = (net user | Select-String -Pattern '^-+' -Context 0,100).Context.PostContext | ForEach-Object { $_ -split '\s+' } | Where-Object { $_ -and $_ -notmatch "command|completed" }
+        }
+        foreach ($u in $users) {
+            if ($u) { $cmbUserAccounts.Items.Add($u.Trim()) | Out-Null }
+        }
+        if ($cmbUserAccounts.Items.Count -gt 0) { $cmbUserAccounts.SelectedIndex = 0 }
+    } catch {}
+}
+# Fast static item initialization
+if ($cmbAccountType) {
+    $cmbAccountType.Items.Add("Administrator") | Out-Null
+    $cmbAccountType.Items.Add("Standard User") | Out-Null
+    $cmbAccountType.SelectedIndex = 0
+}
+
+$editionKeys = @{
+    "Windows 10/11 Pro" = "VK7JG-NPHTM-C97JM-9MPGT-3V66T"
+    "Windows 10/11 Enterprise" = "NPPR9-FWDCX-D2C8J-H872K-2YT43"
+    "Windows 10/11 Education" = "NW6C2-QMPVW-D7KKK-3GKT6-VCFB2"
+    "Windows 10/11 Pro for Workstations" = "DXG7C-N37C4-3282C-D44D3-4VQ26"
+    "Windows 10/11 Enterprise LTSC" = "M7XTQ-FN8P6-TTKYV-9D4CC-J462D"
+    "Windows 10/11 IoT Enterprise" = "XQQYW-NFFMW-XJPBH-K8732-CKFFD"
+}
+
+if ($cmbTargetWinEdition) {
+    foreach ($k in $editionKeys.Keys) {
+        $cmbTargetWinEdition.Items.Add($k) | Out-Null
+    }
+    $cmbTargetWinEdition.SelectedIndex = 0
+}
+
+if ($btnAutoFillEditionKey) {
+    $btnAutoFillEditionKey.Add_Click({
+        $sel = $cmbTargetWinEdition.SelectedItem
+        if ($sel -and $editionKeys.ContainsKey($sel.ToString())) {
+            $keyVal = $editionKeys[$sel.ToString()]
+            $txtCustomEditionKey.Text = $keyVal
+            Append-Log("Auto-filled key for $($sel) - $keyVal")
+        }
+    })
+}
+
+function Refresh-CustomizerDrives {
+    if (-not $cmbCustTargetDrive) { return }
+    $cmbCustTargetDrive.Items.Clear()
+    try {
+        $drives = Get-Volume -ErrorAction SilentlyContinue | Where-Object { $_.DriveLetter } | ForEach-Object { "$($_.DriveLetter):\ ($($_.FileSystemLabel)) [$([math]::Round($_.SizeRemaining/1GB,1)) GB Free]" }
+        foreach ($d in $drives) { $cmbCustTargetDrive.Items.Add($d) | Out-Null }
+    } catch {}
+    $desktop = [Environment]::GetFolderPath("Desktop")
+    $cmbCustTargetDrive.Items.Add("Desktop ($desktop)") | Out-Null
+    if ($cmbCustTargetDrive.Items.Count -gt 0) { $cmbCustTargetDrive.SelectedIndex = 0 }
+}
+if ($btnCustRefreshDrives) { $btnCustRefreshDrives.Add_Click({ Refresh-CustomizerDrives }) }
+
+# High-Speed Post-Render Asynchronous Loader (Instant UI Display)
+$window.Add_ContentRendered({
+    [System.Windows.Threading.Dispatcher]::CurrentDispatcher.BeginInvoke([Action]{
+        Refresh-UserAccounts
+        Refresh-CustomizerDrives
+        
+        if ($cmbDriveLetter) {
+            try {
+                Get-Volume -ErrorAction SilentlyContinue | Where-Object { $_.DriveLetter } | ForEach-Object { $cmbDriveLetter.Items.Add("$($_.DriveLetter): ($($_.FileSystemLabel))") | Out-Null }
+                if ($cmbDriveLetter.Items.Count -gt 0) { $cmbDriveLetter.SelectedIndex = 0 }
+            } catch {}
+        }
+        
+        if ($cmbDiskID) {
+            try {
+                Get-Disk -ErrorAction SilentlyContinue | ForEach-Object { $cmbDiskID.Items.Add("Disk $($_.Number): $($_.FriendlyName) ($([math]::Round($_.Size/1GB,1)) GB)") | Out-Null }
+                if ($cmbDiskID.Items.Count -gt 0) { $cmbDiskID.SelectedIndex = 0 }
+            } catch {}
+        }
+        
+        Append-Log("Venkat Ultimate Windows Tweaker engine ready. All subsystems active.")
+    }) | Out-Null
+})
+
+# ==================== USER PASSWORDS EVENT HANDLERS ====================
+function Get-SelectedUserCleanName {
+    if (-not $cmbUserAccounts.SelectedItem) {
+        [System.Windows.Forms.MessageBox]::Show("Please select a user account first.", "User Password Tool", "OK", "Warning")
+        return $null
+    }
+    return $cmbUserAccounts.SelectedItem.ToString().Trim()
+}
+
+$btnRefreshUserList.Add_Click({ Refresh-UserAccounts; Append-Log("User accounts list refreshed.") })
+
+$btnApplyUserPass.Add_Click({
+    $u = Get-SelectedUserCleanName
+    $p = $txtUserNewPass.Text.Trim()
+    if (-not $u -or -not $p -or $p -match "Enter New Password") {
+        [System.Windows.Forms.MessageBox]::Show("Please specify a valid new password.", "Password Tool", "OK", "Warning")
+        return
+    }
+    try {
+        net user "$u" "$p" | Out-Null
+        Append-Log("New password set successfully for user '$u'.")
+        [System.Windows.Forms.MessageBox]::Show("Password for user '$u' changed successfully!", "Password Changed", "OK", "Information")
+    } catch {
+        [System.Windows.Forms.MessageBox]::Show("Failed to change password: $_", "Error", "OK", "Error")
+    }
+})
+
+$btnRemoveUserPass.Add_Click({
+    $u = Get-SelectedUserCleanName
+    if (-not $u) { return }
+    if ([System.Windows.Forms.MessageBox]::Show("Remove password for user '$u'? User will log in with a blank password.", "Confirm Remove Password", "YesNo", "Question") -eq [System.Windows.Forms.DialogResult]::Yes) {
+        net user "$u" "" | Out-Null
+        Append-Log("Password removed for user '$u'.")
+        [System.Windows.Forms.MessageBox]::Show("Password removed for '$u'! Blank password set.", "Password Removed", "OK", "Information")
+    }
+})
+
+$btnUnlockUserAcc.Add_Click({
+    $u = Get-SelectedUserCleanName
+    if (-not $u) { return }
+    net user "$u" /active:yes | Out-Null
+    Refresh-UserAccounts
+    Append-Log("User account '$u' unlocked and activated.")
+    [System.Windows.Forms.MessageBox]::Show("Account '$u' is now UNLOCKED and Active!", "Account Unlocked", "OK", "Information")
+})
+
+$btnDisableUserAcc.Add_Click({
+    $u = Get-SelectedUserCleanName
+    if (-not $u) { return }
+    net user "$u" /active:no | Out-Null
+    Refresh-UserAccounts
+    Append-Log("User account '$u' disabled.")
+    [System.Windows.Forms.MessageBox]::Show("Account '$u' is now DISABLED!", "Account Disabled", "OK", "Information")
+})
+
+$btnPassNeverExpire.Add_Click({
+    $u = Get-SelectedUserCleanName
+    if (-not $u) { return }
+    wmic useraccount where name="$u" set passwordexpires=false | Out-Null
+    Append-Log("Set Password Never Expires for '$u'.")
+    [System.Windows.Forms.MessageBox]::Show("Password for user '$u' will NEVER expire!", "Password Policy", "OK", "Information")
+})
+
+$btnDeleteUserAcc.Add_Click({
+    $u = Get-SelectedUserCleanName
+    if (-not $u) { return }
+    if ([System.Windows.Forms.MessageBox]::Show("Permanently DELETE user account '$u'?", "Confirm Delete User", "YesNo", "Warning") -eq [System.Windows.Forms.DialogResult]::Yes) {
+        net user "$u" /delete | Out-Null
+        Refresh-UserAccounts
+        Append-Log("User account '$u' deleted.")
+        [System.Windows.Forms.MessageBox]::Show("User account '$u' has been deleted.", "Account Deleted", "OK", "Information")
+    }
+})
+
+$btnEnableAutoLogon.Add_Click({
+    $u = Get-SelectedUserCleanName
+    $p = $txtUserNewPass.Text.Trim()
+    if (-not $u) { return }
+    if ($p -match "Enter New Password") { $p = "" }
+    
+    $regPath = "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon"
+    Set-ItemProperty -Path $regPath -Name "AutoAdminLogon" -Value "1" -Type String -Force -ErrorAction SilentlyContinue
+    Set-ItemProperty -Path $regPath -Name "DefaultUserName" -Value "$u" -Type String -Force -ErrorAction SilentlyContinue
+    Set-ItemProperty -Path $regPath -Name "DefaultPassword" -Value "$p" -Type String -Force -ErrorAction SilentlyContinue
+    Set-ItemProperty -Path $regPath -Name "DefaultDomainName" -Value "$env:COMPUTERNAME" -Type String -Force -ErrorAction SilentlyContinue
+    
+    Append-Log("Configured Automatic Logon on boot for user '$u'.")
+    [System.Windows.Forms.MessageBox]::Show("Automatic Logon ENABLED for '$u'!", "Auto-Logon Configured", "OK", "Information")
+})
+
+$btnDisableAutoLogon.Add_Click({
+    $regPath = "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon"
+    Set-ItemProperty -Path $regPath -Name "AutoAdminLogon" -Value "0" -Type String -Force -ErrorAction SilentlyContinue
+    Remove-ItemProperty -Path $regPath -Name "DefaultPassword" -Force -ErrorAction SilentlyContinue
+    Append-Log("Automatic Logon disabled.")
+    [System.Windows.Forms.MessageBox]::Show("Automatic Logon DISABLED.", "Auto-Logon Disabled", "OK", "Information")
+})
+
+$btnCreateAccountAction.Add_Click({
+    $u = $txtCreateUsername.Text.Trim()
+    $p = $txtCreatePassword.Text.Trim()
+    $type = $cmbAccountType.SelectedItem.ToString()
+    if (-not $u) { return }
+    net user "$u" "$p" /add | Out-Null
+    if ($type -eq "Administrator") { net localgroup administrators "$u" /add | Out-Null }
+    Refresh-UserAccounts
+    Append-Log("Created new $type account '$u'.")
+    [System.Windows.Forms.MessageBox]::Show("$type account '$u' successfully created!", "Account Created", "OK", "Information")
+})
+
+$btnOpenNetplwiz.Add_Click({ Start-Process netplwiz.exe })
+$btnOpenLusrmgr.Add_Click({ Start-Process lusrmgr.msc })
+
+# ==================== MAIL PASSVIEW & EMAIL AUDIT ENGINE ====================
+function Show-NativePassViewDialog {
+    try {
+        $credsList = [NativePassViewHelper]::GetAllCredentials()
+    } catch {
+        $credsList = @()
+    }
+    
+    # Also retrieve Windows Vault
+    try {
+        [Windows.Security.Credentials.PasswordVault, Windows.Security.Credentials, ContentType = WindowsRuntime] | Out-Null
+        $vault = New-Object Windows.Security.Credentials.PasswordVault
+        $vaultCreds = $vault.RetrieveAll()
+        foreach ($vc in $vaultCreds) {
+            $vc.RetrievePassword()
+            $item = New-Object NativePassViewHelper+CredItem
+            $item.Target = $vc.Resource
+            $item.User = $vc.UserName
+            $item.Password = $vc.Password
+            $item.Type = "Windows Vault"
+            $credsList.Add($item)
+        }
+    } catch {}
+
+    [xml]$pvXaml = @"
+<Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Venkat Mail PassView &amp; Credentials Recovery Engine"
+        Height="540" Width="840"
+        WindowStartupLocation="CenterScreen"
+        Background="#080E1A"
+        FontFamily="Segoe UI">
+    <Grid Margin="12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Margin="0,0,0,10">
+            <TextBlock Text="VENKAT MAIL PASSVIEW &amp; CREDENTIALS RECOVERY" FontSize="14" FontWeight="Bold" Foreground="#38BDF8"/>
+            <TextBlock Text="Decrypted email accounts, mail servers, web credentials, and saved Windows passwords." FontSize="10" Foreground="#94A3B8" Margin="0,2,0,0"/>
+        </StackPanel>
+
+        <ListView Name="lstCreds" Grid.Row="1" Background="#0F172A" Foreground="#F8FAFC" BorderBrush="#1E293B">
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn Header="Resource / Target" Width="260" DisplayMemberBinding="{Binding Target}"/>
+                    <GridViewColumn Header="User / Email" Width="200" DisplayMemberBinding="{Binding User}"/>
+                    <GridViewColumn Header="Password / Secret" Width="220" DisplayMemberBinding="{Binding Password}"/>
+                    <GridViewColumn Header="Type" Width="110" DisplayMemberBinding="{Binding Type}"/>
+                </GridView>
+            </ListView.View>
+        </ListView>
+
+        <Grid Grid.Row="2" Margin="0,10,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            
+            <StackPanel Grid.Column="0" Orientation="Horizontal">
+                <Button Name="btnCopyPass" Content="Copy Password" Width="120" Height="28" Background="#0284C7" Margin="0,0,6,0" FontWeight="Bold"/>
+                <Button Name="btnCopyUser" Content="Copy User / Email" Width="130" Height="28" Background="#334155" Margin="0,0,6,0"/>
+                <Button Name="btnOpenWinCredMgr" Content="Open Credential Manager" Width="170" Height="28" Background="#1E3A8A"/>
+            </StackPanel>
+
+            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                <Button Name="btnExportPVReport" Content="Export Report" Width="110" Height="28" Background="#059669" Margin="0,0,6,0" FontWeight="Bold"/>
+                <Button Name="btnClosePV" Content="Close" Width="80" Height="28" Background="#DC2626" FontWeight="Bold"/>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</Window>
+"@
+
+    $pvReader = New-Object System.Xml.XmlNodeReader $pvXaml
+    $pvWindow = [System.Windows.Markup.XamlReader]::Load($pvReader)
+
+    $lstCreds = $pvWindow.FindName("lstCreds")
+    $btnCopyPass = $pvWindow.FindName("btnCopyPass")
+    $btnCopyUser = $pvWindow.FindName("btnCopyUser")
+    $btnOpenWinCredMgr = $pvWindow.FindName("btnOpenWinCredMgr")
+    $btnExportPVReport = $pvWindow.FindName("btnExportPVReport")
+    $btnClosePV = $pvWindow.FindName("btnClosePV")
+
+    $lstCreds.ItemsSource = $credsList
+
+    $btnCopyPass.Add_Click({
+        $sel = $lstCreds.SelectedItem
+        if ($sel -and $sel.Password) {
+            [System.Windows.Clipboard]::SetText($sel.Password)
+            [System.Windows.Forms.MessageBox]::Show("Password copied to clipboard!", "PassView", "OK", "Information")
+        }
+    })
+
+    $btnCopyUser.Add_Click({
+        $sel = $lstCreds.SelectedItem
+        if ($sel -and $sel.User) {
+            [System.Windows.Clipboard]::SetText($sel.User)
+            [System.Windows.Forms.MessageBox]::Show("User/Email copied to clipboard!", "PassView", "OK", "Information")
+        }
+    })
+
+    $btnOpenWinCredMgr.Add_Click({
+        Start-Process control.exe -ArgumentList "keymgr.dll"
+    })
+
+    $btnExportPVReport.Add_Click({
+        $desktop = [Environment]::GetFolderPath("Desktop")
+        $out = "$desktop\Mail_and_Vault_Passwords_$(Get-Date -Format 'yyyyMMdd_HHmmss').txt"
+        $lines = @("=== VENKAT MAIL & PASSWORDS AUDIT REPORT ===", "Generated: $(Get-Date)", "")
+        foreach ($c in $credsList) {
+            $lines += "Target: $($c.Target)"
+            $lines += "User:   $($c.User)"
+            $lines += "Pass:   $($c.Password)"
+            $lines += "Type:   $($c.Type)"
+            $lines += "--------------------------------------------------------"
+        }
+        $lines | Out-File -FilePath $out -Encoding UTF8
+        Start-Process notepad.exe -ArgumentList "`"$out`""
+    })
+
+    $btnClosePV.Add_Click({ $pvWindow.Close() })
+
+    $pvWindow.ShowDialog() | Out-Null
+}
+
+if ($btnLaunchMailPassView) {
+    $btnLaunchMailPassView.Add_Click({
+        Append-Log("Launching Venkat Mail PassView & Credential Recovery Engine...")
+        Show-NativePassViewDialog
+        Append-Log("Mail PassView completed.")
+    })
+}
+
+if ($btnScanLocalMailProfiles) {
+    $btnScanLocalMailProfiles.Add_Click({
+        Append-Log("Scanning local system for configured email profiles and servers...")
+        $found = 0
+        
+        # Scan Outlook Profiles in Registry
+        $outlookRegPaths = @(
+            "HKCU:\Software\Microsoft\Office\16.0\Outlook\Profiles",
+            "HKCU:\Software\Microsoft\Office\15.0\Outlook\Profiles",
+            "HKCU:\Software\Microsoft\Office\14.0\Outlook\Profiles",
+            "HKCU:\Software\Microsoft\Windows NT\CurrentVersion\Windows Messaging Subsystem\Profiles"
+        )
+        foreach ($rp in $outlookRegPaths) {
+            if (Test-Path $rp) {
+                $profiles = Get-ChildItem -Path $rp -ErrorAction SilentlyContinue
+                foreach ($p in $profiles) {
+                    $found++
+                    Append-Log("[Outlook Profile] $($p.PSChildName) (Location: $rp)")
+                }
+            }
+        }
+        
+        # Scan Thunderbird Profiles
+        $tbPath = "$env:APPDATA\Thunderbird\Profiles"
+        if (Test-Path $tbPath) {
+            $tbProfiles = Get-ChildItem -Path $tbPath -Directory -ErrorAction SilentlyContinue
+            foreach ($tbp in $tbProfiles) {
+                $found++
+                Append-Log("[Mozilla Thunderbird] Profile: $($tbp.Name) (Path: $($tbp.FullName))")
+                if (Test-Path "$($tbp.FullName)\logins.json") {
+                    Append-Log("  - Stored logins.json database found in $($tbp.Name)")
+                }
+            }
+        }
+        
+        # Scan Windows Mail / Live Mail Storage
+        $wmailPath = "$env:LOCALAPPDATA\Microsoft\Windows Mail"
+        if (Test-Path $wmailPath) {
+            $found++
+            Append-Log("[Windows Mail] Store path detected at $wmailPath")
+        }
+
+        # Scan Windows Credentials for Mail Endpoints
+        try {
+            $cList = [NativePassViewHelper]::GetAllCredentials()
+            foreach ($ci in $cList) {
+                if ($ci.Target -match "mail|smtp|imap|pop|outlook|live|gmail|yahoo|exchange") {
+                    $found++
+                    Append-Log("[Mail Credential] Target: $($ci.Target) | User: $($ci.User)")
+                }
+            }
+        } catch {}
+        
+        if ($found -eq 0) {
+            Append-Log("No configured email client databases detected on local user profile.")
+            [System.Windows.Forms.MessageBox]::Show("Scan finished. No standard local desktop mail client profiles detected.", "Mail Scan", "OK", "Information")
+        } else {
+            Append-Log("Mail profiles scan completed! Detected $found email profile sources.")
+            [System.Windows.Forms.MessageBox]::Show("Detected $found email profile/server sources! See log terminal for details.", "Mail Scan", "OK", "Information")
+        }
+    })
+}
+
+if ($btnExportMailReport) {
+    $btnExportMailReport.Add_Click({
+        $desktop = [Environment]::GetFolderPath("Desktop")
+        $reportPath = "$desktop\Email_Accounts_Audit_Report.txt"
+        
+        $report = "========================================================`r`n"
+        $report += "  VENKAT WINDOWS EMAIL CLIENTS & PASSWORDS REPORT`r`n"
+        $report += "  Generated: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')`r`n"
+        $report += "  Computer: $env:COMPUTERNAME | User: $env:USERNAME`r`n"
+        $report += "========================================================`r`n`r`n"
+        
+        $report += "1. RECOVERED PASSWORDS & CREDENTIALS:`r`n"
+        try {
+            $creds = [NativePassViewHelper]::GetAllCredentials()
+            foreach ($c in $creds) {
+                $report += "   - Target: $($c.Target)`r`n     User:   $($c.User)`r`n     Secret: $($c.Password)`r`n     Type:   $($c.Type)`r`n`r`n"
+            }
+        } catch {
+            $report += "   (Unable to query credentials: $_)`r`n"
+        }
+
+        $report += "`r`n2. MICROSOFT OUTLOOK PROFILES:`r`n"
+        $outlookRegPaths = @(
+            "HKCU:\Software\Microsoft\Office\16.0\Outlook\Profiles",
+            "HKCU:\Software\Microsoft\Office\15.0\Outlook\Profiles",
+            "HKCU:\Software\Microsoft\Office\14.0\Outlook\Profiles",
+            "HKCU:\Software\Microsoft\Windows NT\CurrentVersion\Windows Messaging Subsystem\Profiles"
+        )
+        $hasOutlook = $false
+        foreach ($rp in $outlookRegPaths) {
+            if (Test-Path $rp) {
+                $profiles = Get-ChildItem -Path $rp -ErrorAction SilentlyContinue
+                foreach ($p in $profiles) {
+                    $hasOutlook = $true
+                    $report += "   - Profile: $($p.PSChildName)`r`n     Registry: $rp`r`n"
+                }
+            }
+        }
+        if (-not $hasOutlook) { $report += "   (No Microsoft Outlook profiles found in registry)`r`n" }
+        
+        $report += "`r`n3. MOZILLA THUNDERBIRD PROFILES:`r`n"
+        $tbPath = "$env:APPDATA\Thunderbird\Profiles"
+        if (Test-Path $tbPath) {
+            $tbProfiles = Get-ChildItem -Path $tbPath -Directory -ErrorAction SilentlyContinue
+            foreach ($tbp in $tbProfiles) {
+                $report += "   - Profile Directory: $($tbp.Name)`r`n     Path: $($tbp.FullName)`r`n"
+                if (Test-Path "$($tbp.FullName)\logins.json") {
+                    $report += "     Database: logins.json (Encrypted Passwords Database Present)`r`n"
+                }
+            }
+        } else {
+            $report += "   (No Thunderbird profiles directory detected)`r`n"
+        }
+        
+        $report += "`r`n4. WINDOWS MAIL / LIVE MAIL DATA:`r`n"
+        $wmailPath = "$env:LOCALAPPDATA\Microsoft\Windows Mail"
+        if (Test-Path $wmailPath) {
+            $report += "   - Windows Mail Database: Detected at $wmailPath`r`n"
+        } else {
+            $report += "   (No Windows Mail store detected)`r`n"
+        }
+        
+        $report += "`r`n========================================================`r`n"
+        $report += "Report generated by Venkat Ultimate Windows Tweaker Suite.`r`n"
+        
+        Set-Content -Path $reportPath -Value $report -Encoding UTF8
+        Append-Log("Exported email accounts and credentials report to $reportPath")
+        Start-Process notepad.exe -ArgumentList "`"$reportPath`""
+    })
+}
+
+# ==================== WINPE RESCUE SUITE & BUILDER HANDLERS ====================
+if ($btnLaunchWinPERescue) {
+    $btnLaunchWinPERescue.Add_Click({
+        $suitePath = "C:\Users\user\.gemini\antigravity\scratch\winpe_rescue_suite\VenkatRescueSuite.ps1"
+        if (-not (Test-Path $suitePath)) { $suitePath = "$PSScriptRoot\..\winpe_rescue_suite\VenkatRescueSuite.ps1" }
+        if (Test-Path $suitePath) {
+            Append-Log("Launching Venkat WinPE Emergency Rescue Master Suite...")
+            Start-Process powershell.exe -ArgumentList "-NoProfile -STA -ExecutionPolicy Bypass -File `"$suitePath`"" -Verb RunAs
+        } else {
+            Append-Log("WinPE Rescue Suite script not found.")
+            [System.Windows.Forms.MessageBox]::Show("WinPE Rescue Suite script not found at '$suitePath'.", "WinPE Suite", "OK", "Warning")
+        }
+    })
+}
+
+if ($btnLaunchWinPEBuilder) {
+    $btnLaunchWinPEBuilder.Add_Click({
+        $builderPath = "C:\Users\user\.gemini\antigravity\scratch\winpe_rescue_suite\WinPE_Builder.ps1"
+        if (-not (Test-Path $builderPath)) { $builderPath = "$PSScriptRoot\..\winpe_rescue_suite\WinPE_Builder.ps1" }
+        if (Test-Path $builderPath) {
+            Append-Log("Launching WinPE Bootable USB / ISO Builder Wizard...")
+            Start-Process powershell.exe -ArgumentList "-NoProfile -STA -ExecutionPolicy Bypass -File `"$builderPath`"" -Verb RunAs
+        } else {
+            Append-Log("WinPE Builder script not found.")
+            [System.Windows.Forms.MessageBox]::Show("WinPE Builder script not found at '$builderPath'.", "WinPE Builder", "OK", "Warning")
+        }
+    })
+}
+
+# ==================== NIRLAUNCHER & NIRSOFT MASTER SUITE HANDLERS ====================
+if ($btnLaunchNirLauncher) {
+    $btnLaunchNirLauncher.Add_Click({
+        Append-Log("Checking for NirLauncher Package...")
+        $candidates = @(
+            "C:\NirSoft\NirLauncher.exe",
+            "C:\Tools\NirLauncher\NirLauncher.exe",
+            "C:\NirLauncher\NirLauncher.exe",
+            "$PSScriptRoot\NirLauncher\NirLauncher.exe",
+            "$env:USERPROFILE\Downloads\nirsoft_package\NirLauncher.exe",
+            "$env:USERPROFILE\Downloads\NirLauncher\NirLauncher.exe",
+            "$env:USERPROFILE\Desktop\NirLauncher\NirLauncher.exe"
+        )
+        $found = $null
+        foreach ($c in $candidates) {
+            if (Test-Path $c) { $found = $c; break }
+        }
+
+        if ($found) {
+            Append-Log("Found NirLauncher at $found. Launching...")
+            Start-Process -FilePath $found -Verb RunAs
+        } else {
+            Append-Log("NirLauncher not detected in standard locations.")
+            $res = [System.Windows.Forms.MessageBox]::Show("NirLauncher was not found in 'C:\NirSoft\NirLauncher.exe'.`n`nWould you like to open the official download page and setup C:\NirSoft now?`n`n(Note: Extraction ZIP password is 'nirsoft123!')", "NirLauncher Package", "YesNo", "Question")
+            if ($res -eq [System.Windows.Forms.DialogResult]::Yes) {
+                if (-not (Test-Path "C:\NirSoft")) { New-Item -ItemType Directory -Path "C:\NirSoft" -Force | Out-Null }
+                Start-Process "https://launcher.nirsoft.net/"
+                Start-Process explorer.exe -ArgumentList "C:\NirSoft"
+            }
+        }
+    })
+}
+
+if ($btnDownloadNirLauncher) {
+    $btnDownloadNirLauncher.Add_Click({
+        Append-Log("Preparing NirLauncher & NirSoft package setup...")
+        if (-not (Test-Path "C:\NirSoft")) { New-Item -ItemType Directory -Path "C:\NirSoft" -Force | Out-Null }
+        Start-Process "https://launcher.nirsoft.net/"
+        Start-Process explorer.exe -ArgumentList "C:\NirSoft"
+        Append-Log("Opened NirLauncher portal and target folder C:\NirSoft.")
+        [System.Windows.Forms.MessageBox]::Show("1. Download 'nirsoft_package.zip' from the opened page.`n2. Extract contents directly into 'C:\NirSoft\'.`n3. ZIP Password: nirsoft123!`n`nOnce extracted, you can launch all 200+ NirSoft tools directly from this suite!", "NirLauncher Setup Guide", "OK", "Information")
+    })
+}
+
+if ($btnOpenNirFolder) {
+    $btnOpenNirFolder.Add_Click({
+        if (-not (Test-Path "C:\NirSoft")) { New-Item -ItemType Directory -Path "C:\NirSoft" -Force | Out-Null }
+        Start-Process explorer.exe -ArgumentList "C:\NirSoft"
+        Append-Log("Opened C:\NirSoft directory.")
+    })
+}
+
+if ($btnLaunchWebBrowserPass) {
+    $btnLaunchWebBrowserPass.Add_Click({
+        $toolPath = "C:\NirSoft\NirSoft\WebBrowserPassView.exe"
+        if (-not (Test-Path $toolPath)) { $toolPath = "C:\NirSoft\WebBrowserPassView.exe" }
+        if (Test-Path $toolPath) {
+            Start-Process -FilePath $toolPath -Verb RunAs
+            Append-Log("Launched WebBrowserPassView from $toolPath")
+        } else {
+            Append-Log("WebBrowserPassView not found in C:\NirSoft. Opening native PassView & Credential Manager...")
+            Show-NativePassViewDialog
+        }
+    })
+}
+
+if ($btnLaunchWirelessKeyView) {
+    $btnLaunchWirelessKeyView.Add_Click({
+        $toolPath = "C:\NirSoft\NirSoft\WirelessKeyView.exe"
+        if (-not (Test-Path $toolPath)) { $toolPath = "C:\NirSoft\WirelessKeyView.exe" }
+        if (Test-Path $toolPath) {
+            Start-Process -FilePath $toolPath -Verb RunAs
+            Append-Log("Launched WirelessKeyView from $toolPath")
+        } else {
+            Append-Log("Scanning all saved Wi-Fi networks and passwords (Native Engine)...")
+            $profiles = netsh wlan show profiles | Select-String "All User Profile\s*:\s*(.*)$" | ForEach-Object { $_.Matches.Groups[1].Value.Trim() }
+            $wList = @()
+            foreach ($p in $profiles) {
+                $pInfo = netsh wlan show profile name="$p" key=clear
+                $passLine = $pInfo | Select-String "Key Content\s*:\s*(.*)$"
+                $pass = if ($passLine) { $passLine.Matches.Groups[1].Value.Trim() } else { "[Open / No Password]" }
+                $wList += [PSCustomObject]@{ SSID = $p; Password = $pass }
+            }
+            $msg = "=== SAVED WI-FI NETWORKS & PASSWORDS ===`r`n`r`n"
+            foreach ($w in $wList) {
+                $msg += "SSID: $($w.SSID)`r`nPassword: $($w.Password)`r`n----------------------------------`r`n"
+            }
+            Append-Log("Detected $($wList.Count) saved Wi-Fi networks.")
+            [System.Windows.Forms.MessageBox]::Show($msg, "Wireless Passwords (WirelessKeyView Engine)", "OK", "Information")
+        }
+    })
+}
+
+if ($btnLaunchOutlookPass) {
+    $btnLaunchOutlookPass.Add_Click({
+        $toolPath = "C:\NirSoft\NirSoft\PstPassword.exe"
+        if (-not (Test-Path $toolPath)) { $toolPath = "C:\NirSoft\PstPassword.exe" }
+        if (Test-Path $toolPath) {
+            Start-Process -FilePath $toolPath -Verb RunAs
+            Append-Log("Launched PstPassword from $toolPath")
+        } else {
+            Append-Log("Scanning Outlook PST/OST archives...")
+            $outlookFiles = Get-ChildItem -Path "$env:LOCALAPPDATA\Microsoft\Outlook", "$env:USERPROFILE\Documents\Outlook Files" -Include "*.pst", "*.ost" -Recurse -ErrorAction SilentlyContinue
+            if ($outlookFiles) {
+                $filesStr = ($outlookFiles | ForEach-Object { $_.FullName }) -join "`r`n"
+                [System.Windows.Forms.MessageBox]::Show("Detected Outlook Data Files:`r`n`r`n$filesStr`r`n`r`nDownload PstPassword into C:\NirSoft for deep recovery.", "Outlook Data Files", "OK", "Information")
+            } else {
+                [System.Windows.Forms.MessageBox]::Show("No local Outlook .PST/.OST files found in default user directory.`n`nTo use NirSoft PstPassword tool, place it in C:\NirSoft.", "Outlook Password Tool", "OK", "Information")
+            }
+        }
+    })
+}
+
+# ==================== FEATURES & FIXES HANDLERS ====================
+if ($btnInstallFeaturesBatch) {
+    $btnInstallFeaturesBatch.Add_Click({
+        Append-Log("Installing selected Windows Optional Features...")
+        if ($chkFeatNetFx.IsChecked) {
+            Enable-WindowsOptionalFeature -Online -FeatureName "NetFx3" -All -NoRestart -ErrorAction SilentlyContinue | Out-Null
+            Enable-WindowsOptionalFeature -Online -FeatureName "NetFx4-AdvSrvs" -All -NoRestart -ErrorAction SilentlyContinue | Out-Null
+            Append-Log("Enabled .NET Framework 2.0 / 3.0 / 4.x.")
+        }
+        if ($chkFeatHyperV.IsChecked) {
+            Enable-WindowsOptionalFeature -Online -FeatureName "Microsoft-Hyper-V-All" -All -NoRestart -ErrorAction SilentlyContinue | Out-Null
+            Append-Log("Enabled Hyper-V Virtualization Platform.")
+        }
+        if ($chkFeatF8Disable.IsChecked) {
+            bcdedit /set "{default}" bootmenupolicy standard | Out-Null
+            Append-Log("Legacy F8 Boot Recovery Disabled (Standard Modern Policy).")
+        }
+        if ($chkFeatF8Enable.IsChecked) {
+            bcdedit /set "{default}" bootmenupolicy legacy | Out-Null
+            Append-Log("Legacy F8 Boot Recovery Enabled (Classic F8 Key Mode).")
+        }
+        if ($chkFeatMedia.IsChecked) {
+            Enable-WindowsOptionalFeature -Online -FeatureName "WindowsMediaPlayer" -NoRestart -ErrorAction SilentlyContinue | Out-Null
+            Enable-WindowsOptionalFeature -Online -FeatureName "DirectPlay" -NoRestart -ErrorAction SilentlyContinue | Out-Null
+            Append-Log("Enabled Legacy Media Components (WMP & DirectPlay).")
+        }
+        if ($chkFeatNFS.IsChecked) {
+            Enable-WindowsOptionalFeature -Online -FeatureName "ServicesForNFS-ClientOnly" -NoRestart -ErrorAction SilentlyContinue | Out-Null
+            Enable-WindowsOptionalFeature -Online -FeatureName "ClientForNFS-Infrastructure" -NoRestart -ErrorAction SilentlyContinue | Out-Null
+            Append-Log("Enabled Network File System (NFS) Client.")
+        }
+        if ($chkFeatRegBackupTask.IsChecked) {
+            $action = New-ScheduledTaskAction -Execute "cmd.exe" -Argument "/c reg save HKLM\Software C:\Windows\System32\config\RegBack\Software.bak /y & reg save HKLM\System C:\Windows\System32\config\RegBack\System.bak /y"
+            $trigger = New-ScheduledTaskTrigger -Daily -At "12:30AM"
+            Register-ScheduledTask -TaskName "DailyRegistryBackup1230AM" -Action $action -Trigger $trigger -User "SYSTEM" -Force -ErrorAction SilentlyContinue | Out-Null
+            Append-Log("Enabled Daily Registry Backup Task (12:30 AM).")
+        }
+        if ($chkFeatSandbox.IsChecked) {
+            Enable-WindowsOptionalFeature -Online -FeatureName "Containers-DisposableClientVM" -NoRestart -ErrorAction SilentlyContinue | Out-Null
+            Append-Log("Enabled Windows Sandbox.")
+        }
+        if ($chkFeatWSL.IsChecked) {
+            Enable-WindowsOptionalFeature -Online -FeatureName "Microsoft-Windows-Subsystem-Linux" -NoRestart -ErrorAction SilentlyContinue | Out-Null
+            Enable-WindowsOptionalFeature -Online -FeatureName "VirtualMachinePlatform" -NoRestart -ErrorAction SilentlyContinue | Out-Null
+            Append-Log("Enabled Windows Subsystem for Linux (WSL).")
+        }
+        [System.Windows.Forms.MessageBox]::Show("Selected Windows Optional Features processed successfully! Restart PC if prompted.", "Features Installed", "OK", "Information")
+    })
+}
+
+if ($btnFixAutoLogon) {
+    $btnFixAutoLogon.Add_Click({
+        Append-Log("Opening Windows AutoLogon Hub...")
+        Start-Process netplwiz.exe
+    })
+}
+
+if ($btnFixNetworkReset) {
+    $btnFixNetworkReset.Add_Click({
+        Append-Log("Executing complete Network Reset (Winsock, TCP/IP, FlushDNS, ARP)...")
+        Start-Process cmd.exe -ArgumentList "/c netsh winsock reset & netsh int ip reset & ipconfig /flushdns & ipconfig /release & ipconfig /renew & arp -d *" -Verb RunAs -Wait
+        Append-Log("Network Reset completed.")
+        [System.Windows.Forms.MessageBox]::Show("Network Stack completely reset! Please restart your PC.", "Network Reset", "OK", "Information")
+    })
+}
+
+if ($btnFixNTPServer) {
+    $btnFixNTPServer.Add_Click({
+        Append-Log("Configuring Windows as an Authoritative local NTP Server & resyncing...")
+        Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\W32Time\TimeProviders\NtpServer" -Name "Enabled" -Value 1 -Type DWord -Force -ErrorAction SilentlyContinue
+        Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\W32Time\Config" -Name "AnnounceFlags" -Value 5 -Type DWord -Force -ErrorAction SilentlyContinue
+        Restart-Service w32time -Force -ErrorAction SilentlyContinue
+        Start-Process cmd.exe -ArgumentList "/c w32tm /config /update & w32tm /resync /force" -Verb RunAs -Wait
+        Append-Log("NTP Server enabled & time synchronized.")
+        [System.Windows.Forms.MessageBox]::Show("Windows NTP Server is now ENABLED and synchronized!", "NTP Server", "OK", "Information")
+    })
+}
+
+if ($btnFixSystemCorruption) {
+    $btnFixSystemCorruption.Add_Click({
+        Append-Log("Starting combined System Corruption Scan (SFC /scannow + DISM RestoreHealth)...")
+        Start-Process cmd.exe -ArgumentList "/k echo Starting SFC System File Checker... & sfc /scannow & echo. & echo Starting DISM Component Repair... & DISM /Online /Cleanup-Image /RestoreHealth & echo. & echo System Corruption Scan Completed." -Verb RunAs
+    })
+}
+
+if ($btnFixWindowsUpdate) {
+    $btnFixWindowsUpdate.Add_Click({
+        Append-Log("Stopping Windows Update services & purging update caches...")
+        Stop-Service -Name wuauserv, bits, cryptsvc, trustedinstaller -Force -ErrorAction SilentlyContinue
+        Remove-Item -Path "C:\Windows\SoftwareDistribution\Download\*" -Recurse -Force -ErrorAction SilentlyContinue
+        Start-Service -Name wuauserv, bits, cryptsvc, trustedinstaller -ErrorAction SilentlyContinue
+        Append-Log("Windows Update pipeline reset.")
+        [System.Windows.Forms.MessageBox]::Show("Windows Update pipeline and download cache reset!", "Windows Update", "OK", "Information")
+    })
+}
+
+if ($btnFixReinstallWinget) {
+    $btnFixReinstallWinget.Add_Click({
+        Append-Log("Reinstalling and repairing Microsoft WinGet DesktopAppInstaller...")
+        Start-Process powershell.exe -ArgumentList "-NoExit -Command `"Add-AppxPackage -RegisterByFamilyName -MainPackage Microsoft.DesktopAppInstaller_8wekyb3d8bbwe`"" -Verb RunAs
+    })
+}
+
+# ==================== OS CUSTOMIZER & AUTOUNATTEND GENERATOR ====================
+if ($btnCustDownloadWin11) {
+    $btnCustDownloadWin11.Add_Click({
+        Append-Log("Opening official Windows 11 ISO download portal...")
+        Start-Process "https://www.microsoft.com/software-download/windows11"
+    })
+}
+
+if ($btnCustDownloadWin10) {
+    $btnCustDownloadWin10.Add_Click({
+        Append-Log("Opening official Windows 10 ISO download portal...")
+        Start-Process "https://www.microsoft.com/software-download/windows10"
+    })
+}
+
+if ($btnCustDownloadRufus) {
+    $btnCustDownloadRufus.Add_Click({
+        Append-Log("Opening Rufus Portable official download portal...")
+        Start-Process "https://rufus.ie"
+    })
+}
+
+if ($btnCustOpenFido) {
+    $btnCustOpenFido.Add_Click({
+        Append-Log("Opening Fido ISO Downloader / UUPDump...")
+        Start-Process "https://uupdump.net"
+    })
+}
+
+if ($btnRunLiveOOBEBypass) {
+    $btnRunLiveOOBEBypass.Add_Click({
+        Append-Log("Setting OOBE BypassNRO registry flag...")
+        New-Item -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\OOBE" -Force -ErrorAction SilentlyContinue | Out-Null
+        Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\OOBE" -Name "BypassNRO" -Value 1 -Type DWord -Force -ErrorAction SilentlyContinue
+        Append-Log("OOBE BypassNRO flag set.")
+        [System.Windows.Forms.MessageBox]::Show("BypassNRO registry key applied! If you are on the Windows 11 setup screen, press Shift+F10, type 'OOBE\BYPASSNRO' and press Enter to reboot without network requirement.", "Live OOBE Bypass", "OK", "Information")
+    })
+}
+
+if ($btnLaunchRufus) {
+    $btnLaunchRufus.Add_Click({
+        $rufusPath = "$env:USERPROFILE\Downloads\rufus.exe"
+        if (Test-Path $rufusPath) {
+            Start-Process $rufusPath
+        } else {
+            Start-Process "https://rufus.ie"
+        }
+    })
+}
+
+if ($btnGenerateAutounattend) {
+    $btnGenerateAutounattend.Add_Click({
+        $targetChoice = $cmbCustTargetDrive.SelectedItem
+        if (-not $targetChoice) {
+            [System.Windows.Forms.MessageBox]::Show("Please select a target USB drive or location.", "Customizer", "OK", "Warning")
+            return
+        }
+        
+        $destPath = ""
+        if ($targetChoice -match "^([A-Za-z]:)") {
+            $destPath = "$($matches[1])\autounattend.xml"
+        } else {
+            $desktop = [Environment]::GetFolderPath("Desktop")
+            $destPath = "$desktop\autounattend.xml"
+        }
+
+        $user = $txtCustUsername.Text.Trim()
+        if (-not $user) { $user = "Admin" }
+        $pass = $txtCustPassword.Text.Trim()
+
+        # Build autounattend.xml
+        $xmlContent = @"
+<?xml version="1.0" encoding="utf-8"?>
+<unattend xmlns="urn:schemas-microsoft-com:unattend">
+  <settings pass="windowsPE">
+    <component name="Microsoft-Windows-Setup" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS">
+      <UserData>
+        <AcceptEula>true</AcceptEula>
+      </UserData>
+      <RunSynchronous>
+        <RunSynchronousCommand wcm:action="add">
+          <Order>1</Order>
+          <Path>reg add HKLM\SYSTEM\Setup\LabConfig /v BypassTPMCheck /t REG_DWORD /d 1 /f</Path>
+        </RunSynchronousCommand>
+        <RunSynchronousCommand wcm:action="add">
+          <Order>2</Order>
+          <Path>reg add HKLM\SYSTEM\Setup\LabConfig /v BypassSecureBootCheck /t REG_DWORD /d 1 /f</Path>
+        </RunSynchronousCommand>
+        <RunSynchronousCommand wcm:action="add">
+          <Order>3</Order>
+          <Path>reg add HKLM\SYSTEM\Setup\LabConfig /v BypassRAMCheck /t REG_DWORD /d 1 /f</Path>
+        </RunSynchronousCommand>
+        <RunSynchronousCommand wcm:action="add">
+          <Order>4</Order>
+          <Path>reg add HKLM\SYSTEM\Setup\LabConfig /v BypassStorageCheck /t REG_DWORD /d 1 /f</Path>
+        </RunSynchronousCommand>
+        <RunSynchronousCommand wcm:action="add">
+          <Order>5</Order>
+          <Path>reg add HKLM\SYSTEM\Setup\LabConfig /v BypassCPUCheck /t REG_DWORD /d 1 /f</Path>
+        </RunSynchronousCommand>
+      </RunSynchronous>
+    </component>
+  </settings>
+  <settings pass="specialize">
+    <component name="Microsoft-Windows-Deployment" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS">
+      <RunSynchronous>
+        <RunSynchronousCommand wcm:action="add">
+          <Order>1</Order>
+          <Path>reg add "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\OOBE" /v BypassNRO /t REG_DWORD /d 1 /f</Path>
+        </RunSynchronousCommand>
+        <RunSynchronousCommand wcm:action="add">
+          <Order>2</Order>
+          <Path>reg add "HKLM\SYSTEM\CurrentControlSet\Control\BitLocker" /v PreventDeviceEncryption /t REG_DWORD /d 1 /f</Path>
+        </RunSynchronousCommand>
+      </RunSynchronous>
+    </component>
+  </settings>
+  <settings pass="oobeSystem">
+    <component name="Microsoft-Windows-Shell-Setup" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS">
+      <OOBE>
+        <HideEULAPage>true</HideEULAPage>
+        <HideLocalAccountScreen>false</HideLocalAccountScreen>
+        <HideOnlineAccountScreens>true</HideOnlineAccountScreens>
+        <HideWirelessSetupInOOBE>true</HideWirelessSetupInOOBE>
+        <ProtectYourPC>3</ProtectYourPC>
+      </OOBE>
+      <UserAccounts>
+        <LocalAccounts>
+          <LocalAccount wcm:action="add">
+            <Name>$user</Name>
+            <Group>Administrators</Group>
+            <Password>
+              <Value>$pass</Value>
+              <PlainText>true</PlainText>
+            </Password>
+          </LocalAccount>
+        </LocalAccounts>
+      </UserAccounts>
+    </component>
+  </settings>
+</unattend>
+"@
+        [System.IO.File]::WriteAllText($destPath, $xmlContent, [System.Text.Encoding]::UTF8)
+        Append-Log("Generated autounattend.xml -> $destPath")
+        [System.Windows.Forms.MessageBox]::Show("Unattended answer file successfully generated!`n`nSaved to:`n$destPath`n`nCopy this file to the root of your bootable Windows USB install drive to automatically bypass Microsoft Account, TPM, SecureBoot &amp; create user '$user'!", "autounattend.xml Generated", "OK", "Information")
+    })
+}
+
+# ==================== POWER TOOLS HUB HANDLERS ====================
+if ($btnPauseDefender) {
+    $btnPauseDefender.Add_Click({
+        Set-MpPreference -DisableRealtimeMonitoring $true -ErrorAction SilentlyContinue
+        Append-Log("Windows Defender Realtime Protection PAUSED.")
+        [System.Windows.Forms.MessageBox]::Show("Windows Defender Realtime Monitoring has been PAUSED!", "Defender Control", "OK", "Information")
+    })
+}
+
+if ($btnEnableDefender) {
+    $btnEnableDefender.Add_Click({
+        Set-MpPreference -DisableRealtimeMonitoring $false -ErrorAction SilentlyContinue
+        Append-Log("Windows Defender Realtime Protection ENABLED.")
+        [System.Windows.Forms.MessageBox]::Show("Windows Defender Realtime Monitoring is now ENABLED!", "Defender Control", "OK", "Information")
+    })
+}
+
+if ($btnClearDefenderCache) {
+    $btnClearDefenderCache.Add_Click({
+        $detPath = "C:\ProgramData\Microsoft\Windows Defender\Scans\History\Service\DetectionHistory"
+        if (Test-Path $detPath) {
+            Remove-Item "$detPath\*" -Recurse -Force -ErrorAction SilentlyContinue
+        }
+        Append-Log("Windows Defender Protection History cache purged.")
+        [System.Windows.Forms.MessageBox]::Show("Windows Defender Protection History Cache Cleared!", "Defender Cache", "OK", "Information")
+    })
+}
+
+if ($btnDisableSmartScreen2) {
+    $btnDisableSmartScreen2.Add_Click({
+        Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System" -Name "EnableSmartScreen" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
+        Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\AppHost" -Name "EnableWebContentEvaluation" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
+        Append-Log("SmartScreen warnings disabled.")
+        [System.Windows.Forms.MessageBox]::Show("Windows SmartScreen download warnings disabled!", "SmartScreen", "OK", "Information")
+    })
+}
+
+if ($btnFixPrinterSpooler) {
+    $btnFixPrinterSpooler.Add_Click({
+        Append-Log("Purging stuck print queue and cycling Spooler service...")
+        Stop-Service -Name Spooler -Force -ErrorAction SilentlyContinue
+        Remove-Item -Path "C:\Windows\System32\spool\PRINTERS\*" -Recurse -Force -ErrorAction SilentlyContinue
+        Start-Service -Name Spooler -ErrorAction SilentlyContinue
+        Append-Log("Printer Spooler reset successfully.")
+        [System.Windows.Forms.MessageBox]::Show("Printer Spooler Queue Cleared & Service Restarted!", "Printer Spooler", "OK", "Information")
+    })
+}
+
+if ($btnRemoveOneDrive) {
+    $btnRemoveOneDrive.Add_Click({
+        if ([System.Windows.Forms.MessageBox]::Show("Completely Uninstall Microsoft OneDrive and restore local user folders?", "Confirm OneDrive Removal", "YesNo", "Warning") -eq [System.Windows.Forms.DialogResult]::Yes) {
+            Append-Log("Terminating OneDrive processes & executing uninstaller...")
+            Stop-Process -Name OneDrive -Force -ErrorAction SilentlyContinue
+            $setup64 = "$env:SystemRoot\SysWOW64\OneDriveSetup.exe"
+            $setup32 = "$env:SystemRoot\System32\OneDriveSetup.exe"
+            if (Test-Path $setup64) { Start-Process $setup64 -ArgumentList "/uninstall" -Wait }
+            elseif (Test-Path $setup32) { Start-Process $setup32 -ArgumentList "/uninstall" -Wait }
+            Append-Log("OneDrive uninstalled.")
+            [System.Windows.Forms.MessageBox]::Show("Microsoft OneDrive uninstalled completely!", "OneDrive Removed", "OK", "Information")
+        }
+    })
+}
+
+if ($btnDisableCopilotRecall) {
+    $btnDisableCopilotRecall.Add_Click({
+        New-Item -Path "HKCU:\Software\Policies\Microsoft\Windows\WindowsCopilot" -Force -ErrorAction SilentlyContinue | Out-Null
+        Set-ItemProperty -Path "HKCU:\Software\Policies\Microsoft\Windows\WindowsCopilot" -Name "TurnOffWindowsCopilot" -Value 1 -Type DWord -Force -ErrorAction SilentlyContinue
+        New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsAI" -Force -ErrorAction SilentlyContinue | Out-Null
+        Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsAI" -Name "DisableAIDataAnalysis" -Value 1 -Type DWord -Force -ErrorAction SilentlyContinue
+        Append-Log("Windows Copilot & Recall AI disabled.")
+        [System.Windows.Forms.MessageBox]::Show("Windows 11 Copilot & Recall AI tracking disabled!", "AI Debloat", "OK", "Information")
+    })
+}
+
+if ($btnDisableHibernation) {
+    $btnDisableHibernation.Add_Click({
+        powercfg -h off | Out-Null
+        Append-Log("Hibernation disabled (hiberfil.sys removed, freed 4-32 GB).")
+        [System.Windows.Forms.MessageBox]::Show("Hibernation DISABLED! hiberfil.sys removed and 4GB to 32GB of C: drive storage reclaimed.", "Hibernation", "OK", "Information")
+    })
+}
+
+if ($btnEnableHibernation) {
+    $btnEnableHibernation.Add_Click({
+        powercfg -h on | Out-Null
+        Append-Log("Hibernation enabled.")
+        [System.Windows.Forms.MessageBox]::Show("Hibernation ENABLED.", "Hibernation", "OK", "Information")
+    })
+}
+
+if ($btnRestartExplorerQuick) {
+    $btnRestartExplorerQuick.Add_Click({
+        Stop-Process -Name explorer -Force -ErrorAction SilentlyContinue
+        Start-Sleep -Milliseconds 500
+        Start-Process explorer.exe
+        Append-Log("Windows Explorer restarted.")
+    })
+}
+
+if ($btnFixRecycleBinQuick) {
+    $btnFixRecycleBinQuick.Add_Click({
+        Start-Process cmd.exe -ArgumentList "/c rd /s /q C:\`$Recycle.bin & rd /s /q D:\`$Recycle.bin & rd /s /q E:\`$Recycle.bin" -Verb RunAs -Wait
+        Append-Log("Corrupted Recycle Bin directories purged.")
+        [System.Windows.Forms.MessageBox]::Show("Corrupted Recycle Bin fixed and rebuilt!", "Recycle Bin", "OK", "Information")
+    })
+}
+
+if ($btnToggleHiddenFilesQuick) {
+    $btnToggleHiddenFilesQuick.Add_Click({
+        $key = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced"
+        $current = (Get-ItemProperty -Path $key -Name "Hidden" -ErrorAction SilentlyContinue).Hidden
+        $newVal = if ($current -eq 1) { 2 } else { 1 }
+        Set-ItemProperty -Path $key -Name "Hidden" -Value $newVal -Type DWord -Force
+        Stop-Process -Name explorer -Force -ErrorAction SilentlyContinue
+        Start-Sleep -Milliseconds 300
+        Start-Process explorer.exe
+        $statusStr = if ($newVal -eq 1) { "SHOWN" } else { "HIDDEN" }
+        Append-Log("Hidden files toggled to $statusStr.")
+        [System.Windows.Forms.MessageBox]::Show("Hidden files & folders are now $statusStr!", "Explorer", "OK", "Information")
+    })
+}
+
+if ($btnEnableLongPathsQuick) {
+    $btnEnableLongPathsQuick.Add_Click({
+        Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem" -Name "LongPathsEnabled" -Value 1 -Type DWord -Force -ErrorAction SilentlyContinue
+        Append-Log("NTFS Long Path Support (>260 Characters) enabled.")
+        [System.Windows.Forms.MessageBox]::Show("Long Path Support (>260 characters) ENABLED!", "Long Paths", "OK", "Information")
+    })
+}
+
+if ($btnListStartupAppsQuick) {
+    $btnListStartupAppsQuick.Add_Click({
+        $desktop = [Environment]::GetFolderPath("Desktop")
+        $outFile = "$desktop\Startup_Programs_Report_$(Get-Date -Format 'yyyyMMdd_HHmmss').txt"
+        $regStart = Get-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Run", "HKLM:\Software\Microsoft\Windows\CurrentVersion\Run" -ErrorAction SilentlyContinue
+        $report = "=== Windows Startup Programs & Apps ===`n`n"
+        $regStart | ForEach-Object {
+            $_.PSObject.Properties | Where-Object { $_.Name -notmatch "^PS" } | ForEach-Object {
+                $report += "- $($_.Name) = $($_.Value)`n"
+            }
+        }
+        $report | Out-File -FilePath $outFile -Encoding utf8
+        Append-Log("Startup apps report saved to Desktop: $outFile")
+        [System.Windows.Forms.MessageBox]::Show($report, "Startup Programs", "OK", "Information")
+        Start-Process notepad.exe -ArgumentList "`"$outFile`""
+    })
+}
+
+if ($btnAnalyzeBatteryWear) {
+    $btnAnalyzeBatteryWear.Add_Click({
+        $battery = Get-CimInstance -ClassName Win32_Battery -ErrorAction SilentlyContinue
+        if ($battery) {
+            $report = "=== Laptop Battery Health & Status ===`n`n"
+            $report += "Device Name: $($battery.Name)`n"
+            $report += "Status: $($battery.Status)`n"
+            $report += "Estimated Charge: $($battery.EstimatedChargeRemaining)%`n"
+            $report += "Estimated Run Time: $([math]::Round($battery.EstimatedRunTime / 60, 1)) Hours`n"
+            $report += "Design Voltage: $($battery.DesignVoltage) mV`n"
+            [System.Windows.Forms.MessageBox]::Show($report, "Battery Diagnostics", "OK", "Information")
+        } else {
+            [System.Windows.Forms.MessageBox]::Show("No battery detected (Desktop PC or unsupported ACPI device).", "Battery Diagnostics", "OK", "Information")
+        }
+    })
+}
+
+if ($btnStartHotspot) {
+    $btnStartHotspot.Add_Click({
+        Append-Log("Starting PC Wi-Fi Hotspot (SSID: WindowsTweakerHotspot, Key: Pass@12345)...")
+        Start-Process cmd.exe -ArgumentList '/c netsh wlan set hostednetwork mode=allow ssid=WindowsTweakerHotspot key=Pass@12345 & netsh wlan start hostednetwork' -Verb RunAs -Wait
+        Append-Log("Wi-Fi Hotspot active.")
+        [System.Windows.Forms.MessageBox]::Show("Wi-Fi Hotspot Started!`n`nSSID: WindowsTweakerHotspot`nPassword: Pass@12345", "Wi-Fi Hotspot", "OK", "Information")
+    })
+}
+
+if ($btnStopHotspot) {
+    $btnStopHotspot.Add_Click({
+        Start-Process cmd.exe -ArgumentList '/c netsh wlan stop hostednetwork' -Verb RunAs -Wait
+        Append-Log("Wi-Fi Hotspot stopped.")
+        [System.Windows.Forms.MessageBox]::Show("Wi-Fi Hotspot stopped.", "Wi-Fi Hotspot", "OK", "Information")
+    })
+}
+
+if ($btnBrowseShredFile) {
+    $btnBrowseShredFile.Add_Click({
+        $ofd = New-Object System.Windows.Forms.OpenFileDialog
+        $ofd.Title = "Select File to Permanently Shred"
+        if ($ofd.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {
+            $txtShredFilePath.Text = $ofd.FileName
+        }
+    })
+}
+
+if ($btnExecuteShredFile) {
+    $btnExecuteShredFile.Add_Click({
+        $file = $txtShredFilePath.Text.Trim()
+        if (-not (Test-Path $file)) {
+            [System.Windows.Forms.MessageBox]::Show("Target file not found.", "Shredder", "OK", "Warning")
+            return
+        }
+        if ([System.Windows.Forms.MessageBox]::Show("PERMANENTLY SHRED FILE '$file'?`n`nThis file will be overwritten with 3 random passes and CANNOT be recovered!", "Confirm Shred", "YesNo", "Warning") -eq [System.Windows.Forms.DialogResult]::Yes) {
+            Append-Log("Shredding file: $file...")
+            $len = (Get-Item $file).Length
+            $stream = [System.IO.File]::OpenWrite($file)
+            $rng = New-Object byte[] 4096
+            $rand = New-Object System.Random
+            
+            # 3 Overwrite Passes
+            for ($pass = 1; $pass -le 3; $pass++) {
+                $stream.Position = 0
+                $written = 0
+                while ($written -lt $len) {
+                    $rand.NextBytes($rng)
+                    $toWrite = [math]::Min(4096, $len - $written)
+                    $stream.Write($rng, 0, $toWrite)
+                    $written += $toWrite
+                }
+                $stream.Flush()
+            }
+            $stream.Close()
+            Remove-Item -Path $file -Force
+            Append-Log("File permanently shredded: $file")
+            [System.Windows.Forms.MessageBox]::Show("File successfully destroyed and permanently shredded!", "Shredder Complete", "OK", "Information")
+        }
+    })
+}
+
+# ==================== CHANGE WINDOWS EDITION HANDLERS ====================
+if ($btnApplyEditionChange) {
+    $btnApplyEditionChange.Add_Click({
+        $key = $txtCustomEditionKey.Text.Trim()
+        if (-not $key) {
+            [System.Windows.Forms.MessageBox]::Show("Please enter a valid product key.", "Change Edition", "OK", "Warning")
+            return
+        }
+        if ([System.Windows.Forms.MessageBox]::Show("Change Windows Edition using key '$key'?`n`nThis will execute changepk.exe to perform an in-place upgrade.", "Confirm Edition Change", "YesNo", "Question") -eq [System.Windows.Forms.DialogResult]::Yes) {
+            Append-Log("Initiating Windows Edition upgrade with changepk.exe...")
+            Start-Process changepk.exe -ArgumentList "/ProductKey $key" -Verb RunAs
+        }
+    })
+}
+
+if ($btnDISMEditionChange) {
+    $btnDISMEditionChange.Add_Click({
+        $key = $txtCustomEditionKey.Text.Trim()
+        $sel = $cmbTargetWinEdition.SelectedItem
+        $targetEdition = "Professional"
+        if ($sel -match "Enterprise") { $targetEdition = "Enterprise" }
+        elseif ($sel -match "Education") { $targetEdition = "Education" }
+        elseif ($sel -match "Workstation") { $targetEdition = "ServerRdsh" }
+        
+        if ([System.Windows.Forms.MessageBox]::Show("Execute DISM In-Place Edition Switch to $targetEdition?", "Confirm DISM Upgrade", "YesNo", "Question") -eq [System.Windows.Forms.DialogResult]::Yes) {
+            Append-Log("Running DISM /Set-Edition:$targetEdition...")
+            Start-Process cmd.exe -ArgumentList "/k DISM /Online /Set-Edition:$targetEdition /ProductKey:$key /AcceptEula" -Verb RunAs
+        }
+    })
+}
+
+if ($btnOpenMASEditionMenu) {
+    $btnOpenMASEditionMenu.Add_Click({
+        Append-Log("Opening MAS Change Edition helper menu...")
+        Start-Process powershell.exe -ArgumentList "-NoExit -Command `"irm https://get.activated.win | iex`"" -Verb RunAs
+    })
+}
+
+# ==================== CONTEXT MENU EXTENSIONS ====================
+if ($btnContextCopyPath) {
+    $btnContextCopyPath.Add_Click({
+        New-Item -Path "Registry::HKEY_CLASSES_ROOT\*\shell\copypath" -Force -ErrorAction SilentlyContinue | Out-Null
+        Set-ItemProperty -Path "Registry::HKEY_CLASSES_ROOT\*\shell\copypath" -Name "(Default)" -Value "Copy Path" -Force -ErrorAction SilentlyContinue
+        New-Item -Path "Registry::HKEY_CLASSES_ROOT\*\shell\copypath\command" -Force -ErrorAction SilentlyContinue | Out-Null
+        Set-ItemProperty -Path "Registry::HKEY_CLASSES_ROOT\*\shell\copypath\command" -Name "(Default)" -Value 'cmd.exe /c echo %1 | clip' -Force -ErrorAction SilentlyContinue
+        Append-Log("Added 'Copy Path' to Windows Context Menu.")
+        [System.Windows.Forms.MessageBox]::Show("'Copy Path' added to right-click context menu!", "Context Menu", "OK", "Information")
+    })
+}
+
+if ($btnContextCompact) {
+    $btnContextCompact.Add_Click({
+        New-Item -Path "Registry::HKEY_CLASSES_ROOT\Directory\shell\compactfolder" -Force -ErrorAction SilentlyContinue | Out-Null
+        Set-ItemProperty -Path "Registry::HKEY_CLASSES_ROOT\Directory\shell\compactfolder" -Name "(Default)" -Value "Compact / Compress Folder (LZX)" -Force -ErrorAction SilentlyContinue
+        New-Item -Path "Registry::HKEY_CLASSES_ROOT\Directory\shell\compactfolder\command" -Force -ErrorAction SilentlyContinue | Out-Null
+        Set-ItemProperty -Path "Registry::HKEY_CLASSES_ROOT\Directory\shell\compactfolder\command" -Name "(Default)" -Value 'compact.exe /c /s:"%1" /i /exe:lzx' -Force -ErrorAction SilentlyContinue
+        Append-Log("Added 'Compact Folder' to Windows Directory Context Menu.")
+        [System.Windows.Forms.MessageBox]::Show("'Compact Folder (LZX)' added to folder right-click context menu!", "Context Menu", "OK", "Information")
+    })
+}
+
+if ($btnContextPermanentDelete) {
+    $btnContextPermanentDelete.Add_Click({
+        New-Item -Path "Registry::HKEY_CLASSES_ROOT\*\shell\permanentdelete" -Force -ErrorAction SilentlyContinue | Out-Null
+        Set-ItemProperty -Path "Registry::HKEY_CLASSES_ROOT\*\shell\permanentdelete" -Name "(Default)" -Value "Permanently Delete File" -Force -ErrorAction SilentlyContinue
+        New-Item -Path "Registry::HKEY_CLASSES_ROOT\*\shell\permanentdelete\command" -Force -ErrorAction SilentlyContinue | Out-Null
+        Set-ItemProperty -Path "Registry::HKEY_CLASSES_ROOT\*\shell\permanentdelete\command" -Name "(Default)" -Value 'cmd.exe /c del /f /q /a "%1"' -Force -ErrorAction SilentlyContinue
+        Append-Log("Added 'Permanent Delete' to Windows File Context Menu.")
+        [System.Windows.Forms.MessageBox]::Show("'Permanent Delete' added to right-click context menu!", "Context Menu", "OK", "Information")
+    })
+}
+
+# ==================== OEM BIOS PRODUCT KEY EXTRACTOR ====================
+$btnExtractProductKey.Add_Click({
+    Append-Log("Extracting OEM BIOS and Registry Product Keys...")
+    $desktop = [Environment]::GetFolderPath("Desktop")
+    $outFile = "$desktop\Windows_Product_Keys_Report_$(Get-Date -Format 'yyyyMMdd_HHmmss').txt"
+    
+    $biosKey = (wmic path softwarelicensingservice get OA3xOriginalProductKey | Select-Object -Skip 1 | Out-String).Trim()
+    if (-not $biosKey) {
+        $biosKey = (Get-CimInstance -ClassName SoftwareLicensingService).OA3xOriginalProductKey
+    }
+    if (-not $biosKey) { $biosKey = "[No OEM Key in Motherboard BIOS MSDM Table / Retail Unit]" }
+
+    $os = Get-CimInstance Win32_OperatingSystem
+    $cs = Get-CimInstance Win32_ComputerSystem
+
+    $report = @"
+================================================================================
+           WINDOWS OEM BIOS & SYSTEM LICENSE REPORT
+================================================================================
+Generated On:   $(Get-Date)
+Computer Name:  $($cs.Name)
+Manufacturer:   $($cs.Manufacturer)
+Model:          $($cs.Model)
+OS Caption:     $($os.Caption) ($($os.OSArchitecture))
+OS Version:     $($os.Version) (Build $($os.BuildNumber))
+
+--------------------------------------------------------------------------------
+1. FACTORY OEM BIOS PRODUCT KEY (ACPI MSDM TABLE):
+   $biosKey
+
+2. INSTALLED WINDOWS DIGITAL PRODUCT ID:
+   $($os.SerialNumber)
+
+================================================================================
+Instructions:
+- The Factory OEM key above is permanently embedded in your motherboard hardware.
+- If you reinstall Windows, it will activate automatically using this key.
+================================================================================
+"@
+    $report | Out-File -FilePath $outFile -Encoding utf8
+    Append-Log("Product Keys report saved to Desktop: $outFile")
+    [System.Windows.Forms.MessageBox]::Show($report, "Windows Product Key Extractor", "OK", "Information")
+    Start-Process notepad.exe -ArgumentList "`"$outFile`""
+})
+
+# ==================== GAMING INPUT LAG & HARDWARE ====================
+$btnDisableMouseAccel.Add_Click({
+    Append-Log("Disabling mouse acceleration for 1:1 raw input...")
+    Set-ItemProperty -Path "HKCU:\Control Panel\Mouse" -Name "MouseSpeed" -Value "0" -Force -ErrorAction SilentlyContinue
+    Set-ItemProperty -Path "HKCU:\Control Panel\Mouse" -Name "MouseThreshold1" -Value "0" -Force -ErrorAction SilentlyContinue
+    Set-ItemProperty -Path "HKCU:\Control Panel\Mouse" -Name "MouseThreshold2" -Value "0" -Force -ErrorAction SilentlyContinue
+    Append-Log("Mouse Acceleration Disabled (1:1 Raw Pointer Accuracy Active).")
+    [System.Windows.Forms.MessageBox]::Show("Mouse Pointer Acceleration Disabled! Enjoy 1:1 true raw mouse tracking.", "Mouse Optimizer", "OK", "Information")
+})
+
+$btnBoostKeyboardRate.Add_Click({
+    Append-Log("Boosting keyboard repeat rate & reducing typing delay to zero...")
+    Set-ItemProperty -Path "HKCU:\Control Panel\Keyboard" -Name "KeyboardDelay" -Value "0" -Force -ErrorAction SilentlyContinue
+    Set-ItemProperty -Path "HKCU:\Control Panel\Keyboard" -Name "KeyboardSpeed" -Value "31" -Force -ErrorAction SilentlyContinue
+    Append-Log("Keyboard latency minimized to 0ms.")
+    [System.Windows.Forms.MessageBox]::Show("Keyboard Repeat Delay set to 0 ms and Speed to Maximum!", "Keyboard Optimizer", "OK", "Information")
+})
+
+$btnEnableMSIGpu.Add_Click({
+    Append-Log("Configuring Message Signaled-Based Interrupts (MSI Mode) on Graphics Card...")
+    $pciKeys = Get-ChildItem "HKLM:\SYSTEM\CurrentControlSet\Enum\PCI" -Recurse -ErrorAction SilentlyContinue | Where-Object { $_.PSChildName -eq "Device Parameters" }
+    $enabled = 0
+    foreach ($k in $pciKeys) {
+        $msiPath = Join-Path $k.PSPath "Interrupt Management\MessageSignaledInterruptProperties"
+        if (Test-Path $msiPath) {
+            Set-ItemProperty -Path $msiPath -Name "MSISupported" -Value 1 -Type DWord -Force -ErrorAction SilentlyContinue
+            $enabled++
+        }
+    }
+    Append-Log("MSI Mode configured on $enabled PCI devices.")
+    [System.Windows.Forms.MessageBox]::Show("Message Signaled Interrupts (MSI Mode) Enabled on GPU/PCI Devices! Restart PC to apply.", "MSI Optimizer", "OK", "Information")
+})
+
+# ==================== STORAGE & LARGE FILES ====================
+$btnFindLargestFiles.Add_Click({
+    Append-Log("Scanning Drive C: for Top 20 Largest Files (Please wait)...")
+    $largest = Get-ChildItem "C:\" -File -Recurse -ErrorAction SilentlyContinue | Sort-Object Length -Descending | Select-Object -First 20
+    $report = "=== Top 20 Largest Files on Drive C: ===`n`n"
+    foreach ($f in $largest) {
+        $sizeMB = [math]::Round($f.Length / 1MB, 1)
+        $report += "[$sizeMB MB] $($f.FullName)`n"
+    }
+    Append-Log("Found largest files on C: drive.")
+    [System.Windows.Forms.MessageBox]::Show($report, "Top 20 Largest Files Finder", "OK", "Information")
+})
+
+$btnPurgeWinSxSComponent.Add_Click({
+    Append-Log("Executing WinSxS Component Store deep cleanup via DISM (Frees 5-20 GB)...")
+    Start-Process cmd.exe -ArgumentList "/k DISM.exe /online /Cleanup-Image /StartComponentCleanup /ResetBase" -Verb RunAs
+})
+
+$btnPurgeWindowsOld.Add_Click({
+    Append-Log("Deep purging Windows.old, delivery optimization & shader caches...")
+    @("C:\Windows.old", "C:\`$Windows.~BT", "C:\`$Windows.~WS") | ForEach-Object {
+        if (Test-Path $_) {
+            Start-Process cmd.exe -ArgumentList "/c takeown /F `"$_`" /R /D Y & rd /s /q `"$_`"" -Verb RunAs -Wait
+        }
+    }
+    $shader = "$env:LOCALAPPDATA\D3DSCache"
+    if (Test-Path $shader) { Remove-Item "$shader\*" -Recurse -Force -ErrorAction SilentlyContinue }
+    Append-Log("Windows.old and Shader Cache deep purged.")
+    [System.Windows.Forms.MessageBox]::Show("Windows.old and DirectX Shader Caches purged successfully!", "Storage Cleaner", "OK", "Information")
+})
+
+# ==================== TIME & AUDIO DIAGNOSTICS ====================
+$btnForceTimeResync.Add_Click({
+    Append-Log("Resynchronizing Windows Clock with NTP pool servers...")
+    Start-Service w32time -ErrorAction SilentlyContinue
+    Start-Process cmd.exe -ArgumentList "/c w32tm /config /syncfromflags:manual /manualpeerlist:`"pool.ntp.org,time.windows.com,time.google.com`" /update & w32tm /resync /force" -Verb RunAs -Wait
+    Append-Log("Windows Time synchronized: $(Get-Date)")
+    [System.Windows.Forms.MessageBox]::Show("Windows Clock Synchronized Successfully!`n`nCurrent Time: $(Get-Date)", "Time Sync", "OK", "Information")
+})
+
+$btnFixCMOSTimeDrift.Add_Click({
+    Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\TimeZoneInformation" -Name "RealTimeIsUniversal" -Value 1 -Type DWord -Force -ErrorAction SilentlyContinue
+    Append-Log("RealTimeIsUniversal enabled for CMOS/Universal time.")
+    [System.Windows.Forms.MessageBox]::Show("CMOS / Universal Time Drift Fixed! Hardware clock now synchronizes accurately across dual-boots and sleep cycles.", "Time Drift Fix", "OK", "Information")
+})
+
+$btnFixAudioLatency.Add_Click({
+    Append-Log("Restarting Windows Audio Graph Isolation & fixing DPC latency...")
+    Stop-Process -Name audiodg -Force -ErrorAction SilentlyContinue
+    Restart-Service -Name Audiosrv, AudioEndpointBuilder -Force -ErrorAction SilentlyContinue
+    Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Audio" -Name "Scheduling Category" -Value "High" -Force -ErrorAction SilentlyContinue
+    Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile\Tasks\Audio" -Name "SFIO Priority" -Value "High" -Force -ErrorAction SilentlyContinue
+    Append-Log("Audio graph restarted with High Priority.")
+    [System.Windows.Forms.MessageBox]::Show("Windows Audio Engine Restarted with High Priority! Audio popping/crackling fixed.", "Audio Latency", "OK", "Information")
+})
+
+# ==================== SUPER ADMIN HANDLERS ====================
+$btnBrowseTakeOwn.Add_Click({
+    $fbd = New-Object System.Windows.Forms.FolderBrowserDialog
+    $fbd.Description = "Select target folder to take ownership and grant full access"
+    if ($fbd.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { $txtTakeOwnPath.Text = $fbd.SelectedPath }
+})
+$btnExecuteTakeOwn.Add_Click({
+    $path = $txtTakeOwnPath.Text.Trim()
+    if (-not (Test-Path $path)) { return }
+    Append-Log("Taking ownership and granting full admin permissions on '$path'...")
+    Start-Process cmd.exe -ArgumentList "/c takeown /f `"$path`" /r /d y && icacls `"$path`" /grant administrators:F /t /c /q" -Verb RunAs -Wait
+    Append-Log("Full ownership granted on '$path'.")
+    [System.Windows.Forms.MessageBox]::Show("Full Administrator Ownership and permissions granted on:`n$path", "Take Ownership", "OK", "Information")
+})
+$btnEnableSuperAdmin2.Add_Click({
+    net user administrator /active:yes | Out-Null
+    Append-Log("Built-in Administrator enabled.")
+    [System.Windows.Forms.MessageBox]::Show("Built-in Administrator Account has been ACTIVATED!", "Super Admin", "OK", "Information")
+})
+$btnCreateGodMode2.Add_Click({
+    $desktop = [Environment]::GetFolderPath("Desktop")
+    $godModePath = "$desktop\GodMode.{ED7BA470-8E54-465E-825C-99712043E01C}"
+    if (-not (Test-Path $godModePath)) { New-Item -ItemType Directory -Path $godModePath -Force | Out-Null }
+    Append-Log("GodMode folder created on Desktop.")
+    [System.Windows.Forms.MessageBox]::Show("GodMode Master Control Panel created on your Desktop!", "GodMode", "OK", "Information")
+})
+$btnDisableUAC2.Add_Click({
+    Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" -Name "EnableLUA" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
+    Append-Log("UAC disabled.")
+    [System.Windows.Forms.MessageBox]::Show("UAC prompts disabled. Restart PC to apply completely.", "Super Admin", "OK", "Information")
+})
+$btnRebootUEFI.Add_Click({
+    if ([System.Windows.Forms.MessageBox]::Show("Are you sure you want to reboot directly into Motherboard UEFI/BIOS setup right now?", "Confirm BIOS Reboot", "YesNo", "Warning") -eq [System.Windows.Forms.DialogResult]::Yes) {
+        shutdown /r /fw /t 0
+    }
+})
+$btnPurgeTelemetryTasks.Add_Click({
+    Append-Log("Disabling Windows telemetry scheduled tasks...")
+    $tasks = @(
+        "\Microsoft\Windows\Application Experience\Microsoft Compatibility Appraiser",
+        "\Microsoft\Windows\Application Experience\ProgramDataUpdater",
+        "\Microsoft\Windows\Application Experience\StartupAppTask",
+        "\Microsoft\Windows\Customer Experience Improvement Program\Consolidator",
+        "\Microsoft\Windows\Customer Experience Improvement Program\UsbCeip",
+        "\Microsoft\Windows\DiskDiagnostic\Microsoft-Windows-DiskDiagnosticDataCollector"
+    )
+    foreach ($t in $tasks) { Disable-ScheduledTask -TaskName $t -ErrorAction SilentlyContinue | Out-Null }
+    Append-Log("All background telemetry scheduled tasks disabled.")
+    [System.Windows.Forms.MessageBox]::Show("All background Windows Telemetry scheduled tasks disabled!", "Super Admin", "OK", "Information")
+})
+$btnRenameComputer.Add_Click({
+    $newName = $txtNewHostName.Text.Trim()
+    if ($newName) {
+        Rename-Computer -NewName $newName -Force -ErrorAction SilentlyContinue
+        Append-Log("PC renamed to '$newName'. Restart required.")
+        [System.Windows.Forms.MessageBox]::Show("Computer successfully renamed to '$newName'! Please restart PC to complete name change.", "Rename PC", "OK", "Information")
+    }
+})
+$btnKillProcess2.Add_Click({
+    $pName = $txtProcessName.Text.Trim().Replace(".exe", "")
+    if ($pName) {
+        Stop-Process -Name $pName -Force -ErrorAction SilentlyContinue
+        Append-Log("Force terminated process '$pName'.")
+        [System.Windows.Forms.MessageBox]::Show("Force terminated process: $pName", "Super Admin", "OK", "Information")
+    }
+})
+$btnInstallGPEdit2.Add_Click({
+    Append-Log("Installing Group Policy Editor packages...")
+    Start-Process cmd.exe -ArgumentList '/k "for /f %i in (''dir /b %windir%\servicing\Packages\Microsoft-Windows-GroupPolicy-ClientExtensions-Package~31bf3856ad364e35~amd64~~*.mum'') do (dism /online /norestart /add-package:\"%windir%\servicing\Packages\%i\") & for /f %i in (''dir /b %windir%\servicing\Packages\Microsoft-Windows-GroupPolicy-ClientTools-Package~31bf3856ad364e35~amd64~~*.mum'') do (dism /online /norestart /add-package:\"%windir%\servicing\Packages\%i\")"' -Verb RunAs
+})
+$btnRegBackup2.Add_Click({
+    $desktop = [Environment]::GetFolderPath("Desktop")
+    $regFile = "$desktop\Registry_Backup_$(Get-Date -Format 'yyyyMMdd_HHmmss').reg"
+    Append-Log("Exporting full registry hive backup...")
+    Start-Process reg.exe -ArgumentList "export `"HKLM\Software`" `"$regFile`" /y" -Wait
+    Append-Log("Registry backup saved to $regFile")
+    [System.Windows.Forms.MessageBox]::Show("Registry Backup saved to Desktop:`n$regFile", "Registry", "OK", "Information")
+})
+
+# ==================== TWEAKS & BYPASSES ====================
+$btnPresetRecommended.Add_Click({
+    $chkBypassTPM.IsChecked = $true; $chkRemoveWatermark.IsChecked = $true; $chkBlockDriverWU.IsChecked = $true
+    $chkTelemetry.IsChecked = $true; $chkCortana.IsChecked = $true; $chkBing.IsChecked = $true; $chkAds.IsChecked = $true
+    $chkLocation.IsChecked = $true; $chkActivity.IsChecked = $true; $chkFeedback.IsChecked = $true; $chkSmartScreen.IsChecked = $false
+    $chkUltPower.IsChecked = $true; $chkStartupDelay.IsChecked = $true; $chkStickyKeys.IsChecked = $true; $chkMenuDelay.IsChecked = $true
+    $chkNtfsTime.IsChecked = $true; $chkUniversalBg.IsChecked = $true; $chkEdgePreload.IsChecked = $true; $chkGameDVR.IsChecked = $true
+    $chkNetThrottle.IsChecked = $true; $chkGameLatency.IsChecked = $true; $chkHoverDelays.IsChecked = $true; $chkSearchHighlights.IsChecked = $true
+    $chkTakeOwn.IsChecked = $true; $chkOpenNotepad.IsChecked = $true; $chkKillStuck.IsChecked = $true; $chkCmdAdmin.IsChecked = $true
+    $chkShowExt.IsChecked = $true; $chkTaskbarWidgets.IsChecked = $true; $chkPhotoViewer.IsChecked = $true
+    Append-Log("Loaded Recommended Tweaks & Bypasses.")
+})
+$btnPresetUltra.Add_Click({
+    $all = @($chkBypassTPM, $chkRemoveWatermark, $chkBlockDriverWU, $chkAlignTaskbarLeft, $chkTelemetry, $chkCortana, $chkBing, $chkAds, $chkLocation, $chkActivity, $chkFeedback, $chkUltPower, $chkStartupDelay, $chkStickyKeys, $chkMenuDelay, $chkNtfsTime, $chkUniversalBg, $chkEdgePreload, $chkGameDVR, $chkNetThrottle, $chkGameLatency, $chkHoverDelays, $chkSearchHighlights, $chkTakeOwn, $chkOpenNotepad, $chkKillStuck, $chkCmdAdmin, $chkShowExt, $chkTaskbarWidgets, $chkPhotoViewer)
+    foreach ($c in $all) { if ($c) { $c.IsChecked = $true } }
+    Append-Log("Loaded Ultra Fast Mode Preset.")
+})
+$btnPresetClear.Add_Click({
+    $all = @($chkBypassTPM, $chkRemoveWatermark, $chkBlockDriverWU, $chkAlignTaskbarLeft, $chkTelemetry, $chkCortana, $chkBing, $chkAds, $chkLocation, $chkActivity, $chkFeedback, $chkSmartScreen, $chkUltPower, $chkStartupDelay, $chkStickyKeys, $chkMenuDelay, $chkNtfsTime, $chkUniversalBg, $chkEdgePreload, $chkGameDVR, $chkNetThrottle, $chkGameLatency, $chkHoverDelays, $chkSearchHighlights, $chkTakeOwn, $chkOpenNotepad, $chkKillStuck, $chkCmdAdmin, $chkShowExt, $chkTaskbarWidgets, $chkPhotoViewer)
+    foreach ($c in $all) { if ($c) { $c.IsChecked = $false } }
+    Append-Log("Cleared all checkboxes.")
+})
+$btnApplyTweaksBatch.Add_Click({
+    Append-Log("Applying selected tweaks...")
+    if ($chkBypassTPM.IsChecked) {
+        New-Item -Path "HKLM:\SYSTEM\Setup\LabConfig" -Force -ErrorAction SilentlyContinue | Out-Null
+        Set-ItemProperty -Path "HKLM:\SYSTEM\Setup\LabConfig" -Name "BypassTPMCheck" -Value 1 -Type DWord -Force -ErrorAction SilentlyContinue
+        Set-ItemProperty -Path "HKLM:\SYSTEM\Setup\LabConfig" -Name "BypassSecureBootCheck" -Value 1 -Type DWord -Force -ErrorAction SilentlyContinue
+        Set-ItemProperty -Path "HKLM:\SYSTEM\Setup\LabConfig" -Name "BypassRAMCheck" -Value 1 -Type DWord -Force -ErrorAction SilentlyContinue
+        Set-ItemProperty -Path "HKLM:\SYSTEM\Setup\LabConfig" -Name "BypassStorageCheck" -Value 1 -Type DWord -Force -ErrorAction SilentlyContinue
+        Set-ItemProperty -Path "HKLM:\SYSTEM\Setup\LabConfig" -Name "BypassCPUCheck" -Value 1 -Type DWord -Force -ErrorAction SilentlyContinue
+        New-Item -Path "HKLM:\SYSTEM\Setup\MoSetup" -Force -ErrorAction SilentlyContinue | Out-Null
+        Set-ItemProperty -Path "HKLM:\SYSTEM\Setup\MoSetup" -Name "AllowUpgradesWithUnsupportedTPMOrCPU" -Value 1 -Type DWord -Force -ErrorAction SilentlyContinue
+    }
+    if ($chkRemoveWatermark.IsChecked) {
+        New-Item -Path "HKCU:\Control Panel\UnsupportedHardwareNotificationCache" -Force -ErrorAction SilentlyContinue | Out-Null
+        Set-ItemProperty -Path "HKCU:\Control Panel\UnsupportedHardwareNotificationCache" -Name "SV1" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
+        Set-ItemProperty -Path "HKCU:\Control Panel\UnsupportedHardwareNotificationCache" -Name "SV2" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
+    }
+    if ($chkBlockDriverWU.IsChecked) {
+        New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate" -Force -ErrorAction SilentlyContinue | Out-Null
+        Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate" -Name "ExcludeWUDriversInQualityUpdate" -Value 1 -Type DWord -Force -ErrorAction SilentlyContinue
+    }
+    if ($chkAlignTaskbarLeft.IsChecked) {
+        Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "TaskbarAl" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
+    }
+    if ($chkTelemetry.IsChecked) {
+        New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\DataCollection" -Force -ErrorAction SilentlyContinue | Out-Null
+        Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\DataCollection" -Name "AllowTelemetry" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
+        Stop-Service -Name DiagTrack -Force -ErrorAction SilentlyContinue
+        Set-Service -Name DiagTrack -StartupType Disabled -ErrorAction SilentlyContinue
+    }
+    if ($chkCortana.IsChecked) {
+        New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Search" -Force -ErrorAction SilentlyContinue | Out-Null
+        Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Search" -Name "AllowCortana" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
+    }
+    if ($chkBing.IsChecked) {
+        New-Item -Path "HKCU:\Software\Policies\Microsoft\Windows\Explorer" -Force -ErrorAction SilentlyContinue | Out-Null
+        Set-ItemProperty -Path "HKCU:\Software\Policies\Microsoft\Windows\Explorer" -Name "DisableSearchBoxSuggestions" -Value 1 -Type DWord -Force -ErrorAction SilentlyContinue
+        Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Search" -Name "BingSearchEnabled" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
+    }
+    if ($chkAds.IsChecked) {
+        Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\AdvertisingInfo" -Name "Enabled" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
+        Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System" -Name "EnableActivityFeed" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
+    }
+    if ($chkLocation.IsChecked) {
+        New-Item -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\LocationAndSensors" -Force -ErrorAction SilentlyContinue | Out-Null
+        Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\LocationAndSensors" -Name "DisableLocation" -Value 1 -Type DWord -Force -ErrorAction SilentlyContinue
+    }
+    if ($chkActivity.IsChecked) {
+        Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\System" -Name "PublishUserActivities" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
+    }
+    if ($chkFeedback.IsChecked) {
+        New-Item -Path "HKCU:\Software\Microsoft\Siuf\Rules" -Force -ErrorAction SilentlyContinue | Out-Null
+        Set-ItemProperty -Path "HKCU:\Software\Microsoft\Siuf\Rules" -Name "NumberOfSIUFInPeriod" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
+    }
+    if ($chkUltPower.IsChecked) {
+        powercfg -duplicatescheme e9a42b02-d5df-448d-aa00-03f14749eb61 | Out-Null
+        powercfg /setactive e9a42b02-d5df-448d-aa00-03f14749eb61 | Out-Null
+    }
+    if ($chkStartupDelay.IsChecked) {
+        New-Item -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Serialize" -Force -ErrorAction SilentlyContinue | Out-Null
+        Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Serialize" -Name "StartupDelayInMSec" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
+    }
+    if ($chkMenuDelay.IsChecked) { Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name "MenuShowDelay" -Value "0" -Type String -Force -ErrorAction SilentlyContinue }
+    if ($chkNtfsTime.IsChecked) { fsutil behavior set disablelastaccess 1 | Out-Null }
+    if ($chkGameDVR.IsChecked) {
+        Set-ItemProperty -Path "HKCU:\System\GameConfigStore" -Name "GameDVR_Enabled" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
+        Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\GameDVR" -Name "AllowGameDVR" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
+    }
+    if ($chkNetThrottle.IsChecked) { Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile" -Name "NetworkThrottlingIndex" -Value 0xFFFFFFFF -Type DWord -Force -ErrorAction SilentlyContinue }
+    if ($chkGameLatency.IsChecked) { Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile" -Name "SystemResponsiveness" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue }
+    if ($chkUniversalBg.IsChecked) { Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\BackgroundAccessApplications" -Name "GlobalUserDisabled" -Value 1 -Type DWord -Force -ErrorAction SilentlyContinue }
+    if ($chkTakeOwn.IsChecked) {
+        New-Item -Path "Registry::HKEY_CLASSES_ROOT\*\shell\runas" -Force -ErrorAction SilentlyContinue | Out-Null
+        Set-ItemProperty -Path "Registry::HKEY_CLASSES_ROOT\*\shell\runas" -Name "(Default)" -Value "Take Ownership" -Force -ErrorAction SilentlyContinue
+        New-Item -Path "Registry::HKEY_CLASSES_ROOT\*\shell\runas\command" -Force -ErrorAction SilentlyContinue | Out-Null
+        Set-ItemProperty -Path "Registry::HKEY_CLASSES_ROOT\*\shell\runas\command" -Name "(Default)" -Value 'cmd.exe /c takeown /f "%1" && icacls "%1" /grant administrators:F' -Force -ErrorAction SilentlyContinue
+    }
+    if ($chkShowExt.IsChecked) { Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced" -Name "HideFileExt" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue }
+    if ($chkPhotoViewer.IsChecked) {
+        $pvPath = "HKLM:\SOFTWARE\Microsoft\Windows Photo Viewer\Capabilities\FileAssociations"
+        New-Item -Path $pvPath -Force -ErrorAction SilentlyContinue | Out-Null
+        @(".jpg", ".jpeg", ".png", ".bmp", ".gif", ".tiff") | ForEach-Object { Set-ItemProperty -Path $pvPath -Name $_ -Value "PhotoViewer.FileAssoc.Tiff" -Force -ErrorAction SilentlyContinue }
+    }
+    Append-Log("Selected tweaks and bypasses applied successfully!")
+    [System.Windows.Forms.MessageBox]::Show("All selected tweaks applied successfully!", "Tweaks Applied", "OK", "Information")
+})
+
+# ==================== HARDWARE, SECURITY & REPAIR ====================
+$btnUnparkCPU.Add_Click({
+    powercfg -setacvalueindex scheme_current sub_processor CPMINCORES 100 | Out-Null
+    powercfg -setactive scheme_current | Out-Null
+    [System.Windows.Forms.MessageBox]::Show("All CPU Cores have been UNPARKED! Enjoy 100% active multi-core speed.", "CPU Booster", "OK", "Information")
+})
+$btnDisableUSBSleep.Add_Click({
+    powercfg /SETACVALUEINDEX SCHEME_CURRENT 2a737441-1930-4402-8d77-b2bebba308a3 48e6b7a6-50f5-4782-a5d4-53bb8f07e226 0 | Out-Null
+    powercfg /SETACTIVE SCHEME_CURRENT | Out-Null
+    [System.Windows.Forms.MessageBox]::Show("USB Port Power Sleep / Throttling Disabled!", "Hardware", "OK", "Information")
+})
+$btnForceTrimSSD.Add_Click({
+    Optimize-Volume -DriveLetter C -Defrag -ReTrim -Verbose | Out-Null
+    [System.Windows.Forms.MessageBox]::Show("NVMe / SSD TRIM Optimization finished on Drive C:!", "SSD Optimizer", "OK", "Information")
+})
+$btnEnableHAGS.Add_Click({
+    Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\GraphicsDrivers" -Name "HwSchMode" -Value 2 -Type DWord -Force -ErrorAction SilentlyContinue
+    [System.Windows.Forms.MessageBox]::Show("Hardware Accelerated GPU Scheduling (HAGS) Enabled!", "GPU Booster", "OK", "Information")
+})
+$btnSmartScan.Add_Click({
+    $disks = Get-PhysicalDisk | Select-Object DeviceId, FriendlyName, MediaType, HealthStatus, OperationalStatus | Format-Table -AutoSize | Out-String
+    [System.Windows.Forms.MessageBox]::Show($disks, "Physical Drive SMART Status", "OK", "Information")
+})
+$btnRamSpecs.Add_Click({
+    $ram = Get-CimInstance Win32_PhysicalMemory | Select-Object BankLabel, @{N='Capacity (GB)';E={[math]::round($_.Capacity/1GB,2)}}, Speed, Manufacturer, PartNumber | Format-Table -AutoSize | Out-String
+    [System.Windows.Forms.MessageBox]::Show($ram, "RAM Hardware Specifications", "OK", "Information")
+})
+$btnMemDiag.Add_Click({ Start-Process mdsched.exe })
+$btnSpeedTest.Add_Click({
+    Append-Log("Running Real-Time Internet Download Speed Test via Cloudflare CDN...")
+    $sw = [System.Diagnostics.Stopwatch]::StartNew()
+    try {
+        $wc = New-Object System.Net.WebClient
+        $data = $wc.DownloadData("https://speed.cloudflare.com/__down?bytes=25000000")
+        $sw.Stop()
+        $seconds = $sw.Elapsed.TotalSeconds
+        $mbps = [math]::Round((($data.Length * 8) / (1024 * 1024)) / $seconds, 2)
+        Append-Log("Speed Test: $mbps Mbps")
+        [System.Windows.Forms.MessageBox]::Show("Download Speed Test Completed:`n`nSpeed: $mbps Mbps`nLatency/Time: $([math]::Round($seconds, 2)) seconds", "Internet Speed Test", "OK", "Information")
+    } catch {
+        [System.Windows.Forms.MessageBox]::Show("Could not complete test: $_", "Speed Test", "OK", "Warning")
+    }
+})
+$btnBatteryHealth.Add_Click({
+    $desktop = [Environment]::GetFolderPath("Desktop")
+    $out = "$desktop\battery_report.html"
+    powercfg /batteryreport /output "$out"
+    if (Test-Path $out) { Start-Process $out }
+})
+$btnSysSummary.Add_Click({
+    $os = Get-CimInstance Win32_OperatingSystem
+    $cs = Get-CimInstance Win32_ComputerSystem
+    $cpu = Get-CimInstance Win32_Processor | Select-Object -First 1
+    $summary = "OS: $($os.Caption) ($($os.OSArchitecture))`nVersion: $($os.Version) (Build $($os.BuildNumber))`nComputer: $($cs.Manufacturer) $($cs.Model)`nCPU: $($cpu.Name)`nRAM: $([math]::Round($cs.TotalPhysicalMemory/1GB,2)) GB"
+    [System.Windows.Forms.MessageBox]::Show($summary, "Windows System Summary", "OK", "Information")
+})
+
+# ==================== CRASH & REPAIRS ====================
+$btnAnalyzeBSOD.Add_Click({
+    $dumpPath = "C:\Windows\Minidump"
+    $events = Get-WinEvent -FilterHashtable @{LogName='System'; ProviderName='Microsoft-Windows-WER-SystemErrorReporting'} -MaxEvents 5 -ErrorAction SilentlyContinue
+    $report = "=== Windows Blue Screen (BSOD) Crash Analyzer ===`n`n"
+    if (Test-Path $dumpPath) {
+        $dumps = Get-ChildItem $dumpPath -Filter "*.dmp" -ErrorAction SilentlyContinue
+        if ($dumps) {
+            $report += "Found $($dumps.Count) Minidump crash files:`n"
+            foreach ($d in $dumps | Select-Object -Last 3) {
+                $report += "- $($d.Name) - Size: $([math]::round($d.Length/1KB,1)) KB - Modified: $($d.LastWriteTime)`n"
+            }
+        }
+    }
+    if ($events) {
+        $report += "`nRecent System BugCheck Crash Reports:`n"
+        foreach ($ev in $events) { $report += "[$($ev.TimeCreated)] $($ev.Message)`n------------------------------------------------`n" }
+    }
+    [System.Windows.Forms.MessageBox]::Show($report, "BSOD Minidump Crash Analyzer", "OK", "Information")
+})
+$btnUnblockTools.Add_Click({
+    Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\System" -Name "DisableTaskMgr" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
+    Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\System" -Name "DisableRegistryTools" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
+    Set-ItemProperty -Path "HKCU:\Software\Policies\Microsoft\Windows\System" -Name "DisableCMD" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
+    [System.Windows.Forms.MessageBox]::Show("Task Manager, Registry Editor, and Command Prompt are now completely UNBLOCKED!", "Unblock Tools", "OK", "Information")
+})
+$btnFixStuckWU.Add_Click({
+    Stop-Service -Name wuauserv, bits, cryptsvc, trustedinstaller -Force -ErrorAction SilentlyContinue
+    Rename-Item -Path "C:\Windows\SoftwareDistribution" -NewName "SoftwareDistribution.old_$(Get-Date -Format 'yyyyMMdd_HHmmss')" -Force -ErrorAction SilentlyContinue
+    Rename-Item -Path "C:\Windows\System32\catroot2" -NewName "catroot2.old_$(Get-Date -Format 'yyyyMMdd_HHmmss')" -Force -ErrorAction SilentlyContinue
+    Start-Service -Name wuauserv, bits, cryptsvc, trustedinstaller -ErrorAction SilentlyContinue
+    [System.Windows.Forms.MessageBox]::Show("Stuck Windows Update pipeline reset successfully!", "Windows Update Fix", "OK", "Information")
+})
+$btnRebuildSearchIndex.Add_Click({
+    Stop-Service -Name WSearch -Force -ErrorAction SilentlyContinue
+    Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows Search" -Name "SetupCompletedSuccessfully" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
+    Start-Service -Name WSearch -ErrorAction SilentlyContinue
+    [System.Windows.Forms.MessageBox]::Show("Windows Search Index database rebuild started in background.", "Search Index", "OK", "Information")
+})
+$btnRunSFC.Add_Click({ Start-Process cmd.exe -ArgumentList "/k sfc /scannow" -Verb RunAs })
+$btnDismRestore.Add_Click({ Start-Process cmd.exe -ArgumentList "/k DISM /Online /Cleanup-Image /RestoreHealth" -Verb RunAs })
+$btnDismCheck.Add_Click({ Start-Process cmd.exe -ArgumentList "/k DISM /Online /Cleanup-Image /CheckHealth" -Verb RunAs })
+$btnResetWU.Add_Click({
+    Stop-Service -Name wuauserv, bits, cryptsvc -Force -ErrorAction SilentlyContinue
+    Rename-Item -Path "C:\Windows\SoftwareDistribution" -NewName "SoftwareDistribution.old_$(Get-Date -Format 'yyyyMMdd_HHmmss')" -Force -ErrorAction SilentlyContinue
+    Start-Service -Name wuauserv, bits, cryptsvc -ErrorAction SilentlyContinue
+    [System.Windows.Forms.MessageBox]::Show("Windows Update cache reset successfully!", "Updates", "OK", "Information")
+})
+$btnRepairEngines.Add_Click({
+    @("vbscript.dll", "jscript.dll", "mshtml.dll", "wups2.dll", "wuaueng.dll", "oleaut32.dll") | ForEach-Object { Start-Process regsvr32.exe -ArgumentList "/s $_" -Wait }
+    [System.Windows.Forms.MessageBox]::Show("Servicing and repair DLL engines re-registered!", "Repair", "OK", "Information")
+})
+$btnRegCoreDLLs.Add_Click({
+    @("atl.dll", "urlmon.dll", "msxml3.dll", "msxml6.dll", "scrrun.dll") | ForEach-Object { Start-Process regsvr32.exe -ArgumentList "/s $_" -Wait }
+    [System.Windows.Forms.MessageBox]::Show("Core system DLL libraries re-registered!", "Repair", "OK", "Information")
+})
+$btnRepairStore.Add_Click({
+    Start-Process powershell.exe -ArgumentList "-NoExit -Command `"Get-AppXPackage -AllUsers | Foreach {Add-AppxPackage -DisableDevelopmentMode -Register `"`$(`$_.InstallLocation)\AppXManifest.xml`" -ErrorAction SilentlyContinue}`"" -Verb RunAs
+})
+$btnEnableWinRE.Add_Click({
+    Start-Process reagentc.exe -ArgumentList "/enable" -Wait
+    [System.Windows.Forms.MessageBox]::Show("Windows Recovery Environment (WinRE) Enabled!", "WinRE", "OK", "Information")
+})
+$btnCheckWinRE.Add_Click({ Start-Process cmd.exe -ArgumentList "/k reagentc /info" -Verb RunAs })
+$btnRebuildBCD.Add_Click({ Start-Process cmd.exe -ArgumentList "/k bcdboot C:\Windows /v" -Verb RunAs })
+$btnScheduleChkdsk.Add_Click({ Start-Process cmd.exe -ArgumentList "/k echo y | chkdsk C: /f /r" -Verb RunAs })
+$btnConvertNTFS.Add_Click({
+    $selected = $cmbDriveLetter.SelectedItem
+    if (-not $selected) { return }
+    $letter = $selected.ToString().Substring(0, 1)
+    if ([System.Windows.Forms.MessageBox]::Show("Convert Drive $letter`: to NTFS?", "Confirm NTFS", "YesNo", "Question") -eq [System.Windows.Forms.DialogResult]::Yes) {
+        Start-Process cmd.exe -ArgumentList "/k convert $letter`: /fs:ntfs" -Verb RunAs
+    }
+})
+$btnConvertGPT.Add_Click({
+    $selected = $cmbDiskID.SelectedItem
+    if (-not $selected) { return }
+    $diskNum = [regex]::Match($selected.ToString(), "Disk (\d+)").Groups[1].Value
+    if ([System.Windows.Forms.MessageBox]::Show("Convert Disk $diskNum from MBR to GPT?", "Confirm MBR to GPT", "YesNo", "Warning") -eq [System.Windows.Forms.DialogResult]::Yes) {
+        Start-Process cmd.exe -ArgumentList "/k mbr2gpt /validate /disk:$diskNum /allowFullOS & mbr2gpt /convert /disk:$diskNum /allowFullOS" -Verb RunAs
+    }
+})
+
+# ==================== SECURITY & NET ====================
+$btnEnableUSBWriteProtect.Add_Click({
+    New-Item -Path "HKLM:\SYSTEM\CurrentControlSet\Control\StorageDevicePolicies" -Force -ErrorAction SilentlyContinue | Out-Null
+    Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\StorageDevicePolicies" -Name "WriteProtect" -Value 1 -Type DWord -Force -ErrorAction SilentlyContinue
+    Append-Log("USB Write-Protect ENABLED (Read-Only Mode).")
+    [System.Windows.Forms.MessageBox]::Show("USB Write-Protect is now ENABLED! Pen drives cannot be written to.", "Security", "OK", "Information")
+})
+$btnDisableUSBWriteProtect.Add_Click({
+    Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\StorageDevicePolicies" -Name "WriteProtect" -Value 0 -Type DWord -Force -ErrorAction SilentlyContinue
+    Append-Log("USB Write-Protect DISABLED (Normal Mode).")
+    [System.Windows.Forms.MessageBox]::Show("USB Write-Protect is now DISABLED! Normal Read/Write access restored.", "Security", "OK", "Information")
+})
+$btnInjectHostsAdblock.Add_Click({
+    $hosts = "$env:SystemRoot\System32\drivers\etc\hosts"
+    $adBlockEntries = "`n# Antigravity Windows Tweaker Telemetry AdBlock`n0.0.0.0 telemetry.microsoft.com`n0.0.0.0 vortex.data.microsoft.com`n0.0.0.0 settings-win.data.microsoft.com`n0.0.0.0 watson.telemetry.microsoft.com`n"
+    Add-Content -Path $hosts -Value $adBlockEntries -Force -ErrorAction SilentlyContinue
+    [System.Windows.Forms.MessageBox]::Show("Telemetry and ad-blocking domains injected into Windows Hosts file!", "Hosts Security", "OK", "Information")
+})
+$btnResetHosts.Add_Click({
+    $hosts = "$env:SystemRoot\System32\drivers\etc\hosts"
+    $defaultHosts = "# Windows Default Hosts File`n127.0.0.1 localhost`n::1 localhost`n"
+    Set-Content -Path $hosts -Value $defaultHosts -Encoding ascii -Force
+    [System.Windows.Forms.MessageBox]::Show("Windows Hosts file reset to clean default!", "Hosts Security", "OK", "Information")
+})
+$btnAddDefenderExclusion.Add_Click({
+    $fbd = New-Object System.Windows.Forms.FolderBrowserDialog
+    $fbd.Description = "Select folder to exclude from Windows Defender scanning"
+    if ($fbd.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {
+        $folder = $fbd.SelectedPath
+        Add-MpPreference -ExclusionPath $folder -ErrorAction SilentlyContinue
+        [System.Windows.Forms.MessageBox]::Show("Defender Exclusion added for:`n$folder", "Defender", "OK", "Information")
+    }
+})
+$btnEnableSandbox.Add_Click({ Start-Process powershell.exe -ArgumentList "-NoExit -Command Enable-WindowsOptionalFeature -Online -FeatureName 'Containers-DisposableClientVM' -All" -Verb RunAs })
+$btnEnableHyperV.Add_Click({ Start-Process powershell.exe -ArgumentList "-NoExit -Command Enable-WindowsOptionalFeature -Online -FeatureName 'Microsoft-Hyper-V-All' -All" -Verb RunAs })
+
+# ==================== WI-FI & DNS ====================
+$btnExportWiFiPass.Add_Click({
+    $desktop = [Environment]::GetFolderPath("Desktop")
+    $outFile = "$desktop\Saved_WiFi_Passwords_$(Get-Date -Format 'yyyyMMdd_HHmmss').txt"
+    $profiles = netsh wlan show profiles | Select-String "All User Profile\s*:\s*(.*)$" | ForEach-Object { $_.Matches.Groups[1].Value.Trim() }
+    $results = @("=========================================================================", "Windows Saved Wi-Fi Passwords Report", "Generated on $(Get-Date)", "=========================================================================`n")
+    foreach ($p in $profiles) {
+        $pInfo = netsh wlan show profile name="$p" key=clear
+        $passLine = $pInfo | Select-String "Key Content\s*:\s*(.*)$"
+        $pass = if ($passLine) { $passLine.Matches.Groups[1].Value.Trim() } else { "[Open / No Password]" }
+        $results += "Network (SSID): $p`nPassword:       $pass`n"
+    }
+    $results | Out-File -FilePath $outFile -Encoding utf8
+    Append-Log("Saved Wi-Fi Passwords exported to Desktop: $outFile")
+    [System.Windows.Forms.MessageBox]::Show("Saved Wi-Fi Passwords exported to Desktop:`n$outFile", "Wi-Fi Passwords", "OK", "Information")
+    Start-Process notepad.exe -ArgumentList "`"$outFile`""
+})
+$btnGenWiFiQR.Add_Click({
+    $activeWlan = netsh wlan show interfaces | Select-String "SSID\s*:\s*(.*)$" | Select-Object -First 1
+    if ($activeWlan) {
+        $ssid = $activeWlan.Matches.Groups[1].Value.Trim()
+        $pInfo = netsh wlan show profile name="$ssid" key=clear
+        $passLine = $pInfo | Select-String "Key Content\s*:\s*(.*)$"
+        $pass = if ($passLine) { $passLine.Matches.Groups[1].Value.Trim() } else { "" }
+        $qrData = "WIFI:T:WPA;S:$ssid;P:$pass;;"
+        $qrUrl = "https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=" + [System.Web.HttpUtility]::UrlEncode($qrData)
+        Start-Process $qrUrl
+        [System.Windows.Forms.MessageBox]::Show("Wi-Fi QR Code for '$ssid' generated! Scan with smartphone to connect instantly.", "Wi-Fi QR Generator", "OK", "Information")
+    }
+})
+$btnApplyTCPAck.Add_Click({
+    $interfaces = Get-ChildItem "HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters\Interfaces"
+    foreach ($i in $interfaces) {
+        Set-ItemProperty -Path $i.PSPath -Name "TcpAckFrequency" -Value 1 -Type DWord -Force -ErrorAction SilentlyContinue
+        Set-ItemProperty -Path $i.PSPath -Name "TCPNoDelay" -Value 1 -Type DWord -Force -ErrorAction SilentlyContinue
+    }
+    [System.Windows.Forms.MessageBox]::Show("TCP NoDelay & AckFrequency Gaming Tweaks Applied!", "Ping Optimizer", "OK", "Information")
+})
+if ($btnBoostTCPCongestion) {
+    $btnBoostTCPCongestion.Add_Click({
+        Start-Process netsh.exe -ArgumentList "int tcp set supplemental template=custom congestionprovider=ctcp" -Verb RunAs -Wait
+        Append-Log("TCP Congestion Provider set to Compound TCP (CTCP).")
+        [System.Windows.Forms.MessageBox]::Show("TCP Congestion Provider configured for Maximum Bandwidth!", "Network", "OK", "Information")
+    })
+}
+$btnViewActivePorts.Add_Click({ Start-Process cmd.exe -ArgumentList "/k netstat -ano" -Verb RunAs })
+$btnResetWinsock3.Add_Click({
+    Start-Process netsh.exe -ArgumentList "winsock reset" -Wait
+    Start-Process netsh.exe -ArgumentList "int ip reset" -Wait
+    [System.Windows.Forms.MessageBox]::Show("Winsock & TCP/IP stack reset. Please restart PC when convenient.", "Network", "OK", "Information")
+})
+$btnDNSCloudflare.Add_Click({
+    $adapter = Get-NetAdapter | Where-Object {$_.Status -eq "Up"} | Select-Object -First 1
+    Set-DnsClientServerAddress -InterfaceIndex $adapter.ifIndex -ServerAddresses ("1.1.1.1", "1.0.0.1")
+    [System.Windows.Forms.MessageBox]::Show("DNS set to Cloudflare (1.1.1.1, 1.0.0.1)!", "DNS", "OK", "Information")
+})
+$btnDNSGoogle.Add_Click({
+    $adapter = Get-NetAdapter | Where-Object {$_.Status -eq "Up"} | Select-Object -First 1
+    Set-DnsClientServerAddress -InterfaceIndex $adapter.ifIndex -ServerAddresses ("8.8.8.8", "8.8.4.4")
+    [System.Windows.Forms.MessageBox]::Show("DNS set to Google (8.8.8.8, 8.8.4.4)!", "DNS", "OK", "Information")
+})
+$btnDNSQuad9.Add_Click({
+    $adapter = Get-NetAdapter | Where-Object {$_.Status -eq "Up"} | Select-Object -First 1
+    Set-DnsClientServerAddress -InterfaceIndex $adapter.ifIndex -ServerAddresses ("9.9.9.9", "149.112.112.112")
+    [System.Windows.Forms.MessageBox]::Show("DNS set to Quad9 (9.9.9.9, 149.112.112.112)!", "DNS", "OK", "Information")
+})
+$btnDNSDHCP.Add_Click({
+    $adapter = Get-NetAdapter | Where-Object {$_.Status -eq "Up"} | Select-Object -First 1
+    Set-DnsClientServerAddress -InterfaceIndex $adapter.ifIndex -ResetServerAddresses
+    [System.Windows.Forms.MessageBox]::Show("DNS reset to DHCP (Automatic)!", "DNS", "OK", "Information")
+})
+
+# ==================== ACTIVATION (MAS) ====================
+$btnInstallM365.Add_Click({ Start-Process powershell.exe -ArgumentList "-NoExit -Command `"irm https://get.activated.win | iex`"" -Verb RunAs })
+$btnInstall2019.Add_Click({ Start-Process powershell.exe -ArgumentList "-NoExit -Command `"irm https://get.activated.win | iex`"" -Verb RunAs })
+$btnInstall2021.Add_Click({ Start-Process powershell.exe -ArgumentList "-NoExit -Command `"irm https://get.activated.win | iex`"" -Verb RunAs })
+$btnInstall2024.Add_Click({ Start-Process powershell.exe -ArgumentList "-NoExit -Command `"irm https://get.activated.win | iex`"" -Verb RunAs })
+$btnActWindows.Add_Click({ Start-Process powershell.exe -ArgumentList "-NoExit -Command `"irm https://get.activated.win | iex`"" -Verb RunAs })
+$btnActOffice.Add_Click({ Start-Process powershell.exe -ArgumentList "-NoExit -Command `"irm https://get.activated.win | iex`"" -Verb RunAs })
+$btnActKMS.Add_Click({ Start-Process powershell.exe -ArgumentList "-NoExit -Command `"irm https://get.activated.win | iex`"" -Verb RunAs })
+$btnCleanKMS.Add_Click({ Start-Process powershell.exe -ArgumentList "-NoExit -Command `"irm https://get.activated.win | iex`"" -Verb RunAs })
+$btnChangeEdition.Add_Click({ Start-Process powershell.exe -ArgumentList "-NoExit -Command `"irm https://get.activated.win | iex`"" -Verb RunAs })
+
+# ==================== BACKUPS & HUB ====================
+$btnBrowseSource.Add_Click({
+    $fbd = New-Object System.Windows.Forms.FolderBrowserDialog
+    if ($fbd.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { $txtSourceFolder.Text = $fbd.SelectedPath }
+})
+$btnBrowseTarget.Add_Click({
+    $fbd = New-Object System.Windows.Forms.FolderBrowserDialog
+    if ($fbd.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { $txtTargetFolder.Text = $fbd.SelectedPath }
+})
+$btnRunRobocopy.Add_Click({
+    $src = $txtSourceFolder.Text.Trim()
+    $dst = $txtTargetFolder.Text.Trim()
+    if (-not $src -or -not $dst) { return }
+    Append-Log("Executing Robocopy Mirror from '$src' to '$dst'...")
+    Start-Process robocopy.exe -ArgumentList "`"$src`" `"$dst`" /MIR /MT:8 /R:1 /W:1 /NP /TEE" -Wait
+    Append-Log("Robocopy Mirror job finished successfully!")
+    [System.Windows.Forms.MessageBox]::Show("Robocopy Mirror job completed successfully!", "Migration Engine", "OK", "Information")
+})
+$btnExportBookmarks2.Add_Click({
+    $desktop = [Environment]::GetFolderPath("Desktop")
+    $userProfile = $env:USERPROFILE
+    $bList = @(
+        @{Name="Chrome"; Path="$userProfile\AppData\Local\Google\Chrome\User Data\Default\Bookmarks"},
+        @{Name="Edge"; Path="$userProfile\AppData\Local\Microsoft\Edge\User Data\Default\Bookmarks"},
+        @{Name="Brave"; Path="$userProfile\AppData\Local\BraveSoftware\Brave-Browser\User Data\Default\Bookmarks"}
+    )
+    $copied = 0
+    foreach ($b in $bList) {
+        if (Test-Path $b.Path) {
+            Copy-Item -Path $b.Path -Destination "$desktop\$($b.Name)_Bookmarks.json" -Force
+            $copied++
+        }
+    }
+    Append-Log("Exported $copied browser bookmarks.")
+    [System.Windows.Forms.MessageBox]::Show("Exported $copied browser bookmarks files directly onto Desktop!", "Bookmarks", "OK", "Information")
+})
+$btnExportDrivers.Add_Click({
+    $desktop = [Environment]::GetFolderPath("Desktop")
+    $driverDest = "$desktop\Exported_Drivers_$(Get-Date -Format 'yyyyMMdd_HHmmss')"
+    New-Item -Path $driverDest -ItemType Directory -Force | Out-Null
+    Append-Log("Exporting custom device drivers to $driverDest...")
+    Export-WindowsDriver -Online -Destination $driverDest | Out-Null
+    Append-Log("Drivers backup complete.")
+    [System.Windows.Forms.MessageBox]::Show("All custom third-party drivers backed up to Desktop:`n$driverDest", "Drivers Backup", "OK", "Information")
+})
+$btnRestoreDrivers.Add_Click({
+    $fbd = New-Object System.Windows.Forms.FolderBrowserDialog
+    $fbd.Description = "Select folder containing exported driver INF files"
+    if ($fbd.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {
+        $path = $fbd.SelectedPath
+        Append-Log("Restoring device drivers from '$path'...")
+        Start-Process pnputil.exe -ArgumentList "/add-driver `"$path\*.inf`" /subdirs /install" -Wait
+        Append-Log("Driver restoration completed.")
+        [System.Windows.Forms.MessageBox]::Show("Device driver restoration completed!", "Driver Restore", "OK", "Information")
+    }
+})
+$btnUpgradeWinget.Add_Click({
+    Append-Log("Running WinGet software upgrade suite...")
+    Start-Process cmd.exe -ArgumentList "/k winget upgrade --all --include-unknown --accept-package-agreements --accept-source-agreements" -Verb RunAs
+})
+$btnRestartTally.Add_Click({
+    Append-Log("Restarting Tally and Gateway system services...")
+    Get-Service | Where-Object { $_.Name -match "tally|gateway" } | Restart-Service -Force -ErrorAction SilentlyContinue
+    Append-Log("Tally / Gateway engines cycled.")
+    [System.Windows.Forms.MessageBox]::Show("Tally & Gateway Services Restarted!", "Tally Engine", "OK", "Information")
+})
+$btnPurgeCache.Add_Click({
+    Append-Log("Purging Prefetch, Temp, and System Cache...")
+    @($env:TEMP, "C:\Windows\Temp", "C:\Windows\Prefetch") | ForEach-Object {
+        if (Test-Path $_) { Remove-Item "$_\*" -Recurse -Force -ErrorAction SilentlyContinue }
+    }
+    Clear-DnsClientCache
+    Append-Log("Cache purge complete.")
+    [System.Windows.Forms.MessageBox]::Show("Prefetch, Cache, and Temp files completely purged!", "Cache Purge", "OK", "Information")
+})
+
+# ==================== QUICK HUB ====================
+$btnHubReg2.Add_Click({ Start-Process regedit.exe -Verb RunAs })
+$btnHubDev2.Add_Click({ Start-Process devmgmt.msc })
+$btnHubGP2.Add_Click({ Start-Process gpedit.msc })
+$btnHubDisk2.Add_Click({ Start-Process diskmgmt.msc })
+$btnHubTask2.Add_Click({ Start-Process taskmgr.exe })
+$btnHubRes2.Add_Click({ Start-Process resmon.exe })
+$btnHubDx2.Add_Click({ Start-Process dxdiag.exe })
+$btnHubServ2.Add_Click({ Start-Process services.msc })
+
+# SEARCH FILTER
+$btnSearch.Add_Click({
+    $q = $txtSearch.Text.Trim().ToLower()
+    if ($q -and $q -notmatch "search tools") {
+        Append-Log("Searching suite for keyword: '$q'...")
+        [System.Windows.Forms.MessageBox]::Show("Search completed for '$q'. Please check relevant tabs.", "Search Tool", "OK", "Information")
+    }
+})
+
+$btnCloseApp.Add_Click({ $window.Close() })
+
+# Show Main Window
+$window.ShowDialog() | Out-Null

@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Windows & Temp
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.tmp
+*.log
+
+# Build & Virtualenvs
+.venv/
+env/
+venv/
+dist/
+build/
+*.iso
+mount/
+media/
