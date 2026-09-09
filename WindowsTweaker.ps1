@@ -300,9 +300,9 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
                         <TextBlock Text="WINDOWS USER ACCOUNTS &amp; PASSWORD MANAGEMENT HUB" FontSize="12.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,6"/>
 
                         <!-- User Selection & Password Actions -->
-                        <Border Background="#0F172A" CornerRadius="5" Padding="10" Margin="0,0,0,8" BorderBrush="#1E293B" BorderThickness="1">
+                        <Border Background="#0F172A" CornerRadius="6" Padding="10" Margin="0,0,0,8" BorderBrush="#0284C7" BorderThickness="1.5">
                             <StackPanel>
-                                <TextBlock Text="SELECTED LOCAL USER ACCOUNT &amp; PASSWORD RESET" FontSize="11.5" FontWeight="Bold" Foreground="#10B981" Margin="0,0,0,4"/>
+                                <TextBlock Text="SELECTED LOCAL USER ACCOUNT &amp; PASSWORD RESET" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
                                 <TextBlock Text="Select any detected user account to reset/remove password, unlock, or configure auto-login." FontSize="10" Foreground="#94A3B8" Margin="0,0,0,6"/>
                                 
                                 <Grid Margin="0,0,0,6">
@@ -313,7 +313,7 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
                                     </Grid.ColumnDefinitions>
                                     <TextBlock Grid.Column="0" Text="Select User Account:" VerticalAlignment="Center" Margin="0,0,10,0" Foreground="#F8FAFC" FontWeight="Bold"/>
                                     <ComboBox Name="cmbUserAccounts" Grid.Column="1" Height="26" Margin="0,0,6,0" Background="#0F172A" Foreground="#F8FAFC"/>
-                                    <Button Name="btnRefreshUserList" Grid.Column="2" Content="Refresh Accounts" Width="120" Height="26" Background="#334155"/>
+                                    <Button Name="btnRefreshUserList" Grid.Column="2" Content="Refresh Accounts" Width="120" Height="26" Background="#0891B2" FontWeight="Bold"/>
                                 </Grid>
 
                                 <Grid Margin="0,0,0,6">
@@ -330,18 +330,18 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
                                 </Grid>
 
                                 <UniformGrid Columns="4" Margin="0,2,0,0">
-                                    <Button Name="btnUnlockUserAcc" Content="Unlock Selected Account" Margin="2" Background="#059669"/>
-                                    <Button Name="btnDisableUserAcc" Content="Disable Selected Account" Margin="2" Background="#7F1D1D"/>
-                                    <Button Name="btnPassNeverExpire" Content="Set Password Never Expires" Margin="2" Background="#1E3A8A"/>
-                                    <Button Name="btnDeleteUserAcc" Content="Delete Selected Account" Margin="2" Background="#DC2626"/>
+                                    <Button Name="btnUnlockUserAcc" Content="Unlock Selected Account" Margin="2" Background="#059669" FontWeight="Bold"/>
+                                    <Button Name="btnDisableUserAcc" Content="Disable Selected Account" Margin="2" Background="#7F1D1D" FontWeight="Bold"/>
+                                    <Button Name="btnPassNeverExpire" Content="Set Password Never Expires" Margin="2" Background="#1E40AF" FontWeight="Bold"/>
+                                    <Button Name="btnDeleteUserAcc" Content="Delete Selected Account" Margin="2" Background="#DC2626" FontWeight="Bold"/>
                                 </UniformGrid>
                             </StackPanel>
                         </Border>
 
                         <!-- Automatic Login Without Password (Auto-Logon) -->
-                        <Border Background="#0F172A" CornerRadius="5" Padding="10" Margin="0,0,0,8" BorderBrush="#1E293B" BorderThickness="1">
+                        <Border Background="#0F172A" CornerRadius="6" Padding="10" Margin="0,0,0,8" BorderBrush="#10B981" BorderThickness="1.5">
                             <StackPanel>
-                                <TextBlock Text="AUTOMATIC LOGON ON SYSTEM BOOT (NO PASSWORD PROMPT)" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
+                                <TextBlock Text="AUTOMATIC LOGON ON SYSTEM BOOT (NO PASSWORD PROMPT)" FontSize="11.5" FontWeight="Bold" Foreground="#34D399" Margin="0,0,0,4"/>
                                 <TextBlock Text="Configure Windows to automatically log in to the selected user on startup without asking for password or PIN." FontSize="10" Foreground="#94A3B8" Margin="0,0,0,6"/>
                                 <Grid>
                                     <Grid.ColumnDefinitions>
@@ -355,9 +355,9 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
                         </Border>
 
                         <!-- Create New Local Account -->
-                        <Border Background="#0F172A" CornerRadius="5" Padding="10" Margin="0,0,0,8" BorderBrush="#1E293B" BorderThickness="1">
+                        <Border Background="#0F172A" CornerRadius="6" Padding="10" Margin="0,0,0,8" BorderBrush="#7C3AED" BorderThickness="1.5">
                             <StackPanel>
-                                <TextBlock Text="CREATE NEW LOCAL USER ACCOUNT" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
+                                <TextBlock Text="CREATE NEW LOCAL USER ACCOUNT" FontSize="11.5" FontWeight="Bold" Foreground="#A78BFA" Margin="0,0,0,4"/>
                                 <Grid Margin="0,2">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*"/>
@@ -368,13 +368,13 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
                                     <TextBox Name="txtCreateUsername" Grid.Column="0" Height="26" Margin="0,0,4,0" Text="NewUser"/>
                                     <TextBox Name="txtCreatePassword" Grid.Column="1" Height="26" Margin="0,0,4,0" Text="User@12345"/>
                                     <ComboBox Name="cmbAccountType" Grid.Column="2" Width="130" Height="26" Margin="0,0,4,0" Background="#0F172A" Foreground="#F8FAFC"/>
-                                    <Button Name="btnCreateAccountAction" Grid.Column="3" Content="Create Account" Width="130" Height="26" Background="#0284C7" FontWeight="Bold"/>
+                                    <Button Name="btnCreateAccountAction" Grid.Column="3" Content="Create Account" Width="130" Height="26" Background="#7C3AED" FontWeight="Bold"/>
                                 </Grid>
                             </StackPanel>
                         </Border>
 
                         <!-- WINPE RESCUE & HIREN'S EMERGENCY RECOVERY MASTER SUITE -->
-                        <Border Background="#0F172A" CornerRadius="5" Padding="10" Margin="0,0,0,8" BorderBrush="#1E293B" BorderThickness="1">
+                        <Border Background="#0F172A" CornerRadius="6" Padding="10" Margin="0,0,0,8" BorderBrush="#059669" BorderThickness="1.5">
                             <StackPanel>
                                 <TextBlock Text="WINPE RESCUE &amp; HIREN'S EMERGENCY RECOVERY MASTER SUITE" FontSize="11.5" FontWeight="Bold" Foreground="#10B981" Margin="0,0,0,4"/>
                                 <TextBlock Text="Standalone Bootable WinPE Suite: Offline Password Resetter, BCD/EFI Boot Fixer, Offline Registry &amp; DISM Imaging." FontSize="10" Foreground="#94A3B8" Margin="0,0,0,6"/>
@@ -386,30 +386,30 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
                         </Border>
 
                         <!-- NIRLAUNCHER & NIRSOFT MASTER RECOVERY SUITE -->
-                        <Border Background="#0F172A" CornerRadius="5" Padding="10" Margin="0,0,0,8" BorderBrush="#1E293B" BorderThickness="1">
+                        <Border Background="#0F172A" CornerRadius="6" Padding="10" Margin="0,0,0,8" BorderBrush="#0D9488" BorderThickness="1.5">
                             <StackPanel>
-                                <TextBlock Text="NIRLAUNCHER &amp; NIRSOFT MASTER RECOVERY SUITE (200+ TOOLS)" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
+                                <TextBlock Text="NIRLAUNCHER &amp; NIRSOFT MASTER RECOVERY SUITE (200+ TOOLS)" FontSize="11.5" FontWeight="Bold" Foreground="#2DD4BF" Margin="0,0,0,4"/>
                                 <TextBlock Text="Integrated launcher for NirSoft 200+ utilities: Mail PassView, WebBrowserPassView, WirelessKeyView, Network &amp; System tools." FontSize="10" Foreground="#94A3B8" Margin="0,0,0,6"/>
                                 <UniformGrid Columns="3" Margin="0,0,0,4">
                                     <Button Name="btnLaunchNirLauncher" Content="Launch NirLauncher Package" Margin="2" Height="30" Background="#0284C7" FontWeight="Bold"/>
                                     <Button Name="btnDownloadNirLauncher" Content="Download NirLauncher (Auto Setup)" Margin="2" Height="30" Background="#059669" FontWeight="Bold"/>
-                                    <Button Name="btnOpenNirFolder" Content="Open NirSoft Tools Folder" Margin="2" Height="30" Background="#334155"/>
+                                    <Button Name="btnOpenNirFolder" Content="Open NirSoft Tools Folder" Margin="2" Height="30" Background="#D97706" FontWeight="Bold"/>
                                 </UniformGrid>
                                 <UniformGrid Columns="3">
-                                    <Button Name="btnLaunchWebBrowserPass" Content="WebBrowserPassView Engine" Margin="2" Height="28" Background="#1E3A8A"/>
-                                    <Button Name="btnLaunchWirelessKeyView" Content="WirelessKeyView (Wi-Fi Passwords)" Margin="2" Height="28" Background="#0D9488"/>
-                                    <Button Name="btnLaunchOutlookPass" Content="Outlook PST &amp; Password Tools" Margin="2" Height="28" Background="#475569"/>
+                                    <Button Name="btnLaunchWebBrowserPass" Content="WebBrowserPassView Engine" Margin="2" Height="28" Background="#1E40AF" FontWeight="Bold"/>
+                                    <Button Name="btnLaunchWirelessKeyView" Content="WirelessKeyView (Wi-Fi Passwords)" Margin="2" Height="28" Background="#0D9488" FontWeight="Bold"/>
+                                    <Button Name="btnLaunchOutlookPass" Content="Outlook PST &amp; Password Tools" Margin="2" Height="28" Background="#6366F1" FontWeight="Bold"/>
                                 </UniformGrid>
                             </StackPanel>
                         </Border>
 
                         <!-- Native User Consoles -->
-                        <Border Background="#0F172A" CornerRadius="5" Padding="8" BorderBrush="#1E293B" BorderThickness="1">
+                        <Border Background="#0F172A" CornerRadius="6" Padding="8" BorderBrush="#6366F1" BorderThickness="1.5">
                             <StackPanel>
-                                <TextBlock Text="WINDOWS BUILT-IN USER MANAGEMENT CONSOLES" FontSize="11.5" FontWeight="Bold" Foreground="#94A3B8" Margin="0,0,0,4"/>
+                                <TextBlock Text="WINDOWS BUILT-IN USER MANAGEMENT CONSOLES" FontSize="11.5" FontWeight="Bold" Foreground="#818CF8" Margin="0,0,0,4"/>
                                 <UniformGrid Columns="2">
-                                    <Button Name="btnOpenNetplwiz" Content="Advanced User Accounts (netplwiz)" Margin="2" Height="28"/>
-                                    <Button Name="btnOpenLusrmgr" Content="Local Users &amp; Groups (lusrmgr.msc)" Margin="2" Height="28"/>
+                                    <Button Name="btnOpenNetplwiz" Content="Advanced User Accounts (netplwiz)" Margin="2" Height="28" Background="#0284C7" FontWeight="Bold"/>
+                                    <Button Name="btnOpenLusrmgr" Content="Local Users &amp; Groups (lusrmgr.msc)" Margin="2" Height="28" Background="#4F46E5" FontWeight="Bold"/>
                                 </UniformGrid>
                             </StackPanel>
                         </Border>
@@ -431,7 +431,7 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
 
                             <UniformGrid Columns="4">
                                 <!-- Microsoft Official Apps -->
-                                <Border Background="#0F172A" CornerRadius="5" Padding="8" Margin="2" BorderBrush="#1E293B" BorderThickness="1">
+                                <Border Background="#0F172A" CornerRadius="6" Padding="8" Margin="2" BorderBrush="#0284C7" BorderThickness="1.5">
                                     <StackPanel>
                                         <TextBlock Text="MICROSOFT SUITE" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
                                         <CheckBox Name="chkAppMS365" Content="Microsoft 365 / Office" IsChecked="True"/>
@@ -451,9 +451,9 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
                                 </Border>
 
                                 <!-- Web Browsers -->
-                                <Border Background="#0F172A" CornerRadius="5" Padding="8" Margin="2" BorderBrush="#1E293B" BorderThickness="1">
+                                <Border Background="#0F172A" CornerRadius="6" Padding="8" Margin="2" BorderBrush="#F59E0B" BorderThickness="1.5">
                                     <StackPanel>
-                                        <TextBlock Text="WEB BROWSERS" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
+                                        <TextBlock Text="WEB BROWSERS" FontWeight="Bold" Foreground="#FBBF24" Margin="0,0,0,4"/>
                                         <CheckBox Name="chkAppChrome" Content="Google Chrome" IsChecked="True"/>
                                         <CheckBox Name="chkAppBrave" Content="Brave Browser"/>
                                         <CheckBox Name="chkAppFirefox" Content="Mozilla Firefox"/>
@@ -464,9 +464,9 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
                                 </Border>
 
                                 <!-- Remote & Communication -->
-                                <Border Background="#0F172A" CornerRadius="5" Padding="8" Margin="2" BorderBrush="#1E293B" BorderThickness="1">
+                                <Border Background="#0F172A" CornerRadius="6" Padding="8" Margin="2" BorderBrush="#10B981" BorderThickness="1.5">
                                     <StackPanel>
-                                        <TextBlock Text="REMOTE &amp; COMMS" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
+                                        <TextBlock Text="REMOTE &amp; COMMS" FontWeight="Bold" Foreground="#34D399" Margin="0,0,0,4"/>
                                         <CheckBox Name="chkAppAnyDesk" Content="AnyDesk Remote" IsChecked="True"/>
                                         <CheckBox Name="chkAppTeamViewer" Content="TeamViewer"/>
                                         <CheckBox Name="chkAppRustDesk" Content="RustDesk (Open Source)"/>
@@ -480,9 +480,9 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
                                 </Border>
 
                                 <!-- Utilities & Hardware -->
-                                <Border Background="#0F172A" CornerRadius="5" Padding="8" Margin="2" BorderBrush="#1E293B" BorderThickness="1">
+                                <Border Background="#0F172A" CornerRadius="6" Padding="8" Margin="2" BorderBrush="#8B5CF6" BorderThickness="1.5">
                                     <StackPanel>
-                                        <TextBlock Text="UTILITIES &amp; HARDWARE" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
+                                        <TextBlock Text="UTILITIES &amp; HARDWARE" FontWeight="Bold" Foreground="#A78BFA" Margin="0,0,0,4"/>
                                         <CheckBox Name="chkApp7Zip" Content="7-Zip Archiver" IsChecked="True"/>
                                         <CheckBox Name="chkAppWinRAR" Content="WinRAR"/>
                                         <CheckBox Name="chkAppPeaZip" Content="PeaZip"/>
@@ -499,9 +499,9 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
                                 </Border>
 
                                 <!-- Media & Creative -->
-                                <Border Background="#0F172A" CornerRadius="5" Padding="8" Margin="2" BorderBrush="#1E293B" BorderThickness="1">
+                                <Border Background="#0F172A" CornerRadius="6" Padding="8" Margin="2" BorderBrush="#EC4899" BorderThickness="1.5">
                                     <StackPanel>
-                                        <TextBlock Text="MEDIA &amp; CREATIVE" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
+                                        <TextBlock Text="MEDIA &amp; CREATIVE" FontWeight="Bold" Foreground="#F472B6" Margin="0,0,0,4"/>
                                         <CheckBox Name="chkAppVLC" Content="VLC Media Player" IsChecked="True"/>
                                         <CheckBox Name="chkAppKLite" Content="K-Lite Codec Pack Full"/>
                                         <CheckBox Name="chkAppOBS" Content="OBS Studio Screen Recorder"/>
@@ -515,9 +515,9 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
                                 </Border>
 
                                 <!-- Developer Tools & Databases -->
-                                <Border Background="#0F172A" CornerRadius="5" Padding="8" Margin="2" BorderBrush="#1E293B" BorderThickness="1">
+                                <Border Background="#0F172A" CornerRadius="6" Padding="8" Margin="2" BorderBrush="#06B6D4" BorderThickness="1.5">
                                     <StackPanel>
-                                        <TextBlock Text="DEV TOOLS &amp; RUNTIMES" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
+                                        <TextBlock Text="DEV TOOLS &amp; RUNTIMES" FontWeight="Bold" Foreground="#22D3EE" Margin="0,0,0,4"/>
                                         <CheckBox Name="chkAppVSCode" Content="Visual Studio Code"/>
                                         <CheckBox Name="chkAppGit" Content="Git for Windows"/>
                                         <CheckBox Name="chkAppGitHubDesktop" Content="GitHub Desktop"/>
@@ -532,9 +532,9 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
                                 </Border>
 
                                 <!-- Documents & Office -->
-                                <Border Background="#0F172A" CornerRadius="5" Padding="8" Margin="2" BorderBrush="#1E293B" BorderThickness="1">
+                                <Border Background="#0F172A" CornerRadius="6" Padding="8" Margin="2" BorderBrush="#D97706" BorderThickness="1.5">
                                     <StackPanel>
-                                        <TextBlock Text="OFFICE &amp; PDF SUITES" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
+                                        <TextBlock Text="OFFICE &amp; PDF SUITES" FontWeight="Bold" Foreground="#FBBF24" Margin="0,0,0,4"/>
                                         <CheckBox Name="chkAppAdobeReader" Content="Adobe Acrobat Reader 64-bit" IsChecked="True"/>
                                         <CheckBox Name="chkAppFoxit" Content="Foxit PDF Reader"/>
                                         <CheckBox Name="chkAppSumatra" Content="SumatraPDF (Ultra-Light)"/>
@@ -548,7 +548,7 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
                     </ScrollViewer>
 
                     <!-- App Store Preset Bar & Install Action -->
-                    <Border Grid.Row="1" Background="#0F172A" CornerRadius="5" Padding="8" BorderBrush="#1E293B" BorderThickness="1">
+                    <Border Grid.Row="1" Background="#0F172A" CornerRadius="6" Padding="8" BorderBrush="#059669" BorderThickness="1.5">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
@@ -557,11 +557,11 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
                             </Grid.ColumnDefinitions>
                             <StackPanel Grid.Column="0" Orientation="Horizontal">
                                 <TextBlock Text="Quick Presets: " Foreground="#94A3B8" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                                <Button Name="btnPresetAppEssentials" Content="Essentials" Background="#059669" Width="85" Margin="0,0,4,0"/>
-                                <Button Name="btnPresetAppMS" Content="Microsoft Suite" Background="#0284C7" Width="105" Margin="0,0,4,0"/>
-                                <Button Name="btnPresetAppDev" Content="Dev Bundle" Background="#4F46E5" Width="90" Margin="0,0,4,0"/>
-                                <Button Name="btnSelectAllApps" Content="Select All" Background="#334155" Width="75" Margin="0,0,4,0"/>
-                                <Button Name="btnClearAllApps" Content="Clear All" Background="#DC2626" Width="70"/>
+                                <Button Name="btnPresetAppEssentials" Content="Essentials" Background="#059669" FontWeight="Bold" Width="85" Margin="0,0,4,0"/>
+                                <Button Name="btnPresetAppMS" Content="Microsoft Suite" Background="#0284C7" FontWeight="Bold" Width="105" Margin="0,0,4,0"/>
+                                <Button Name="btnPresetAppDev" Content="Dev Bundle" Background="#4F46E5" FontWeight="Bold" Width="90" Margin="0,0,4,0"/>
+                                <Button Name="btnSelectAllApps" Content="Select All" Background="#334155" FontWeight="Bold" Width="75" Margin="0,0,4,0"/>
+                                <Button Name="btnClearAllApps" Content="Clear All" Background="#DC2626" FontWeight="Bold" Width="70"/>
                             </StackPanel>
                             <Button Name="btnInstallSelectedApps" Grid.Column="2" Content="Install Selected Apps (WinGet Engine)" Background="#059669" FontWeight="Bold" Width="260" Height="30"/>
                         </Grid>
@@ -574,7 +574,7 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
                 <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="8">
                     <StackPanel>
                         <!-- FEATURES SECTION -->
-                        <Border Background="#0F172A" CornerRadius="5" Padding="10" Margin="0,0,0,8" BorderBrush="#1E293B" BorderThickness="1">
+                        <Border Background="#0F172A" CornerRadius="6" Padding="10" Margin="0,0,0,8" BorderBrush="#0284C7" BorderThickness="1.5">
                             <StackPanel>
                                 <TextBlock Text="Features" FontSize="13" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,6"/>
                                 <CheckBox Name="chkFeatNetFx" Content=".NET Framework (Versions 2, 3, 4) - Enable (?)"/>
@@ -592,15 +592,15 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
                         </Border>
 
                         <!-- FIXES SECTION -->
-                        <Border Background="#0F172A" CornerRadius="5" Padding="10" Margin="0,0,0,8" BorderBrush="#1E293B" BorderThickness="1">
+                        <Border Background="#0F172A" CornerRadius="6" Padding="10" Margin="0,0,0,8" BorderBrush="#10B981" BorderThickness="1.5">
                             <StackPanel>
                                 <TextBlock Text="Fixes" FontSize="13" FontWeight="Bold" Foreground="#10B981" Margin="0,0,0,6"/>
-                                <Button Name="btnFixAutoLogon" Content="AutoLogon - Run" Margin="0,2" Height="30" HorizontalContentAlignment="Center"/>
-                                <Button Name="btnFixNetworkReset" Content="Network - Reset" Margin="0,2" Height="30" HorizontalContentAlignment="Center"/>
-                                <Button Name="btnFixNTPServer" Content="NTP Server - Enable" Margin="0,2" Height="30" HorizontalContentAlignment="Center"/>
-                                <Button Name="btnFixSystemCorruption" Content="System Corruption Scan - Run" Margin="0,2" Height="30" HorizontalContentAlignment="Center"/>
-                                <Button Name="btnFixWindowsUpdate" Content="Windows Update - Reset" Margin="0,2" Height="30" HorizontalContentAlignment="Center"/>
-                                <Button Name="btnFixReinstallWinget" Content="WinGet - Reinstall" Margin="0,2" Height="30" HorizontalContentAlignment="Center"/>
+                                <Button Name="btnFixAutoLogon" Content="AutoLogon - Run" Margin="0,2" Height="30" Background="#059669" FontWeight="Bold" HorizontalContentAlignment="Center"/>
+                                <Button Name="btnFixNetworkReset" Content="Network - Reset" Margin="0,2" Height="30" Background="#0284C7" FontWeight="Bold" HorizontalContentAlignment="Center"/>
+                                <Button Name="btnFixNTPServer" Content="NTP Server - Enable" Margin="0,2" Height="30" Background="#D97706" FontWeight="Bold" HorizontalContentAlignment="Center"/>
+                                <Button Name="btnFixSystemCorruption" Content="System Corruption Scan - Run" Margin="0,2" Height="30" Background="#7C3AED" FontWeight="Bold" HorizontalContentAlignment="Center"/>
+                                <Button Name="btnFixWindowsUpdate" Content="Windows Update - Reset" Margin="0,2" Height="30" Background="#0D9488" FontWeight="Bold" HorizontalContentAlignment="Center"/>
+                                <Button Name="btnFixReinstallWinget" Content="WinGet - Reinstall" Margin="0,2" Height="30" Background="#4F46E5" FontWeight="Bold" HorizontalContentAlignment="Center"/>
                             </StackPanel>
                         </Border>
                     </StackPanel>
@@ -614,7 +614,7 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
                         <TextBlock Text="WINDOWS OS CUSTOMIZATION &amp; UNATTENDED ISO SETUP BUILDER" FontSize="12.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,6"/>
 
                         <!-- Official ISO & Creator Tools -->
-                        <Border Background="#0F172A" CornerRadius="5" Padding="10" Margin="0,0,0,8" BorderBrush="#1E293B" BorderThickness="1">
+                        <Border Background="#0F172A" CornerRadius="6" Padding="10" Margin="0,0,0,8" BorderBrush="#10B981" BorderThickness="1.5">
                             <StackPanel>
                                 <TextBlock Text="1. OFFICIAL WINDOWS ISO &amp; BOOTABLE USB CREATOR TOOLS" FontSize="11.5" FontWeight="Bold" Foreground="#10B981" Margin="0,0,0,4"/>
                                 <TextBlock Text="Download genuine official Windows ISOs directly from Microsoft servers and Rufus USB builder tool." FontSize="10" Foreground="#94A3B8" Margin="0,0,0,6"/>
@@ -622,13 +622,13 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
                                     <Button Name="btnCustDownloadWin11" Content="Official Win 11 ISO (Microsoft)" Margin="2" Background="#059669" FontWeight="Bold"/>
                                     <Button Name="btnCustDownloadWin10" Content="Official Win 10 ISO (Microsoft)" Margin="2" Background="#0284C7" FontWeight="Bold"/>
                                     <Button Name="btnCustDownloadRufus" Content="Download Rufus (USB Tool)" Margin="2" Background="#D97706" FontWeight="Bold"/>
-                                    <Button Name="btnCustOpenFido" Content="Download Fido / UUPDump ISO" Margin="2" Background="#475569"/>
+                                    <Button Name="btnCustOpenFido" Content="Download Fido / UUPDump ISO" Margin="2" Background="#7C3AED" FontWeight="Bold"/>
                                 </UniformGrid>
                             </StackPanel>
                         </Border>
 
                         <!-- Unattended Setup & Bypass Configurator -->
-                        <Border Background="#0F172A" CornerRadius="5" Padding="10" Margin="0,0,0,8" BorderBrush="#1E293B" BorderThickness="1">
+                        <Border Background="#0F172A" CornerRadius="6" Padding="10" Margin="0,0,0,8" BorderBrush="#0284C7" BorderThickness="1.5">
                             <StackPanel>
                                 <TextBlock Text="2. UNATTENDED SETUP &amp; BYPASS ANSWER FILE (autounattend.xml)" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
                                 <TextBlock Text="Configure automated answer file to bypass Microsoft Account (MSA), bypass TPM/SecureBoot/RAM checks, and auto-create local user." FontSize="10" Foreground="#94A3B8" Margin="0,0,0,6"/>
@@ -670,20 +670,20 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
                                     </Grid.ColumnDefinitions>
                                     <TextBlock Grid.Column="0" Text="Target USB / Drive:" VerticalAlignment="Center" Margin="0,0,8,0" Foreground="#F8FAFC" FontWeight="Bold"/>
                                     <ComboBox Name="cmbCustTargetDrive" Grid.Column="1" Height="26" Margin="0,0,6,0" Background="#0F172A" Foreground="#F8FAFC"/>
-                                    <Button Name="btnCustRefreshDrives" Grid.Column="2" Content="Refresh Drives" Width="100" Height="26" Background="#334155" Margin="0,0,6,0"/>
+                                    <Button Name="btnCustRefreshDrives" Grid.Column="2" Content="Refresh Drives" Width="100" Height="26" Background="#0891B2" FontWeight="Bold" Margin="0,0,6,0"/>
                                     <Button Name="btnGenerateAutounattend" Grid.Column="3" Content="Generate &amp; Save autounattend.xml" Width="220" Height="26" Background="#059669" FontWeight="Bold"/>
                                 </Grid>
                             </StackPanel>
                         </Border>
 
                         <!-- Live OOBE Bypass & Rufus Helper -->
-                        <Border Background="#0F172A" CornerRadius="5" Padding="10" BorderBrush="#1E293B" BorderThickness="1">
+                        <Border Background="#0F172A" CornerRadius="6" Padding="10" BorderBrush="#DC2626" BorderThickness="1.5">
                             <StackPanel>
-                                <TextBlock Text="3. LIVE SETUP (OOBE) BYPASS &amp; RUFUS INTEGRATION" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
+                                <TextBlock Text="3. LIVE SETUP (OOBE) BYPASS &amp; RUFUS INTEGRATION" FontSize="11.5" FontWeight="Bold" Foreground="#F87171" Margin="0,0,0,4"/>
                                 <TextBlock Text="If currently stuck on Windows 11 'Let's connect you to a network' setup screen, run live bypass command." FontSize="10" Foreground="#94A3B8" Margin="0,0,0,6"/>
                                 <UniformGrid Columns="2">
-                                    <Button Name="btnRunLiveOOBEBypass" Content="Execute Live OOBE Network Bypass (oobe\bypassnro)" Margin="2" Height="30" Background="#0284C7" FontWeight="Bold"/>
-                                    <Button Name="btnLaunchRufus" Content="Launch Rufus USB Builder with Recommended Config" Margin="2" Height="30" Background="#334155"/>
+                                    <Button Name="btnRunLiveOOBEBypass" Content="Execute Live OOBE Network Bypass (oobe\bypassnro)" Margin="2" Height="30" Background="#DC2626" FontWeight="Bold"/>
+                                    <Button Name="btnLaunchRufus" Content="Launch Rufus USB Builder with Recommended Config" Margin="2" Height="30" Background="#0284C7" FontWeight="Bold"/>
                                 </UniformGrid>
                             </StackPanel>
                         </Border>
@@ -698,15 +698,15 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
                         <TextBlock Text="ADVANCED TECHNICIAN POWER TOOLS &amp; CONTROLLERS" FontSize="12.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,6"/>
 
                         <!-- Windows Defender & Security Control -->
-                        <Border Background="#0F172A" CornerRadius="5" Padding="10" Margin="0,0,0,8" BorderBrush="#1E293B" BorderThickness="1">
+                        <Border Background="#0F172A" CornerRadius="6" Padding="10" Margin="0,0,0,8" BorderBrush="#DC2626" BorderThickness="1.5">
                             <StackPanel>
-                                <TextBlock Text="WINDOWS DEFENDER &amp; SECURITY CONTROLS" FontSize="11.5" FontWeight="Bold" Foreground="#10B981" Margin="0,0,0,4"/>
+                                <TextBlock Text="WINDOWS DEFENDER &amp; SECURITY CONTROLS" FontSize="11.5" FontWeight="Bold" Foreground="#F87171" Margin="0,0,0,4"/>
                                 <TextBlock Text="Temporarily pause/enable Defender real-time monitoring or clear false-positive protection cache." FontSize="10" Foreground="#94A3B8" Margin="0,0,0,6"/>
                                 <UniformGrid Columns="4">
                                     <Button Name="btnPauseDefender" Content="Pause Realtime Defender" Margin="2" Background="#DC2626" FontWeight="Bold"/>
                                     <Button Name="btnEnableDefender" Content="Enable Realtime Defender" Margin="2" Background="#059669" FontWeight="Bold"/>
-                                    <Button Name="btnClearDefenderCache" Content="Clear Protection History" Margin="2" Background="#0284C7"/>
-                                    <Button Name="btnDisableSmartScreen2" Content="Disable SmartScreen Warnings" Margin="2" Background="#D97706"/>
+                                    <Button Name="btnClearDefenderCache" Content="Clear Protection History" Margin="2" Background="#0284C7" FontWeight="Bold"/>
+                                    <Button Name="btnDisableSmartScreen2" Content="Disable SmartScreen Warnings" Margin="2" Background="#D97706" FontWeight="Bold"/>
                                 </UniformGrid>
                             </StackPanel>
                         </Border>
@@ -718,41 +718,41 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
 
-                            <Border Grid.Column="0" Background="#0F172A" CornerRadius="5" Padding="10" Margin="0,0,4,0" BorderBrush="#1E293B" BorderThickness="1">
+                            <Border Grid.Column="0" Background="#0F172A" CornerRadius="6" Padding="10" Margin="0,0,4,0" BorderBrush="#059669" BorderThickness="1.5">
                                 <StackPanel>
-                                    <TextBlock Text="PRINTER SPOOLER RECOVERY" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
+                                    <TextBlock Text="PRINTER SPOOLER RECOVERY" FontSize="11.5" FontWeight="Bold" Foreground="#34D399" Margin="0,0,0,4"/>
                                     <TextBlock Text="Purge stuck print queue &amp; cycle Spooler engine." FontSize="10" Foreground="#94A3B8" Margin="0,0,0,6"/>
                                     <Button Name="btnFixPrinterSpooler" Content="1-Click Clear Stuck Print Jobs &amp; Restart Spooler" Height="30" Background="#059669" FontWeight="Bold"/>
                                 </StackPanel>
                             </Border>
 
-                            <Border Grid.Column="1" Background="#0F172A" CornerRadius="5" Padding="10" Margin="4,0,0,0" BorderBrush="#1E293B" BorderThickness="1">
+                            <Border Grid.Column="1" Background="#0F172A" CornerRadius="6" Padding="10" Margin="4,0,0,0" BorderBrush="#7C3AED" BorderThickness="1.5">
                                 <StackPanel>
-                                    <TextBlock Text="ONEDRIVE &amp; COPILOT / RECALL AI" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
+                                    <TextBlock Text="ONEDRIVE &amp; COPILOT / RECALL AI" FontSize="11.5" FontWeight="Bold" Foreground="#A78BFA" Margin="0,0,0,4"/>
                                     <TextBlock Text="Remove OneDrive completely or disable AI telemetry." FontSize="10" Foreground="#94A3B8" Margin="0,0,0,6"/>
                                     <UniformGrid Columns="2">
                                         <Button Name="btnRemoveOneDrive" Content="Uninstall OneDrive" Height="30" Margin="2" Background="#7F1D1D" FontWeight="Bold"/>
-                                        <Button Name="btnDisableCopilotRecall" Content="Disable Copilot &amp; Recall" Height="30" Margin="2" Background="#1E3A8A" FontWeight="Bold"/>
+                                        <Button Name="btnDisableCopilotRecall" Content="Disable Copilot &amp; Recall" Height="30" Margin="2" Background="#1E40AF" FontWeight="Bold"/>
                                     </UniformGrid>
                                 </StackPanel>
                             </Border>
                         </Grid>
 
                         <!-- Laptop Battery, Hibernation & Windows Explorer Quick Boost -->
-                        <Border Background="#0F172A" CornerRadius="5" Padding="10" Margin="0,0,0,8" BorderBrush="#1E293B" BorderThickness="1">
+                        <Border Background="#0F172A" CornerRadius="6" Padding="10" Margin="0,0,0,8" BorderBrush="#0284C7" BorderThickness="1.5">
                             <StackPanel>
                                 <TextBlock Text="LAPTOP BATTERY, HIBERNATION STORAGE &amp; EXPLORER QUICK RESTART" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
                                 <UniformGrid Columns="4">
                                     <Button Name="btnDisableHibernation" Content="Disable Hibernation (Free 4-32GB)" Margin="2" Background="#059669" FontWeight="Bold"/>
-                                    <Button Name="btnEnableHibernation" Content="Enable Hibernation" Margin="2" Background="#334155"/>
+                                    <Button Name="btnEnableHibernation" Content="Enable Hibernation" Margin="2" Background="#0891B2" FontWeight="Bold"/>
                                     <Button Name="btnRestartExplorerQuick" Content="1-Click Restart Explorer.exe" Margin="2" Background="#0284C7" FontWeight="Bold"/>
-                                    <Button Name="btnFixRecycleBinQuick" Content="Fix Corrupted Recycle Bin" Margin="2" Background="#D97706"/>
+                                    <Button Name="btnFixRecycleBinQuick" Content="Fix Corrupted Recycle Bin" Margin="2" Background="#D97706" FontWeight="Bold"/>
                                 </UniformGrid>
                                 <UniformGrid Columns="4" Margin="0,4,0,0">
-                                    <Button Name="btnToggleHiddenFilesQuick" Content="Toggle Hidden Files / Folders" Margin="2"/>
-                                    <Button Name="btnEnableLongPathsQuick" Content="Enable Long Paths (>260 Chars)" Margin="2" Background="#0D9488"/>
-                                    <Button Name="btnListStartupAppsQuick" Content="Inspect Startup Programs" Margin="2"/>
-                                    <Button Name="btnAnalyzeBatteryWear" Content="Battery Life &amp; Wear % Scan" Margin="2" Background="#1E3A8A"/>
+                                    <Button Name="btnToggleHiddenFilesQuick" Content="Toggle Hidden Files / Folders" Margin="2" Background="#6366F1" FontWeight="Bold"/>
+                                    <Button Name="btnEnableLongPathsQuick" Content="Enable Long Paths (>260 Chars)" Margin="2" Background="#0D9488" FontWeight="Bold"/>
+                                    <Button Name="btnListStartupAppsQuick" Content="Inspect Startup Programs" Margin="2" Background="#7C3AED" FontWeight="Bold"/>
+                                    <Button Name="btnAnalyzeBatteryWear" Content="Battery Life &amp; Wear % Scan" Margin="2" Background="#1E40AF" FontWeight="Bold"/>
                                 </UniformGrid>
                             </StackPanel>
                         </Border>
@@ -764,18 +764,18 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
 
-                            <Border Grid.Column="0" Background="#0F172A" CornerRadius="5" Padding="10" Margin="0,0,4,0" BorderBrush="#1E293B" BorderThickness="1">
+                            <Border Grid.Column="0" Background="#0F172A" CornerRadius="6" Padding="10" Margin="0,0,4,0" BorderBrush="#10B981" BorderThickness="1.5">
                                 <StackPanel>
-                                    <TextBlock Text="PC WI-FI HOTSPOT CREATOR" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
+                                    <TextBlock Text="PC WI-FI HOTSPOT CREATOR" FontSize="11.5" FontWeight="Bold" Foreground="#34D399" Margin="0,0,0,4"/>
                                     <TextBlock Text="Turn PC into Hosted Virtual Router (SSID: WindowsTweakerHotspot)." FontSize="10" Foreground="#94A3B8" Margin="0,0,0,6"/>
                                     <UniformGrid Columns="2">
                                         <Button Name="btnStartHotspot" Content="Start Wi-Fi Hotspot" Height="28" Margin="2" Background="#059669" FontWeight="Bold"/>
-                                        <Button Name="btnStopHotspot" Content="Stop Wi-Fi Hotspot" Height="28" Margin="2" Background="#DC2626"/>
+                                        <Button Name="btnStopHotspot" Content="Stop Wi-Fi Hotspot" Height="28" Margin="2" Background="#DC2626" FontWeight="Bold"/>
                                     </UniformGrid>
                                 </StackPanel>
                             </Border>
 
-                            <Border Grid.Column="1" Background="#0F172A" CornerRadius="5" Padding="10" Margin="4,0,0,0" BorderBrush="#1E293B" BorderThickness="1">
+                            <Border Grid.Column="1" Background="#0F172A" CornerRadius="6" Padding="10" Margin="4,0,0,0" BorderBrush="#EF4444" BorderThickness="1.5">
                                 <StackPanel>
                                     <TextBlock Text="PERMANENT FILE SHREDDER (DoD 3-PASS)" FontSize="11.5" FontWeight="Bold" Foreground="#EF4444" Margin="0,0,0,4"/>
                                     <Grid Margin="0,2">
@@ -785,7 +785,7 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
                                             <ColumnDefinition Width="Auto"/>
                                         </Grid.ColumnDefinitions>
                                         <TextBox Name="txtShredFilePath" Grid.Column="0" Height="26" Margin="0,0,4,0" Text="C:\FileToShred.txt"/>
-                                        <Button Name="btnBrowseShredFile" Grid.Column="1" Content="Browse" Width="55" Height="26" Margin="0,0,4,0"/>
+                                        <Button Name="btnBrowseShredFile" Grid.Column="1" Content="Browse" Width="55" Height="26" Background="#334155" FontWeight="Bold" Margin="0,0,4,0"/>
                                         <Button Name="btnExecuteShredFile" Grid.Column="2" Content="Shred Now" Width="85" Height="26" Background="#DC2626" FontWeight="Bold"/>
                                     </Grid>
                                 </StackPanel>
@@ -793,9 +793,9 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
                         </Grid>
 
                         <!-- Device Drivers Quick Actions -->
-                        <Border Background="#0F172A" CornerRadius="5" Padding="10" Margin="0,8,0,0" BorderBrush="#1E293B" BorderThickness="1">
+                        <Border Background="#0F172A" CornerRadius="6" Padding="10" Margin="0,8,0,0" BorderBrush="#6366F1" BorderThickness="1.5">
                             <StackPanel>
-                                <TextBlock Text="DEVICE DRIVERS BACKUP &amp; RESTORE ACTIONS" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
+                                <TextBlock Text="DEVICE DRIVERS BACKUP &amp; RESTORE ACTIONS" FontSize="11.5" FontWeight="Bold" Foreground="#818CF8" Margin="0,0,0,4"/>
                                 <TextBlock Text="Export all installed 3rd-party device drivers (INF) to Desktop or restore/inject drivers." FontSize="10" Foreground="#94A3B8" Margin="0,0,0,6"/>
                                 <UniformGrid Columns="4">
                                     <Button Name="btnExportDriversPT" Content="Export Drivers (Desktop)" Margin="2" Background="#059669" FontWeight="Bold"/>
@@ -816,7 +816,7 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
                         <TextBlock Text="SUPER ADMINISTRATOR &amp; OEM PRODUCT KEY POWER SUITE" FontSize="12.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,6"/>
 
                         <!-- OEM BIOS Product Key Extractor -->
-                        <Border Background="#0F172A" CornerRadius="5" Padding="10" Margin="0,0,0,8" BorderBrush="#1E293B" BorderThickness="1">
+                        <Border Background="#0F172A" CornerRadius="6" Padding="10" Margin="0,0,0,8" BorderBrush="#10B981" BorderThickness="1.5">
                             <StackPanel>
                                 <TextBlock Text="OEM BIOS &amp; DIGITAL PRODUCT KEY EXTRACTOR" FontSize="11.5" FontWeight="Bold" Foreground="#10B981" Margin="0,0,0,4"/>
                                 <TextBlock Text="Extracts OEM License Key embedded in Motherboard BIOS ACPI MSDM tables &amp; Registry Digital Product Key to Desktop." FontSize="10" Foreground="#94A3B8" Margin="0,0,0,6"/>
@@ -825,7 +825,7 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
                         </Border>
 
                         <!-- Take Full Ownership -->
-                        <Border Background="#0F172A" CornerRadius="5" Padding="10" Margin="0,0,0,8" BorderBrush="#1E293B" BorderThickness="1">
+                        <Border Background="#0F172A" CornerRadius="6" Padding="10" Margin="0,0,0,8" BorderBrush="#0284C7" BorderThickness="1.5">
                             <StackPanel>
                                 <TextBlock Text="TAKE FULL ADMINISTRATOR OWNERSHIP &amp; PERMISSIONS" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
                                 <Grid Margin="0,2">
@@ -835,40 +835,40 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
                                     <TextBox Name="txtTakeOwnPath" Grid.Column="0" Height="26" Margin="0,0,4,0" Text="C:\TargetFolderOrFile"/>
-                                    <Button Name="btnBrowseTakeOwn" Grid.Column="1" Content="Browse Folder" Width="100" Height="26" Margin="0,0,4,0"/>
+                                    <Button Name="btnBrowseTakeOwn" Grid.Column="1" Content="Browse Folder" Width="100" Height="26" Background="#334155" FontWeight="Bold" Margin="0,0,4,0"/>
                                     <Button Name="btnExecuteTakeOwn" Grid.Column="2" Content="Grant Full Ownership" Width="140" Height="26" Background="#0284C7" FontWeight="Bold"/>
                                 </Grid>
                             </StackPanel>
                         </Border>
 
                         <!-- Advanced Admin Controls -->
-                        <Border Background="#0F172A" CornerRadius="5" Padding="10" Margin="0,0,0,8" BorderBrush="#1E293B" BorderThickness="1">
+                        <Border Background="#0F172A" CornerRadius="6" Padding="10" Margin="0,0,0,8" BorderBrush="#7C3AED" BorderThickness="1.5">
                             <StackPanel>
-                                <TextBlock Text="SPECIAL PRIVILEGES &amp; SYSTEM OVERRIDES" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
+                                <TextBlock Text="SPECIAL PRIVILEGES &amp; SYSTEM OVERRIDES" FontSize="11.5" FontWeight="Bold" Foreground="#A78BFA" Margin="0,0,0,4"/>
                                 <UniformGrid Columns="3">
-                                    <Button Name="btnEnableSuperAdmin2" Content="Enable Built-in Administrator" Margin="2" Background="#059669"/>
-                                    <Button Name="btnCreateGodMode2" Content="Create GodMode Panel" Margin="2" Background="#D97706"/>
-                                    <Button Name="btnDisableUAC2" Content="Disable UAC Prompts" Margin="2" Background="#DC2626"/>
-                                    <Button Name="btnRebootUEFI" Content="Reboot into UEFI/BIOS" Margin="2" Background="#1E3A8A"/>
-                                    <Button Name="btnPurgeTelemetryTasks" Content="Purge Telemetry Tasks" Margin="2" Background="#0D9488"/>
-                                    <Button Name="btnInstallGPEdit2" Content="Install GPEdit on Win Home" Margin="2" Background="#475569"/>
+                                    <Button Name="btnEnableSuperAdmin2" Content="Enable Built-in Administrator" Margin="2" Background="#059669" FontWeight="Bold"/>
+                                    <Button Name="btnCreateGodMode2" Content="Create GodMode Panel" Margin="2" Background="#D97706" FontWeight="Bold"/>
+                                    <Button Name="btnDisableUAC2" Content="Disable UAC Prompts" Margin="2" Background="#DC2626" FontWeight="Bold"/>
+                                    <Button Name="btnRebootUEFI" Content="Reboot into UEFI/BIOS" Margin="2" Background="#1E40AF" FontWeight="Bold"/>
+                                    <Button Name="btnPurgeTelemetryTasks" Content="Purge Telemetry Tasks" Margin="2" Background="#0D9488" FontWeight="Bold"/>
+                                    <Button Name="btnInstallGPEdit2" Content="Install GPEdit on Win Home" Margin="2" Background="#4F46E5" FontWeight="Bold"/>
                                 </UniformGrid>
                             </StackPanel>
                         </Border>
 
                         <!-- Rename Computer & Force Kill -->
-                        <Border Background="#0F172A" CornerRadius="5" Padding="10" BorderBrush="#1E293B" BorderThickness="1">
+                        <Border Background="#0F172A" CornerRadius="6" Padding="10" BorderBrush="#EF4444" BorderThickness="1.5">
                             <StackPanel>
-                                <TextBlock Text="COMPUTER IDENTITY &amp; PROCESS TERMINATOR" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
+                                <TextBlock Text="COMPUTER IDENTITY &amp; PROCESS TERMINATOR" FontSize="11.5" FontWeight="Bold" Foreground="#F87171" Margin="0,0,0,4"/>
                                 <Grid Margin="0,2,0,4">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto"/>
                                         <ColumnDefinition Width="*"/>
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
-                                    <TextBlock Grid.Column="0" Text="New PC Hostname:" VerticalAlignment="Center" Margin="0,0,8,0" Foreground="#F8FAFC"/>
+                                    <TextBlock Grid.Column="0" Text="New PC Hostname:" VerticalAlignment="Center" Margin="0,0,8,0" Foreground="#F8FAFC" FontWeight="SemiBold"/>
                                     <TextBox Name="txtNewHostName" Grid.Column="1" Height="26" Margin="0,0,4,0" Text="MyFastPC"/>
-                                    <Button Name="btnRenameComputer" Grid.Column="2" Content="Rename Computer" Width="130" Height="26" Background="#0284C7"/>
+                                    <Button Name="btnRenameComputer" Grid.Column="2" Content="Rename Computer" Width="130" Height="26" Background="#0284C7" FontWeight="Bold"/>
                                 </Grid>
                                 <Grid Margin="0,2">
                                     <Grid.ColumnDefinitions>
@@ -877,10 +877,10 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
                                         <ColumnDefinition Width="Auto"/>
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
-                                    <TextBlock Grid.Column="0" Text="Kill Process Name:" VerticalAlignment="Center" Margin="0,0,14,0" Foreground="#F8FAFC"/>
+                                    <TextBlock Grid.Column="0" Text="Kill Process Name:" VerticalAlignment="Center" Margin="0,0,14,0" Foreground="#F8FAFC" FontWeight="SemiBold"/>
                                     <TextBox Name="txtProcessName" Grid.Column="1" Height="26" Margin="0,0,4,0" Text="notepad.exe"/>
-                                    <Button Name="btnKillProcess2" Grid.Column="2" Content="Force Terminate" Width="120" Height="26" Background="#DC2626" Margin="0,0,4,0"/>
-                                    <Button Name="btnRegBackup2" Grid.Column="3" Content="Export Full Registry Backup" Width="170" Height="26" Background="#059669"/>
+                                    <Button Name="btnKillProcess2" Grid.Column="2" Content="Force Terminate" Width="120" Height="26" Background="#DC2626" FontWeight="Bold" Margin="0,0,4,0"/>
+                                    <Button Name="btnRegBackup2" Grid.Column="3" Content="Export Full Registry Backup" Width="170" Height="26" Background="#059669" FontWeight="Bold"/>
                                 </Grid>
                             </StackPanel>
                         </Border>
@@ -893,9 +893,9 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
                 <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="8">
                     <StackPanel>
                         <!-- Gaming Latency & Input Lag -->
-                        <Border Background="#0F172A" CornerRadius="5" Padding="10" Margin="0,0,0,8" BorderBrush="#1E293B" BorderThickness="1">
+                        <Border Background="#0F172A" CornerRadius="6" Padding="10" Margin="0,0,0,8" BorderBrush="#059669" BorderThickness="1.5">
                             <StackPanel>
-                                <TextBlock Text="INPUT LAG &amp; LOW LATENCY GAMING BOOSTERS" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
+                                <TextBlock Text="INPUT LAG &amp; LOW LATENCY GAMING BOOSTERS" FontSize="11.5" FontWeight="Bold" Foreground="#34D399" Margin="0,0,0,4"/>
                                 <TextBlock Text="Maximize mouse sensor tracking, eliminate keyboard typing delay, and configure MSI GPU mode." FontSize="10" Foreground="#94A3B8" Margin="0,0,0,6"/>
                                 <UniformGrid Columns="3">
                                     <Button Name="btnDisableMouseAccel" Content="Disable Mouse Acceleration (1:1 Raw)" Margin="2" Background="#059669" FontWeight="Bold"/>
@@ -906,29 +906,29 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
                         </Border>
 
                         <!-- Hardware Optimization -->
-                        <Border Background="#0F172A" CornerRadius="5" Padding="10" Margin="0,0,0,8" BorderBrush="#1E293B" BorderThickness="1">
+                        <Border Background="#0F172A" CornerRadius="6" Padding="10" Margin="0,0,0,8" BorderBrush="#7C3AED" BorderThickness="1.5">
                             <StackPanel>
-                                <TextBlock Text="CPU &amp; HARDWARE OPTIMIZATION" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
+                                <TextBlock Text="CPU &amp; HARDWARE OPTIMIZATION" FontSize="11.5" FontWeight="Bold" Foreground="#A78BFA" Margin="0,0,0,4"/>
                                 <UniformGrid Columns="3">
-                                    <Button Name="btnUnparkCPU" Content="Unpark All CPU Cores (100% Speed)" Margin="2" Background="#059669"/>
-                                    <Button Name="btnDisableUSBSleep" Content="Disable USB Power Throttling / Sleep" Margin="2" Background="#0284C7"/>
-                                    <Button Name="btnForceTrimSSD" Content="Force Deep NVMe / SSD TRIM" Margin="2" Background="#D97706"/>
-                                    <Button Name="btnEnableHAGS" Content="Enable Hardware GPU Scheduling (HAGS)" Margin="2" Background="#1E3A8A"/>
-                                    <Button Name="btnSmartScan" Content="SMART Physical Drive Health Scan" Margin="2" Background="#475569"/>
-                                    <Button Name="btnRamSpecs" Content="RAM Hardware Specifications" Margin="2" Background="#475569"/>
+                                    <Button Name="btnUnparkCPU" Content="Unpark All CPU Cores (100% Speed)" Margin="2" Background="#059669" FontWeight="Bold"/>
+                                    <Button Name="btnDisableUSBSleep" Content="Disable USB Power Throttling / Sleep" Margin="2" Background="#0284C7" FontWeight="Bold"/>
+                                    <Button Name="btnForceTrimSSD" Content="Force Deep NVMe / SSD TRIM" Margin="2" Background="#D97706" FontWeight="Bold"/>
+                                    <Button Name="btnEnableHAGS" Content="Enable Hardware GPU Scheduling (HAGS)" Margin="2" Background="#1E40AF" FontWeight="Bold"/>
+                                    <Button Name="btnSmartScan" Content="SMART Physical Drive Health Scan" Margin="2" Background="#0D9488" FontWeight="Bold"/>
+                                    <Button Name="btnRamSpecs" Content="RAM Hardware Specifications" Margin="2" Background="#6366F1" FontWeight="Bold"/>
                                 </UniformGrid>
                             </StackPanel>
                         </Border>
 
                         <!-- Diagnostics & Performance -->
-                        <Border Background="#0F172A" CornerRadius="5" Padding="10" BorderBrush="#1E293B" BorderThickness="1">
+                        <Border Background="#0F172A" CornerRadius="6" Padding="10" BorderBrush="#0284C7" BorderThickness="1.5">
                             <StackPanel>
                                 <TextBlock Text="DIAGNOSTICS &amp; BENCHMARKS" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
                                 <UniformGrid Columns="4">
-                                    <Button Name="btnMemDiag" Content="Memory Diagnostic" Margin="2"/>
-                                    <Button Name="btnSpeedTest" Content="Cloudflare Speed Test" Margin="2" Background="#059669"/>
-                                    <Button Name="btnBatteryHealth" Content="Battery Health Report" Margin="2"/>
-                                    <Button Name="btnSysSummary" Content="System Hardware Summary" Margin="2"/>
+                                    <Button Name="btnMemDiag" Content="Memory Diagnostic" Margin="2" Background="#0891B2" FontWeight="Bold"/>
+                                    <Button Name="btnSpeedTest" Content="Cloudflare Speed Test" Margin="2" Background="#059669" FontWeight="Bold"/>
+                                    <Button Name="btnBatteryHealth" Content="Battery Health Report" Margin="2" Background="#D97706" FontWeight="Bold"/>
+                                    <Button Name="btnSysSummary" Content="System Hardware Summary" Margin="2" Background="#7C3AED" FontWeight="Bold"/>
                                 </UniformGrid>
                             </StackPanel>
                         </Border>
@@ -941,40 +941,40 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
                 <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="8">
                     <StackPanel>
                         <!-- 1. SYSTEM SCANS & REPAIRS -->
-                        <Border Background="#0F172A" CornerRadius="5" Padding="10" Margin="0,0,0,8" BorderBrush="#1E293B" BorderThickness="1">
+                        <Border Background="#0F172A" CornerRadius="6" Padding="10" Margin="0,0,0,8" BorderBrush="#0284C7" BorderThickness="1.5">
                             <StackPanel>
-                                <TextBlock Text="SYSTEM SCANS &amp; REPAIRS" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
+                                <TextBlock Text="SYSTEM SCANS &amp; REPAIRS" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,6"/>
                                 <UniformGrid Columns="2">
-                                    <Button Name="btnRunSFC" Content="Run System File Check (sfc /scannow)" Margin="2" HorizontalContentAlignment="Left"/>
-                                    <Button Name="btnDismRestore" Content="Repair Image Health (DISM /RestoreHealth)" Margin="2" HorizontalContentAlignment="Left"/>
-                                    <Button Name="btnDismCheck" Content="Quick Check Image Corruption Status (DISM /CheckHealth)" Margin="2" HorizontalContentAlignment="Left"/>
-                                    <Button Name="btnResetWU" Content="Reset Windows Update Components &amp; Cache" Margin="2" HorizontalContentAlignment="Left"/>
-                                    <Button Name="btnRepairEngines" Content="Repair Windows Native Repair Engines (SFC &amp; DISM Fix)" Margin="2" HorizontalContentAlignment="Left"/>
-                                    <Button Name="btnRegCoreDLLs" Content="Re-Register Core Windows System DLL Libraries (regsvr32)" Margin="2" HorizontalContentAlignment="Left"/>
-                                    <Button Name="btnFlushDNS2" Content="Flush System DNS Resolver Cache" Margin="2" HorizontalContentAlignment="Left"/>
-                                    <Button Name="btnResetWinsock2" Content="Reset Network Winsock Catalog Bindings" Margin="2" HorizontalContentAlignment="Left"/>
-                                    <Button Name="btnResetFirewall2" Content="Reset Windows Firewall Rules to Default" Margin="2" HorizontalContentAlignment="Left"/>
-                                    <Button Name="btnRepairStore" Content="Re-register &amp; Repair Microsoft Store &amp; Default Apps" Margin="2" HorizontalContentAlignment="Left"/>
-                                    <Button Name="btnResetNetworkStack2" Content="Run Comprehensive Network Stack &amp; Adapter Reset" Margin="2" HorizontalContentAlignment="Left"/>
+                                    <Button Name="btnRunSFC" Content="Run System File Check (sfc /scannow)" Margin="2" Background="#0284C7" FontWeight="Bold" HorizontalContentAlignment="Left"/>
+                                    <Button Name="btnDismRestore" Content="Repair Image Health (DISM /RestoreHealth)" Margin="2" Background="#059669" FontWeight="Bold" HorizontalContentAlignment="Left"/>
+                                    <Button Name="btnDismCheck" Content="Quick Check Image Corruption Status (DISM /CheckHealth)" Margin="2" Background="#0891B2" HorizontalContentAlignment="Left"/>
+                                    <Button Name="btnResetWU" Content="Reset Windows Update Components &amp; Cache" Margin="2" Background="#D97706" FontWeight="Bold" HorizontalContentAlignment="Left"/>
+                                    <Button Name="btnRepairEngines" Content="Repair Windows Native Repair Engines (SFC &amp; DISM Fix)" Margin="2" Background="#6366F1" HorizontalContentAlignment="Left"/>
+                                    <Button Name="btnRegCoreDLLs" Content="Re-Register Core Windows System DLL Libraries (regsvr32)" Margin="2" Background="#7C3AED" HorizontalContentAlignment="Left"/>
+                                    <Button Name="btnFlushDNS2" Content="Flush System DNS Resolver Cache" Margin="2" Background="#0D9488" HorizontalContentAlignment="Left"/>
+                                    <Button Name="btnResetWinsock2" Content="Reset Network Winsock Catalog Bindings" Margin="2" Background="#2563EB" HorizontalContentAlignment="Left"/>
+                                    <Button Name="btnResetFirewall2" Content="Reset Windows Firewall Rules to Default" Margin="2" Background="#DC2626" HorizontalContentAlignment="Left"/>
+                                    <Button Name="btnRepairStore" Content="Re-register &amp; Repair Microsoft Store &amp; Default Apps" Margin="2" Background="#059669" HorizontalContentAlignment="Left"/>
+                                    <Button Name="btnResetNetworkStack2" Content="Run Comprehensive Network Stack &amp; Adapter Reset" Margin="2" Background="#9333EA" FontWeight="Bold" HorizontalContentAlignment="Left"/>
                                 </UniformGrid>
                             </StackPanel>
                         </Border>
 
                         <!-- 2. SYSTEM RECOVERY & BOOT MANAGEMENT -->
-                        <Border Background="#0F172A" CornerRadius="5" Padding="10" Margin="0,0,0,8" BorderBrush="#1E293B" BorderThickness="1">
+                        <Border Background="#0F172A" CornerRadius="6" Padding="10" Margin="0,0,0,8" BorderBrush="#10B981" BorderThickness="1.5">
                             <StackPanel>
-                                <TextBlock Text="SYSTEM RECOVERY &amp; BOOT MANAGEMENT" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
+                                <TextBlock Text="SYSTEM RECOVERY &amp; BOOT MANAGEMENT" FontSize="11.5" FontWeight="Bold" Foreground="#34D399" Margin="0,0,0,6"/>
                                 <UniformGrid Columns="2">
-                                    <Button Name="btnEnableWinRE" Content="Enable Windows Recovery Environment (WinRE)" Margin="2" HorizontalContentAlignment="Left"/>
-                                    <Button Name="btnCheckWinRE" Content="Check WinRE Environment Configuration Status" Margin="2" HorizontalContentAlignment="Left"/>
+                                    <Button Name="btnEnableWinRE" Content="Enable Windows Recovery Environment (WinRE)" Margin="2" Background="#059669" FontWeight="Bold" HorizontalContentAlignment="Left"/>
+                                    <Button Name="btnCheckWinRE" Content="Check WinRE Environment Configuration Status" Margin="2" Background="#0284C7" HorizontalContentAlignment="Left"/>
                                 </UniformGrid>
                             </StackPanel>
                         </Border>
 
                         <!-- 3. MICROSOFT OFFICE & OUTLOOK DIAGNOSTICS & REPAIRS -->
-                        <Border Background="#0F172A" CornerRadius="5" Padding="10" Margin="0,0,0,8" BorderBrush="#1E293B" BorderThickness="1">
+                        <Border Background="#0F172A" CornerRadius="6" Padding="10" Margin="0,0,0,8" BorderBrush="#0EA5E9" BorderThickness="1.5">
                             <StackPanel>
-                                <TextBlock Text="MICROSOFT OFFICE &amp; OUTLOOK DIAGNOSTICS &amp; REPAIRS" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
+                                <TextBlock Text="MICROSOFT OFFICE &amp; OUTLOOK DIAGNOSTICS &amp; REPAIRS" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,6"/>
                                 <UniformGrid Columns="2" Margin="0,0,0,4">
                                     <Button Name="btnOfficeQuickRepair" Content="Run Microsoft Office Quick Repair (Click-to-Run)" Margin="2" Background="#0284C7" FontWeight="Bold" HorizontalContentAlignment="Left"/>
                                     <Button Name="btnLaunchScanPST" Content="Launch Outlook PST File Repair Tool (ScanPST)" Margin="2" Background="#0D9488" FontWeight="Bold" HorizontalContentAlignment="Left"/>
@@ -986,56 +986,56 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
                                     </Grid.ColumnDefinitions>
                                     <TextBlock Grid.Column="0" Text="Launch Safe Mode:" VerticalAlignment="Center" FontWeight="SemiBold" Foreground="#94A3B8" Margin="0,0,8,0"/>
                                     <UniformGrid Grid.Column="1" Columns="4">
-                                        <Button Name="btnSafeWord" Content="Word" Margin="2" Background="#1E3A8A"/>
-                                        <Button Name="btnSafeExcel" Content="Excel" Margin="2" Background="#065F46"/>
-                                        <Button Name="btnSafePPT" Content="PPT" Margin="2" Background="#9A3412"/>
-                                        <Button Name="btnSafeOutlook" Content="Outlook" Margin="2" Background="#0369A1"/>
+                                        <Button Name="btnSafeWord" Content="Word" Margin="2" Background="#1E40AF" FontWeight="Bold"/>
+                                        <Button Name="btnSafeExcel" Content="Excel" Margin="2" Background="#065F46" FontWeight="Bold"/>
+                                        <Button Name="btnSafePPT" Content="PPT" Margin="2" Background="#C2410C" FontWeight="Bold"/>
+                                        <Button Name="btnSafeOutlook" Content="Outlook" Margin="2" Background="#0369A1" FontWeight="Bold"/>
                                     </UniformGrid>
                                 </Grid>
                             </StackPanel>
                         </Border>
 
                         <!-- 4. WINDOWS BOOT SECTOR & EFI REPAIR -->
-                        <Border Background="#0F172A" CornerRadius="5" Padding="10" Margin="0,0,0,8" BorderBrush="#1E293B" BorderThickness="1">
+                        <Border Background="#0F172A" CornerRadius="6" Padding="10" Margin="0,0,0,8" BorderBrush="#EF4444" BorderThickness="1.5">
                             <StackPanel>
-                                <TextBlock Text="WINDOWS BOOT SECTOR &amp; EFI REPAIR" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
+                                <TextBlock Text="WINDOWS BOOT SECTOR &amp; EFI REPAIR" FontSize="11.5" FontWeight="Bold" Foreground="#F87171" Margin="0,0,0,6"/>
                                 <UniformGrid Columns="2">
-                                    <Button Name="btnRebuildBCD" Content="Rebuild Windows Boot configuration partition files (BCDBoot)" Margin="2" HorizontalContentAlignment="Left"/>
-                                    <Button Name="btnRebootRecovery" Content="Reboot System directly into Startup Repair / Recovery Menu" Margin="2" Background="#DC2626" HorizontalContentAlignment="Left"/>
-                                    <Button Name="btnEnableBootFailures" Content="Enable Windows Boot Failures Menu Display Policy" Margin="2" HorizontalContentAlignment="Left"/>
-                                    <Button Name="btnScheduleChkdsk" Content="Schedule Boot-Time Disk Volume Scan &amp; Repair (Chkdsk /f /r)" Margin="2" HorizontalContentAlignment="Left"/>
+                                    <Button Name="btnRebuildBCD" Content="Rebuild Windows Boot configuration partition files (BCDBoot)" Margin="2" Background="#D97706" FontWeight="Bold" HorizontalContentAlignment="Left"/>
+                                    <Button Name="btnRebootRecovery" Content="Reboot System directly into Startup Repair / Recovery Menu" Margin="2" Background="#DC2626" FontWeight="Bold" HorizontalContentAlignment="Left"/>
+                                    <Button Name="btnEnableBootFailures" Content="Enable Windows Boot Failures Menu Display Policy" Margin="2" Background="#6366F1" HorizontalContentAlignment="Left"/>
+                                    <Button Name="btnScheduleChkdsk" Content="Schedule Boot-Time Disk Volume Scan &amp; Repair (Chkdsk /f /r)" Margin="2" Background="#059669" FontWeight="Bold" HorizontalContentAlignment="Left"/>
                                 </UniformGrid>
                             </StackPanel>
                         </Border>
 
                         <!-- 5. PRINTER SERVICE & SHARING REPAIRS -->
-                        <Border Background="#0F172A" CornerRadius="5" Padding="10" Margin="0,0,0,8" BorderBrush="#1E293B" BorderThickness="1">
+                        <Border Background="#0F172A" CornerRadius="6" Padding="10" Margin="0,0,0,8" BorderBrush="#F59E0B" BorderThickness="1.5">
                             <StackPanel>
-                                <TextBlock Text="PRINTER SERVICE &amp; SHARING REPAIRS" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
+                                <TextBlock Text="PRINTER SERVICE &amp; SHARING REPAIRS" FontSize="11.5" FontWeight="Bold" Foreground="#FBBF24" Margin="0,0,0,6"/>
                                 <UniformGrid Columns="2">
-                                    <Button Name="btnFixPrinter0x11b" Content="Fix Shared Printer Error 0x0000011b (Set RpcAuthnLevelPrivacyEnabled=0)" Margin="2" HorizontalContentAlignment="Left"/>
-                                    <Button Name="btnConfigPrinterGPO" Content="Configure Group Policy Printer Sharing &amp; RPC Connection Settings" Margin="2" HorizontalContentAlignment="Left"/>
-                                    <Button Name="btnEnableLPD" Content="Enable Windows LPD Print Service &amp; LPR Port Monitor Optional Features" Margin="2" HorizontalContentAlignment="Left"/>
-                                    <Button Name="btnRestartPrinterServices" Content="Restart Network Discovery &amp; Printer Sharing Dependency Services" Margin="2" HorizontalContentAlignment="Left"/>
-                                    <Button Name="btnFlushPrintSpooler" Content="Flush Print Spooler Service &amp; Clear Pending Queue" Margin="2" Background="#059669" HorizontalContentAlignment="Left"/>
-                                    <Button Name="btnLaunchPrinterDiag" Content="Launch Native Windows Printer Troubleshooter Diagnostic Wizard" Margin="2" HorizontalContentAlignment="Left"/>
+                                    <Button Name="btnFixPrinter0x11b" Content="Fix Shared Printer Error 0x0000011b (Set RpcAuthnLevelPrivacyEnabled=0)" Margin="2" Background="#0284C7" FontWeight="Bold" HorizontalContentAlignment="Left"/>
+                                    <Button Name="btnConfigPrinterGPO" Content="Configure Group Policy Printer Sharing &amp; RPC Connection Settings" Margin="2" Background="#6366F1" HorizontalContentAlignment="Left"/>
+                                    <Button Name="btnEnableLPD" Content="Enable Windows LPD Print Service &amp; LPR Port Monitor Optional Features" Margin="2" Background="#0D9488" HorizontalContentAlignment="Left"/>
+                                    <Button Name="btnRestartPrinterServices" Content="Restart Network Discovery &amp; Printer Sharing Dependency Services" Margin="2" Background="#D97706" HorizontalContentAlignment="Left"/>
+                                    <Button Name="btnFlushPrintSpooler" Content="Flush Print Spooler Service &amp; Clear Pending Queue" Margin="2" Background="#059669" FontWeight="Bold" HorizontalContentAlignment="Left"/>
+                                    <Button Name="btnLaunchPrinterDiag" Content="Launch Native Windows Printer Troubleshooter Diagnostic Wizard" Margin="2" Background="#0891B2" HorizontalContentAlignment="Left"/>
                                 </UniformGrid>
                             </StackPanel>
                         </Border>
 
                         <!-- 6. LOSSLESS DRIVE & DISK STYLE CONVERTERS -->
-                        <Border Background="#0F172A" CornerRadius="5" Padding="10" Margin="0,0,0,8" BorderBrush="#1E293B" BorderThickness="1">
+                        <Border Background="#0F172A" CornerRadius="6" Padding="10" Margin="0,0,0,8" BorderBrush="#8B5CF6" BorderThickness="1.5">
                             <StackPanel>
-                                <TextBlock Text="LOSSLESS DRIVE &amp; DISK STYLE CONVERTERS" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
+                                <TextBlock Text="LOSSLESS DRIVE &amp; DISK STYLE CONVERTERS" FontSize="11.5" FontWeight="Bold" Foreground="#A78BFA" Margin="0,0,0,6"/>
                                 <Grid Margin="0,2,0,4">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto"/>
                                         <ColumnDefinition Width="*"/>
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
-                                    <TextBlock Grid.Column="0" Text="FAT32 Drive Letter:" VerticalAlignment="Center" Margin="0,0,8,0" Foreground="#F8FAFC"/>
+                                    <TextBlock Grid.Column="0" Text="FAT32 Drive Letter:" VerticalAlignment="Center" Margin="0,0,8,0" Foreground="#F8FAFC" FontWeight="SemiBold"/>
                                     <ComboBox Name="cmbDriveLetter" Grid.Column="1" Height="26" Margin="0,0,4,0" Background="#0F172A" Foreground="#F8FAFC"/>
-                                    <Button Name="btnConvertNTFS" Grid.Column="2" Content="Convert to NTFS" Width="140" Height="26" Background="#0284C7"/>
+                                    <Button Name="btnConvertNTFS" Grid.Column="2" Content="Convert to NTFS" Width="140" Height="26" Background="#0284C7" FontWeight="Bold"/>
                                 </Grid>
                                 <Grid Margin="0,2">
                                     <Grid.ColumnDefinitions>
@@ -1043,60 +1043,60 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
                                         <ColumnDefinition Width="*"/>
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
-                                    <TextBlock Grid.Column="0" Text="Disk ID (MBR):" VerticalAlignment="Center" Margin="0,0,28,0" Foreground="#F8FAFC"/>
+                                    <TextBlock Grid.Column="0" Text="Disk ID (MBR):" VerticalAlignment="Center" Margin="0,0,28,0" Foreground="#F8FAFC" FontWeight="SemiBold"/>
                                     <ComboBox Name="cmbDiskID" Grid.Column="1" Height="26" Margin="0,0,4,0" Background="#0F172A" Foreground="#F8FAFC"/>
-                                    <Button Name="btnConvertGPT" Grid.Column="2" Content="Convert MBR to GPT" Width="140" Height="26" Background="#D97706"/>
+                                    <Button Name="btnConvertGPT" Grid.Column="2" Content="Convert MBR to GPT" Width="140" Height="26" Background="#D97706" FontWeight="Bold"/>
                                 </Grid>
                             </StackPanel>
                         </Border>
 
                         <!-- 7. SYSTEM CLEANERS & CACHE OPTIMIZERS -->
-                        <Border Background="#0F172A" CornerRadius="5" Padding="10" Margin="0,0,0,8" BorderBrush="#1E293B" BorderThickness="1">
+                        <Border Background="#0F172A" CornerRadius="6" Padding="10" Margin="0,0,0,8" BorderBrush="#059669" BorderThickness="1.5">
                             <StackPanel>
-                                <TextBlock Text="SYSTEM CLEANERS &amp; CACHE OPTIMIZERS" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
+                                <TextBlock Text="SYSTEM CLEANERS &amp; CACHE OPTIMIZERS" FontSize="11.5" FontWeight="Bold" Foreground="#34D399" Margin="0,0,0,6"/>
                                 <UniformGrid Columns="2">
-                                    <Button Name="btnFlushRAMCache" Content="Optimize &amp; Flush System RAM Cache (Empty Process Working Sets)" Margin="2" HorizontalContentAlignment="Left"/>
-                                    <Button Name="btnCleanBrowserCache" Content="Clean Web Browser Cache &amp; Temp Files (Chrome, Edge, Firefox)" Margin="2" HorizontalContentAlignment="Left"/>
-                                    <Button Name="btnFindLargestFiles" Content="Find Top 20 Largest Files on C:" Margin="2" HorizontalContentAlignment="Left"/>
-                                    <Button Name="btnPurgeWinSxSComponent" Content="Deep Clean WinSxS (DISM ResetBase)" Margin="2" HorizontalContentAlignment="Left"/>
-                                    <Button Name="btnPurgeWindowsOld" Content="Purge Windows.old &amp; Shader Cache" Margin="2" HorizontalContentAlignment="Left"/>
-                                    <Button Name="btnRebuildSearchIndex" Content="Rebuild Windows Search Index Database" Margin="2" HorizontalContentAlignment="Left"/>
+                                    <Button Name="btnFlushRAMCache" Content="Optimize &amp; Flush System RAM Cache (Empty Process Working Sets)" Margin="2" Background="#059669" FontWeight="Bold" HorizontalContentAlignment="Left"/>
+                                    <Button Name="btnCleanBrowserCache" Content="Clean Web Browser Cache &amp; Temp Files (Chrome, Edge, Firefox)" Margin="2" Background="#0D9488" HorizontalContentAlignment="Left"/>
+                                    <Button Name="btnFindLargestFiles" Content="Find Top 20 Largest Files on C:" Margin="2" Background="#0284C7" HorizontalContentAlignment="Left"/>
+                                    <Button Name="btnPurgeWinSxSComponent" Content="Deep Clean WinSxS (DISM ResetBase)" Margin="2" Background="#7C3AED" FontWeight="Bold" HorizontalContentAlignment="Left"/>
+                                    <Button Name="btnPurgeWindowsOld" Content="Purge Windows.old &amp; Shader Cache" Margin="2" Background="#DC2626" HorizontalContentAlignment="Left"/>
+                                    <Button Name="btnRebuildSearchIndex" Content="Rebuild Windows Search Index Database" Margin="2" Background="#D97706" HorizontalContentAlignment="Left"/>
                                 </UniformGrid>
                             </StackPanel>
                         </Border>
 
                         <!-- 8. WINDOWS SERVICES & SHIELD REPAIRS -->
-                        <Border Background="#0F172A" CornerRadius="5" Padding="10" Margin="0,0,0,8" BorderBrush="#1E293B" BorderThickness="1">
+                        <Border Background="#0F172A" CornerRadius="6" Padding="10" Margin="0,0,0,8" BorderBrush="#6366F1" BorderThickness="1.5">
                             <StackPanel>
-                                <TextBlock Text="WINDOWS SERVICES &amp; SHIELD REPAIRS" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
+                                <TextBlock Text="WINDOWS SERVICES &amp; SHIELD REPAIRS" FontSize="11.5" FontWeight="Bold" Foreground="#818CF8" Margin="0,0,0,6"/>
                                 <Button Name="btnRepairWUServiceComprehensive" Content="Run Comprehensive Windows Update Service &amp; Cache Repair Engine" Margin="2" Height="28" Background="#0284C7" FontWeight="Bold" HorizontalContentAlignment="Center"/>
                                 <UniformGrid Columns="2" Margin="0,2">
                                     <Button Name="btnBlockWinUpdates" Content="Disable &amp; Block Windows Updates" Height="28" Margin="2" Background="#DC2626" FontWeight="Bold"/>
                                     <Button Name="btnEnableWinUpdates" Content="Restore &amp; Enable Windows Updates" Height="28" Margin="2" Background="#059669" FontWeight="Bold"/>
                                 </UniformGrid>
                                 <UniformGrid Columns="2">
-                                    <Button Name="btnResetDefenderPolicies" Content="Reset Windows Defender Policies &amp; Restart Antivirus Services" Margin="2" HorizontalContentAlignment="Left"/>
-                                    <Button Name="btnRestoreFirewallSettings" Content="Restore Default Windows Firewall Settings and Rules" Margin="2" HorizontalContentAlignment="Left"/>
-                                    <Button Name="btnResetAudioPlaybackServices" Content="Reset &amp; Restart Windows Audio Playback Services" Margin="2" HorizontalContentAlignment="Left"/>
-                                    <Button Name="btnUnblockTools" Content="Unblock Registry, Task Manager &amp; Command Prompt" Margin="2" HorizontalContentAlignment="Left"/>
-                                    <Button Name="btnForceTimeResync" Content="Force Windows NTP Clock Resync" Margin="2" HorizontalContentAlignment="Left"/>
-                                    <Button Name="btnFixCMOSTimeDrift" Content="Fix CMOS Time Drift (RealTimeIsUniversal)" Margin="2" HorizontalContentAlignment="Left"/>
-                                    <Button Name="btnFixAudioLatency" Content="Fix Audio Stuttering &amp; Graph Latency" Margin="2" HorizontalContentAlignment="Left"/>
-                                    <Button Name="btnAnalyzeBSOD" Content="BSOD Minidump Crash Analyzer" Margin="2" Background="#DC2626" HorizontalContentAlignment="Left"/>
-                                    <Button Name="btnFixStuckWU" Content="Fix Stuck Windows Update Pipeline" Margin="2" HorizontalContentAlignment="Left"/>
+                                    <Button Name="btnResetDefenderPolicies" Content="Reset Windows Defender Policies &amp; Restart Antivirus Services" Margin="2" Background="#7C3AED" HorizontalContentAlignment="Left"/>
+                                    <Button Name="btnRestoreFirewallSettings" Content="Restore Default Windows Firewall Settings and Rules" Margin="2" Background="#D97706" HorizontalContentAlignment="Left"/>
+                                    <Button Name="btnResetAudioPlaybackServices" Content="Reset &amp; Restart Windows Audio Playback Services" Margin="2" Background="#0D9488" HorizontalContentAlignment="Left"/>
+                                    <Button Name="btnUnblockTools" Content="Unblock Registry, Task Manager &amp; Command Prompt" Margin="2" Background="#059669" HorizontalContentAlignment="Left"/>
+                                    <Button Name="btnForceTimeResync" Content="Force Windows NTP Clock Resync" Margin="2" Background="#0891B2" HorizontalContentAlignment="Left"/>
+                                    <Button Name="btnFixCMOSTimeDrift" Content="Fix CMOS Time Drift (RealTimeIsUniversal)" Margin="2" Background="#6366F1" HorizontalContentAlignment="Left"/>
+                                    <Button Name="btnFixAudioLatency" Content="Fix Audio Stuttering &amp; Graph Latency" Margin="2" Background="#2563EB" HorizontalContentAlignment="Left"/>
+                                    <Button Name="btnAnalyzeBSOD" Content="BSOD Minidump Crash Analyzer" Margin="2" Background="#DC2626" FontWeight="Bold" HorizontalContentAlignment="Left"/>
+                                    <Button Name="btnFixStuckWU" Content="Fix Stuck Windows Update Pipeline" Margin="2" Background="#D97706" HorizontalContentAlignment="Left"/>
                                 </UniformGrid>
                             </StackPanel>
                         </Border>
 
                         <!-- 9. SHELL OPTIMIZERS & DATA WIPERS -->
-                        <Border Background="#0F172A" CornerRadius="5" Padding="10" Margin="0,0,0,8" BorderBrush="#1E293B" BorderThickness="1">
+                        <Border Background="#0F172A" CornerRadius="6" Padding="10" Margin="0,0,0,8" BorderBrush="#06B6D4" BorderThickness="1.5">
                             <StackPanel>
-                                <TextBlock Text="SHELL OPTIMIZERS &amp; DATA WIPERS" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
+                                <TextBlock Text="SHELL OPTIMIZERS &amp; DATA WIPERS" FontSize="11.5" FontWeight="Bold" Foreground="#22D3EE" Margin="0,0,0,6"/>
                                 <UniformGrid Columns="2">
-                                    <Button Name="btnRestartExplorerQuick2" Content="Restart Windows Explorer Shell (Quick Freeze Fix)" Margin="2" Background="#0284C7" HorizontalContentAlignment="Left"/>
-                                    <Button Name="btnClearAllEventLogs" Content="Clear All Windows System, Application &amp; Security Event Logs" Margin="2" HorizontalContentAlignment="Left"/>
-                                    <Button Name="btnRebuildIconCache" Content="Rebuild Windows Desktop Icon &amp; Thumbnail Cache Data" Margin="2" HorizontalContentAlignment="Left"/>
-                                    <Button Name="btnRebuildFontCache" Content="Rebuild Windows System Font Cache Database" Margin="2" HorizontalContentAlignment="Left"/>
+                                    <Button Name="btnRestartExplorerQuick2" Content="Restart Windows Explorer Shell (Quick Freeze Fix)" Margin="2" Background="#0284C7" FontWeight="Bold" HorizontalContentAlignment="Left"/>
+                                    <Button Name="btnClearAllEventLogs" Content="Clear All Windows System, Application &amp; Security Event Logs" Margin="2" Background="#DC2626" FontWeight="Bold" HorizontalContentAlignment="Left"/>
+                                    <Button Name="btnRebuildIconCache" Content="Rebuild Windows Desktop Icon &amp; Thumbnail Cache Data" Margin="2" Background="#D97706" HorizontalContentAlignment="Left"/>
+                                    <Button Name="btnRebuildFontCache" Content="Rebuild Windows System Font Cache Database" Margin="2" Background="#059669" HorizontalContentAlignment="Left"/>
                                 </UniformGrid>
                             </StackPanel>
                         </Border>
@@ -1115,9 +1115,9 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
                     <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto" Margin="0,0,0,6">
                         <StackPanel>
                             <!-- 1. Telemetry & Privacy -->
-                            <Border Background="#0F172A" CornerRadius="5" Padding="10" Margin="0,0,0,8" BorderBrush="#1E293B" BorderThickness="1">
+                            <Border Background="#0F172A" CornerRadius="6" Padding="10" Margin="0,0,0,8" BorderBrush="#DC2626" BorderThickness="1.5">
                                 <StackPanel>
-                                    <TextBlock Text="TELEMETRY &amp; PRIVACY (RECOMMENDED)" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
+                                    <TextBlock Text="TELEMETRY &amp; PRIVACY (RECOMMENDED)" FontSize="11.5" FontWeight="Bold" Foreground="#F87171" Margin="0,0,0,4"/>
                                     <CheckBox Name="chkTelemetry" Content="Disable Windows Telemetry &amp; Diagnostic Data" IsChecked="True"/>
                                     <CheckBox Name="chkCortana" Content="Disable Cortana Digital Assistant service" IsChecked="True"/>
                                     <CheckBox Name="chkBing" Content="Disable Bing Search queries in Start Menu" IsChecked="True"/>
@@ -1130,7 +1130,7 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
                             </Border>
 
                             <!-- 2. System Optimizations & Adjustments -->
-                            <Border Background="#0F172A" CornerRadius="5" Padding="10" Margin="0,0,0,8" BorderBrush="#1E293B" BorderThickness="1">
+                            <Border Background="#0F172A" CornerRadius="6" Padding="10" Margin="0,0,0,8" BorderBrush="#0284C7" BorderThickness="1.5">
                                 <StackPanel>
                                     <TextBlock Text="SYSTEM OPTIMIZATIONS &amp; ADJUSTMENTS" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
                                     <CheckBox Name="chkHighPower" Content="Enable High-Performance Power Plan Scheme"/>
@@ -1153,9 +1153,9 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
                             </Border>
 
                             <!-- 3. Right-Click Context Menu Tweaks -->
-                            <Border Background="#0F172A" CornerRadius="5" Padding="10" Margin="0,0,0,8" BorderBrush="#1E293B" BorderThickness="1">
+                            <Border Background="#0F172A" CornerRadius="6" Padding="10" Margin="0,0,0,8" BorderBrush="#7C3AED" BorderThickness="1.5">
                                 <StackPanel>
-                                    <TextBlock Text="RIGHT-CLICK CONTEXT MENU TWEAKS" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
+                                    <TextBlock Text="RIGHT-CLICK CONTEXT MENU TWEAKS" FontSize="11.5" FontWeight="Bold" Foreground="#A78BFA" Margin="0,0,0,4"/>
                                     <CheckBox Name="chkTakeOwn" Content="Add 'Take Ownership' option to File Context Menu" IsChecked="True"/>
                                     <CheckBox Name="chkOpenNotepad" Content="Add 'Open with Notepad' option to File Context Menu" IsChecked="True"/>
                                     <CheckBox Name="chkKillStuck" Content="Add 'Kill Not Responding Tasks' to Desktop Menu" IsChecked="True"/>
@@ -1164,9 +1164,9 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
                             </Border>
 
                             <!-- 4. Cleaners, Bloatware & Services -->
-                            <Border Background="#0F172A" CornerRadius="5" Padding="10" Margin="0,0,0,8" BorderBrush="#1E293B" BorderThickness="1">
+                            <Border Background="#0F172A" CornerRadius="6" Padding="10" Margin="0,0,0,8" BorderBrush="#059669" BorderThickness="1.5">
                                 <StackPanel>
-                                    <TextBlock Text="CLEANERS, BLOATWARE &amp; SERVICES" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
+                                    <TextBlock Text="CLEANERS, BLOATWARE &amp; SERVICES" FontSize="11.5" FontWeight="Bold" Foreground="#34D399" Margin="0,0,0,4"/>
                                     <CheckBox Name="chkCleanTemp" Content="Clean Temporary Files and Prefetch folder"/>
                                     <CheckBox Name="chkCleanmgr" Content="Run Disk Cleanup (Cleanmgr Utility) on drive C:"/>
                                     <CheckBox Name="chkDisableOneDrive" Content="Disable OneDrive Syncing &amp; Auto Startup run"/>
@@ -1185,7 +1185,7 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
                     </ScrollViewer>
 
                     <!-- Presets & Batch Apply -->
-                    <Border Grid.Row="1" Background="#0F172A" CornerRadius="5" Padding="8" BorderBrush="#1E293B" BorderThickness="1">
+                    <Border Grid.Row="1" Background="#0F172A" CornerRadius="6" Padding="8" BorderBrush="#0284C7" BorderThickness="1.5">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
@@ -1194,9 +1194,9 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
                             </Grid.ColumnDefinitions>
                             <StackPanel Grid.Column="0" Orientation="Horizontal">
                                 <TextBlock Text="Quick Presets: " Foreground="#94A3B8" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,6,0"/>
-                                <Button Name="btnPresetRecommended" Content="Recommended" Background="#059669" Width="105" Margin="0,0,4,0"/>
-                                <Button Name="btnPresetOnlyTweaks" Content="Only Tweaks" Background="#D97706" Width="95" Margin="0,0,4,0"/>
-                                <Button Name="btnPresetClear" Content="Clear All" Background="#DC2626" Width="75"/>
+                                <Button Name="btnPresetRecommended" Content="Recommended" Background="#059669" FontWeight="Bold" Width="105" Margin="0,0,4,0"/>
+                                <Button Name="btnPresetOnlyTweaks" Content="Only Tweaks" Background="#D97706" FontWeight="Bold" Width="95" Margin="0,0,4,0"/>
+                                <Button Name="btnPresetClear" Content="Clear All" Background="#DC2626" FontWeight="Bold" Width="75"/>
                             </StackPanel>
                             <Button Name="btnApplyTweaksBatch" Grid.Column="2" Content="Apply Selected Tweaks" Background="#0284C7" FontWeight="Bold" Width="160" Height="28"/>
                         </Grid>
@@ -1208,7 +1208,7 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
             <TabItem Header="Security &amp; USB Lock">
                 <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="8">
                     <StackPanel>
-                        <Border Background="#0F172A" CornerRadius="5" Padding="10" Margin="0,0,0,8" BorderBrush="#1E293B" BorderThickness="1">
+                        <Border Background="#0F172A" CornerRadius="6" Padding="10" Margin="0,0,0,8" BorderBrush="#DC2626" BorderThickness="1.5">
                             <StackPanel>
                                 <TextBlock Text="USB DATA LEAK PROTECTION" FontSize="11.5" FontWeight="Bold" Foreground="#EF4444" Margin="0,0,0,4"/>
                                 <TextBlock Text="Lock USB pen drives to Read-Only mode to prevent unauthorized copying of sensitive files." FontSize="10" Foreground="#94A3B8" Margin="0,0,0,6"/>
@@ -1217,26 +1217,26 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
                                         <ColumnDefinition Width="*"/>
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
-                                    <Button Name="btnEnableUSBWriteProtect" Grid.Column="0" Content="Enable USB Write-Protect (Read-Only Mode)" Background="#DC2626" Margin="0,0,3,0" FontWeight="Bold"/>
-                                    <Button Name="btnDisableUSBWriteProtect" Grid.Column="1" Content="Disable USB Write-Protect (Normal Mode)" Background="#059669" Margin="3,0,0,0" FontWeight="Bold"/>
+                                    <Button Name="btnEnableUSBWriteProtect" Grid.Column="0" Content="Enable USB Write-Protect (Read-Only Mode)" Background="#DC2626" Margin="0,0,3,0" FontWeight="Bold" Height="28"/>
+                                    <Button Name="btnDisableUSBWriteProtect" Grid.Column="1" Content="Disable USB Write-Protect (Normal Mode)" Background="#059669" Margin="3,0,0,0" FontWeight="Bold" Height="28"/>
                                 </Grid>
                             </StackPanel>
                         </Border>
 
-                        <Border Background="#0F172A" CornerRadius="5" Padding="10" Margin="0,0,0,8" BorderBrush="#1E293B" BorderThickness="1">
+                        <Border Background="#0F172A" CornerRadius="6" Padding="10" Margin="0,0,0,8" BorderBrush="#0284C7" BorderThickness="1.5">
                             <StackPanel>
                                 <TextBlock Text="HOSTS FILE AD-BLOCKER &amp; DEFENDER EXCLUSIONS" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
-                                <Button Name="btnInjectHostsAdblock" Content="Inject Telemetry &amp; Malware Ad-Blocker into Windows Hosts File" Margin="0,2" HorizontalContentAlignment="Left"/>
-                                <Button Name="btnResetHosts" Content="Reset Windows Hosts File to Factory Default" Margin="0,2" HorizontalContentAlignment="Left"/>
-                                <Button Name="btnAddDefenderExclusion" Content="Add Folder Exclusion to Windows Defender (Prevents Dev Script Blocking)" Margin="0,2" HorizontalContentAlignment="Left"/>
+                                <Button Name="btnInjectHostsAdblock" Content="Inject Telemetry &amp; Malware Ad-Blocker into Windows Hosts File" Margin="0,2" Background="#059669" FontWeight="Bold" HorizontalContentAlignment="Left"/>
+                                <Button Name="btnResetHosts" Content="Reset Windows Hosts File to Factory Default" Margin="0,2" Background="#D97706" FontWeight="Bold" HorizontalContentAlignment="Left"/>
+                                <Button Name="btnAddDefenderExclusion" Content="Add Folder Exclusion to Windows Defender (Prevents Dev Script Blocking)" Margin="0,2" Background="#7C3AED" FontWeight="Bold" HorizontalContentAlignment="Left"/>
                             </StackPanel>
                         </Border>
 
-                        <Border Background="#0F172A" CornerRadius="5" Padding="10" BorderBrush="#1E293B" BorderThickness="1">
+                        <Border Background="#0F172A" CornerRadius="6" Padding="10" BorderBrush="#7C3AED" BorderThickness="1.5">
                             <StackPanel>
-                                <TextBlock Text="VIRTUALIZATION &amp; ISOLATION" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
-                                <Button Name="btnEnableSandbox" Content="Enable Windows Sandbox (Disposable Virtual Testing Environment)" Margin="0,2" HorizontalContentAlignment="Left"/>
-                                <Button Name="btnEnableHyperV" Content="Enable Microsoft Hyper-V Virtualization Platform" Margin="0,2" HorizontalContentAlignment="Left"/>
+                                <TextBlock Text="VIRTUALIZATION &amp; ISOLATION" FontSize="11.5" FontWeight="Bold" Foreground="#A78BFA" Margin="0,0,0,4"/>
+                                <Button Name="btnEnableSandbox" Content="Enable Windows Sandbox (Disposable Virtual Testing Environment)" Margin="0,2" Background="#0284C7" FontWeight="Bold" HorizontalContentAlignment="Left"/>
+                                <Button Name="btnEnableHyperV" Content="Enable Microsoft Hyper-V Virtualization Platform" Margin="0,2" Background="#4F46E5" FontWeight="Bold" HorizontalContentAlignment="Left"/>
                             </StackPanel>
                         </Border>
                     </StackPanel>
@@ -1247,32 +1247,32 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
             <TabItem Header="Network &amp; Wi-Fi Tools">
                 <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="8">
                     <StackPanel>
-                        <Border Background="#0F172A" CornerRadius="5" Padding="10" Margin="0,0,0,8" BorderBrush="#1E293B" BorderThickness="1">
+                        <Border Background="#0F172A" CornerRadius="6" Padding="10" Margin="0,0,0,8" BorderBrush="#10B981" BorderThickness="1.5">
                             <StackPanel>
-                                <TextBlock Text="WI-FI PASSWORDS &amp; MOBILE QR CODE GENERATOR" FontSize="11.5" FontWeight="Bold" Foreground="#10B981" Margin="0,0,0,4"/>
+                                <TextBlock Text="WI-FI PASSWORDS &amp; MOBILE QR CODE GENERATOR" FontSize="11.5" FontWeight="Bold" Foreground="#34D399" Margin="0,0,0,4"/>
                                 <Button Name="btnExportWiFiPass" Content="Export All Saved Wi-Fi Passwords to Desktop Report" Margin="0,2" HorizontalContentAlignment="Left" Background="#059669" FontWeight="Bold"/>
                                 <Button Name="btnGenWiFiQR" Content="Generate Mobile Connect QR Code for Active Wi-Fi (Scan to Connect)" Margin="0,2" HorizontalContentAlignment="Left" Background="#0284C7" FontWeight="Bold"/>
                             </StackPanel>
                         </Border>
 
-                        <Border Background="#0F172A" CornerRadius="5" Padding="10" Margin="0,0,0,8" BorderBrush="#1E293B" BorderThickness="1">
+                        <Border Background="#0F172A" CornerRadius="6" Padding="10" Margin="0,0,0,8" BorderBrush="#6366F1" BorderThickness="1.5">
                             <StackPanel>
-                                <TextBlock Text="TCP GAMING LATENCY, CONGESTION &amp; PORTS MONITOR" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
-                                <Button Name="btnApplyTCPAck" Content="Apply TCP NoDelay &amp; AckFrequency Tweaks (Reduces Ping in Online Games)" Margin="0,2" HorizontalContentAlignment="Left"/>
-                                <Button Name="btnBoostTCPCongestion" Content="Optimize TCP Congestion Provider to CTCP / BBR" Margin="0,2" HorizontalContentAlignment="Left"/>
-                                <Button Name="btnViewActivePorts" Content="Inspect Active Listening Ports &amp; Connections (Netstat Monitor)" Margin="0,2" HorizontalContentAlignment="Left"/>
-                                <Button Name="btnResetWinsock3" Content="Run Full Winsock &amp; TCP/IP Stack Reset" Margin="0,2" HorizontalContentAlignment="Left"/>
+                                <TextBlock Text="TCP GAMING LATENCY, CONGESTION &amp; PORTS MONITOR" FontSize="11.5" FontWeight="Bold" Foreground="#818CF8" Margin="0,0,0,4"/>
+                                <Button Name="btnApplyTCPAck" Content="Apply TCP NoDelay &amp; AckFrequency Tweaks (Reduces Ping in Online Games)" Margin="0,2" Background="#6366F1" FontWeight="Bold" HorizontalContentAlignment="Left"/>
+                                <Button Name="btnBoostTCPCongestion" Content="Optimize TCP Congestion Provider to CTCP / BBR" Margin="0,2" Background="#0D9488" FontWeight="Bold" HorizontalContentAlignment="Left"/>
+                                <Button Name="btnViewActivePorts" Content="Inspect Active Listening Ports &amp; Connections (Netstat Monitor)" Margin="0,2" Background="#0284C7" FontWeight="Bold" HorizontalContentAlignment="Left"/>
+                                <Button Name="btnResetWinsock3" Content="Run Full Winsock &amp; TCP/IP Stack Reset" Margin="0,2" Background="#DC2626" FontWeight="Bold" HorizontalContentAlignment="Left"/>
                             </StackPanel>
                         </Border>
 
-                        <Border Background="#0F172A" CornerRadius="5" Padding="10" BorderBrush="#1E293B" BorderThickness="1">
+                        <Border Background="#0F172A" CornerRadius="6" Padding="10" BorderBrush="#0284C7" BorderThickness="1.5">
                             <StackPanel>
                                 <TextBlock Text="FAST SECURE DNS SWITCHER" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
                                 <UniformGrid Columns="4">
-                                    <Button Name="btnDNSCloudflare" Content="Cloudflare (1.1.1.1)" Margin="2"/>
-                                    <Button Name="btnDNSGoogle" Content="Google (8.8.8.8)" Margin="2"/>
-                                    <Button Name="btnDNSQuad9" Content="Quad9 (9.9.9.9)" Margin="2"/>
-                                    <Button Name="btnDNSDHCP" Content="Reset to DHCP" Margin="2"/>
+                                    <Button Name="btnDNSCloudflare" Content="Cloudflare (1.1.1.1)" Margin="2" Background="#F59E0B" FontWeight="Bold"/>
+                                    <Button Name="btnDNSGoogle" Content="Google (8.8.8.8)" Margin="2" Background="#0284C7" FontWeight="Bold"/>
+                                    <Button Name="btnDNSQuad9" Content="Quad9 (9.9.9.9)" Margin="2" Background="#7C3AED" FontWeight="Bold"/>
+                                    <Button Name="btnDNSDHCP" Content="Reset to DHCP" Margin="2" Background="#059669" FontWeight="Bold"/>
                                 </UniformGrid>
                             </StackPanel>
                         </Border>
@@ -1285,9 +1285,9 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
                 <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="8">
                     <StackPanel>
                         <!-- CHANGE WINDOWS EDITION (IN-PLACE UPGRADE) -->
-                        <Border Background="#0F172A" CornerRadius="5" Padding="10" Margin="0,0,0,8" BorderBrush="#1E293B" BorderThickness="1">
+                        <Border Background="#0F172A" CornerRadius="6" Padding="10" Margin="0,0,0,8" BorderBrush="#F59E0B" BorderThickness="1.5">
                             <StackPanel>
-                                <TextBlock Text="CHANGE WINDOWS EDITION (1-CLICK IN-PLACE UPGRADE)" FontSize="12" FontWeight="Bold" Foreground="#F59E0B" Margin="0,0,0,4"/>
+                                <TextBlock Text="CHANGE WINDOWS EDITION (1-CLICK IN-PLACE UPGRADE)" FontSize="12" FontWeight="Bold" Foreground="#FBBF24" Margin="0,0,0,4"/>
                                 <TextBlock Text="Instantly upgrade Windows 10/11 Home to Pro, Pro to Enterprise, Workstation, or Education without reinstalling Windows." FontSize="10" Foreground="#94A3B8" Margin="0,0,0,6"/>
 
                                 <Grid Margin="0,0,0,6">
@@ -1305,9 +1305,9 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
                                         <ColumnDefinition Width="*"/>
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
-                                    <TextBlock Grid.Column="0" Text="Product Key (Auto/Custom):" VerticalAlignment="Center" Margin="0,0,10,0" Foreground="#F8FAFC"/>
+                                    <TextBlock Grid.Column="0" Text="Product Key (Auto/Custom):" VerticalAlignment="Center" Margin="0,0,10,0" Foreground="#F8FAFC" FontWeight="SemiBold"/>
                                     <TextBox Name="txtCustomEditionKey" Grid.Column="1" Height="26" Margin="0,0,6,0" Text="VK7JG-NPHTM-C97JM-9MPGT-3V66T"/>
-                                    <Button Name="btnAutoFillEditionKey" Grid.Column="2" Content="Auto-Fill Generic Key" Width="140" Height="26" Background="#334155"/>
+                                    <Button Name="btnAutoFillEditionKey" Grid.Column="2" Content="Auto-Fill Generic Key" Width="140" Height="26" Background="#334155" FontWeight="Bold"/>
                                 </Grid>
 
                                 <UniformGrid Columns="3" Margin="0,2,0,0">
@@ -1328,35 +1328,35 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
                             
-                            <Border Grid.Column="0" Background="#0F172A" CornerRadius="5" Padding="6" Margin="0,0,2,0" BorderBrush="#1E293B" BorderThickness="1">
+                            <Border Grid.Column="0" Background="#0F172A" CornerRadius="6" Padding="6" Margin="0,0,2,0" BorderBrush="#0284C7" BorderThickness="1.5">
                                 <StackPanel>
-                                    <TextBlock Text="Microsoft 365 Apps" FontWeight="Bold" FontSize="11" Foreground="#F8FAFC"/>
+                                    <TextBlock Text="Microsoft 365 Apps" FontWeight="Bold" FontSize="11" Foreground="#38BDF8"/>
                                     <TextBlock Text="Subscription Suite apps." FontSize="9.5" Foreground="#94A3B8" TextWrapping="Wrap" Margin="0,2,0,6"/>
-                                    <Button Name="btnInstallM365" Content="Install M365" Background="#0284C7" Height="26"/>
+                                    <Button Name="btnInstallM365" Content="Install M365" Background="#0284C7" FontWeight="Bold" Height="26"/>
                                 </StackPanel>
                             </Border>
 
-                            <Border Grid.Column="1" Background="#0F172A" CornerRadius="5" Padding="6" Margin="2,0,2,0" BorderBrush="#1E293B" BorderThickness="1">
+                            <Border Grid.Column="1" Background="#0F172A" CornerRadius="6" Padding="6" Margin="2,0,2,0" BorderBrush="#1E40AF" BorderThickness="1.5">
                                 <StackPanel>
-                                    <TextBlock Text="Office LTSC 2019" FontWeight="Bold" FontSize="11" Foreground="#F8FAFC"/>
+                                    <TextBlock Text="Office LTSC 2019" FontWeight="Bold" FontSize="11" Foreground="#60A5FA"/>
                                     <TextBlock Text="Perpetual 2019 ProPlus." FontSize="9.5" Foreground="#94A3B8" TextWrapping="Wrap" Margin="0,2,0,6"/>
-                                    <Button Name="btnInstall2019" Content="Install 2019" Background="#0284C7" Height="26"/>
+                                    <Button Name="btnInstall2019" Content="Install 2019" Background="#1E40AF" FontWeight="Bold" Height="26"/>
                                 </StackPanel>
                             </Border>
 
-                            <Border Grid.Column="2" Background="#0F172A" CornerRadius="5" Padding="6" Margin="2,0,2,0" BorderBrush="#1E293B" BorderThickness="1">
+                            <Border Grid.Column="2" Background="#0F172A" CornerRadius="6" Padding="6" Margin="2,0,2,0" BorderBrush="#059669" BorderThickness="1.5">
                                 <StackPanel>
-                                    <TextBlock Text="Office LTSC 2021" FontWeight="Bold" FontSize="11" Foreground="#F8FAFC"/>
+                                    <TextBlock Text="Office LTSC 2021" FontWeight="Bold" FontSize="11" Foreground="#34D399"/>
                                     <TextBlock Text="Perpetual 2021 ProPlus." FontSize="9.5" Foreground="#94A3B8" TextWrapping="Wrap" Margin="0,2,0,6"/>
-                                    <Button Name="btnInstall2021" Content="Install 2021" Background="#0284C7" Height="26"/>
+                                    <Button Name="btnInstall2021" Content="Install 2021" Background="#059669" FontWeight="Bold" Height="26"/>
                                 </StackPanel>
                             </Border>
 
-                            <Border Grid.Column="3" Background="#0F172A" CornerRadius="5" Padding="6" Margin="2,0,0,0" BorderBrush="#1E293B" BorderThickness="1">
+                            <Border Grid.Column="3" Background="#0F172A" CornerRadius="6" Padding="6" Margin="2,0,0,0" BorderBrush="#7C3AED" BorderThickness="1.5">
                                 <StackPanel>
-                                    <TextBlock Text="Office LTSC 2024" FontWeight="Bold" FontSize="11" Foreground="#F8FAFC"/>
+                                    <TextBlock Text="Office LTSC 2024" FontWeight="Bold" FontSize="11" Foreground="#A78BFA"/>
                                     <TextBlock Text="Perpetual 2024 ProPlus." FontSize="9.5" Foreground="#94A3B8" TextWrapping="Wrap" Margin="0,2,0,6"/>
-                                    <Button Name="btnInstall2024" Content="Install 2024" Background="#0284C7" Height="26"/>
+                                    <Button Name="btnInstall2024" Content="Install 2024" Background="#7C3AED" FontWeight="Bold" Height="26"/>
                                 </StackPanel>
                             </Border>
                         </Grid>
@@ -1372,43 +1372,43 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
 
-                            <Border Grid.Column="0" Background="#0F172A" CornerRadius="5" Padding="6" Margin="0,0,2,0" BorderBrush="#1E293B" BorderThickness="1">
+                            <Border Grid.Column="0" Background="#0F172A" CornerRadius="6" Padding="6" Margin="0,0,2,0" BorderBrush="#059669" BorderThickness="1.5">
                                 <StackPanel>
-                                    <TextBlock Text="Windows (HWID)" FontWeight="Bold" FontSize="10.5" Foreground="#F8FAFC"/>
+                                    <TextBlock Text="Windows (HWID)" FontWeight="Bold" FontSize="10.5" Foreground="#34D399"/>
                                     <TextBlock Text="Permanent digital license." FontSize="9" Foreground="#94A3B8" Margin="0,2,0,4"/>
-                                    <Button Name="btnActWindows" Content="Activate Win" Background="#0284C7" Height="26"/>
+                                    <Button Name="btnActWindows" Content="Activate Win" Background="#059669" FontWeight="Bold" Height="26"/>
                                 </StackPanel>
                             </Border>
 
-                            <Border Grid.Column="1" Background="#0F172A" CornerRadius="5" Padding="6" Margin="2,0,2,0" BorderBrush="#1E293B" BorderThickness="1">
+                            <Border Grid.Column="1" Background="#0F172A" CornerRadius="6" Padding="6" Margin="2,0,2,0" BorderBrush="#0284C7" BorderThickness="1.5">
                                 <StackPanel>
-                                    <TextBlock Text="Office (Ohook)" FontWeight="Bold" FontSize="10.5" Foreground="#F8FAFC"/>
+                                    <TextBlock Text="Office (Ohook)" FontWeight="Bold" FontSize="10.5" Foreground="#38BDF8"/>
                                     <TextBlock Text="Local Ohook injection." FontSize="9" Foreground="#94A3B8" Margin="0,2,0,4"/>
-                                    <Button Name="btnActOffice" Content="Activate Office" Background="#0284C7" Height="26"/>
+                                    <Button Name="btnActOffice" Content="Activate Office" Background="#0284C7" FontWeight="Bold" Height="26"/>
                                 </StackPanel>
                             </Border>
 
-                            <Border Grid.Column="2" Background="#0F172A" CornerRadius="5" Padding="6" Margin="2,0,2,0" BorderBrush="#1E293B" BorderThickness="1">
+                            <Border Grid.Column="2" Background="#0F172A" CornerRadius="6" Padding="6" Margin="2,0,2,0" BorderBrush="#6366F1" BorderThickness="1.5">
                                 <StackPanel>
-                                    <TextBlock Text="Both (KMS)" FontWeight="Bold" FontSize="10.5" Foreground="#F8FAFC"/>
+                                    <TextBlock Text="Both (KMS)" FontWeight="Bold" FontSize="10.5" Foreground="#818CF8"/>
                                     <TextBlock Text="Online KMS script." FontSize="9" Foreground="#94A3B8" Margin="0,2,0,4"/>
-                                    <Button Name="btnActKMS" Content="Activate KMS" Background="#0284C7" Height="26"/>
+                                    <Button Name="btnActKMS" Content="Activate KMS" Background="#6366F1" FontWeight="Bold" Height="26"/>
                                 </StackPanel>
                             </Border>
 
-                            <Border Grid.Column="3" Background="#0F172A" CornerRadius="5" Padding="6" Margin="2,0,2,0" BorderBrush="#1E293B" BorderThickness="1">
+                            <Border Grid.Column="3" Background="#0F172A" CornerRadius="6" Padding="6" Margin="2,0,2,0" BorderBrush="#DC2626" BorderThickness="1.5">
                                 <StackPanel>
-                                    <TextBlock Text="Uninstall KMS" FontWeight="Bold" FontSize="10.5" Foreground="#F8FAFC"/>
+                                    <TextBlock Text="Uninstall KMS" FontWeight="Bold" FontSize="10.5" Foreground="#F87171"/>
                                     <TextBlock Text="Removes online KMS." FontSize="9" Foreground="#94A3B8" Margin="0,2,0,4"/>
-                                    <Button Name="btnCleanKMS" Content="Clean KMS" Background="#0284C7" Height="26"/>
+                                    <Button Name="btnCleanKMS" Content="Clean KMS" Background="#DC2626" FontWeight="Bold" Height="26"/>
                                 </StackPanel>
                             </Border>
 
-                            <Border Grid.Column="4" Background="#0F172A" CornerRadius="5" Padding="6" Margin="2,0,0,0" BorderBrush="#1E293B" BorderThickness="1">
+                            <Border Grid.Column="4" Background="#0F172A" CornerRadius="6" Padding="6" Margin="2,0,0,0" BorderBrush="#D97706" BorderThickness="1.5">
                                 <StackPanel>
-                                    <TextBlock Text="Change Edition" FontWeight="Bold" FontSize="10.5" Foreground="#F8FAFC"/>
+                                    <TextBlock Text="Change Edition" FontWeight="Bold" FontSize="10.5" Foreground="#FBBF24"/>
                                     <TextBlock Text="Home to Pro/Ent." FontSize="9" Foreground="#94A3B8" Margin="0,2,0,4"/>
-                                    <Button Name="btnChangeEdition" Content="Change Edition" Background="#0284C7" Height="26"/>
+                                    <Button Name="btnChangeEdition" Content="Change Edition" Background="#D97706" FontWeight="Bold" Height="26"/>
                                 </StackPanel>
                             </Border>
                         </Grid>
@@ -1426,17 +1426,17 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
                     </Grid.RowDefinitions>
 
                     <!-- TOP: DRIVER EXPORT & IMPORT MASTER BAR -->
-                    <Border Grid.Row="0" Background="#0F172A" CornerRadius="5" Padding="10" Margin="0,0,0,6" BorderBrush="#1E293B" BorderThickness="1">
+                    <Border Grid.Row="0" Background="#0F172A" CornerRadius="6" Padding="10" Margin="0,0,0,6" BorderBrush="#6366F1" BorderThickness="1.5">
                         <StackPanel>
-                            <TextBlock Text="DEVICE DRIVERS BACKUP, EXPORT &amp; RESTORE MASTER HUB" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
+                            <TextBlock Text="DEVICE DRIVERS BACKUP, EXPORT &amp; RESTORE MASTER HUB" FontSize="11.5" FontWeight="Bold" Foreground="#818CF8" Margin="0,0,0,4"/>
                             <TextBlock Text="Export all installed 3rd-party INF drivers to Desktop/Folder, or restore/inject drivers online &amp; offline." FontSize="10" Foreground="#94A3B8" Margin="0,0,0,6"/>
                             <WrapPanel Orientation="Horizontal">
                                 <Button Name="btnExportDrivers" Content="Export Drivers (Desktop Backup)" Background="#059669" FontWeight="Bold" Padding="10,6" Margin="0,0,6,4"/>
                                 <Button Name="btnExportDriversCustom" Content="Export Drivers (Choose Folder)" Background="#0284C7" FontWeight="Bold" Padding="10,6" Margin="0,0,6,4"/>
                                 <Button Name="btnRestoreDrivers" Content="Import &amp; Restore Drivers (PnPUTIL)" Background="#6366F1" FontWeight="Bold" Padding="10,6" Margin="0,0,6,4"/>
                                 <Button Name="btnOfflineInjectDrivers" Content="Offline Driver Inject (DISM)" Background="#D97706" FontWeight="Bold" Padding="10,6" Margin="0,0,6,4"/>
-                                <Button Name="btnListDrivers" Content="List 3rd-Party Drivers" Background="#475569" FontWeight="Bold" Padding="10,6" Margin="0,0,6,4"/>
-                                <Button Name="btnOpenDevMgmt" Content="Open Device Manager" Background="#0891B2" FontWeight="Bold" Padding="10,6" Margin="0,0,6,4"/>
+                                <Button Name="btnListDrivers" Content="List 3rd-Party Drivers" Background="#0891B2" FontWeight="Bold" Padding="10,6" Margin="0,0,6,4"/>
+                                <Button Name="btnOpenDevMgmt" Content="Open Device Manager" Background="#7C3AED" FontWeight="Bold" Padding="10,6" Margin="0,0,6,4"/>
                             </WrapPanel>
                         </StackPanel>
                     </Border>
@@ -1449,7 +1449,7 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
                         </Grid.ColumnDefinitions>
 
                         <!-- Robocopy Hub -->
-                        <Border Grid.Column="0" Background="#0F172A" CornerRadius="5" Padding="10" Margin="0,0,4,0" BorderBrush="#1E293B" BorderThickness="1">
+                        <Border Grid.Column="0" Background="#0F172A" CornerRadius="6" Padding="10" Margin="0,0,4,0" BorderBrush="#0284C7" BorderThickness="1.5">
                             <StackPanel>
                                 <TextBlock Text="DATA MIGRATION &amp; ROBOCOPY MIRROR" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,6"/>
                                 
@@ -1460,7 +1460,7 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
                                     <TextBox Name="txtSourceFolder" Grid.Column="0" Height="26"/>
-                                    <Button Name="btnBrowseSource" Grid.Column="1" Content="Browse" Width="60" Height="26" Margin="4,0,0,0"/>
+                                    <Button Name="btnBrowseSource" Grid.Column="1" Content="Browse" Width="60" Height="26" Background="#334155" FontWeight="Bold" Margin="4,0,0,0"/>
                                 </Grid>
 
                                 <TextBlock Text="Target Folder:" FontSize="10" Foreground="#94A3B8" Margin="0,0,0,2"/>
@@ -1470,36 +1470,36 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
                                     <TextBox Name="txtTargetFolder" Grid.Column="0" Height="26"/>
-                                    <Button Name="btnBrowseTarget" Grid.Column="1" Content="Browse" Width="60" Height="26" Margin="4,0,0,0"/>
+                                    <Button Name="btnBrowseTarget" Grid.Column="1" Content="Browse" Width="60" Height="26" Background="#334155" FontWeight="Bold" Margin="4,0,0,0"/>
                                 </Grid>
 
                                 <UniformGrid Columns="2">
                                     <Button Name="btnRunRobocopy" Content="Run Robocopy Mirror Engine" Background="#0284C7" FontWeight="Bold" Height="28" Margin="0,0,3,0"/>
-                                    <Button Name="btnExportBookmarks2" Content="Backup Browser Bookmarks" Background="#0D9488" Height="28" Margin="3,0,0,0"/>
+                                    <Button Name="btnExportBookmarks2" Content="Backup Browser Bookmarks" Background="#0D9488" FontWeight="Bold" Height="28" Margin="3,0,0,0"/>
                                 </UniformGrid>
                             </StackPanel>
                         </Border>
 
                         <!-- Enterprise, Winget & Cache Purge -->
-                        <Border Grid.Column="1" Background="#0F172A" CornerRadius="5" Padding="10" Margin="4,0,0,0" BorderBrush="#1E293B" BorderThickness="1">
+                        <Border Grid.Column="1" Background="#0F172A" CornerRadius="6" Padding="10" Margin="4,0,0,0" BorderBrush="#059669" BorderThickness="1.5">
                             <StackPanel>
-                                <TextBlock Text="ENTERPRISE, UPDATES &amp; CACHE PURGE" FontSize="11.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,4"/>
-                                <Button Name="btnUpgradeWinget" Content="Force Upgrade All Installed Software (WinGet)" Margin="0,2" HorizontalContentAlignment="Left"/>
-                                <Button Name="btnRestartTally" Content="Restart Active Tally Gateway System Engines" Margin="0,2" HorizontalContentAlignment="Left"/>
-                                <Button Name="btnPurgeCache" Content="Purge System Prefetch, Cache, and Temp Files" Margin="0,2" HorizontalContentAlignment="Left"/>
-                                <Button Name="btnCleanDriverStore" Content="Clean Old / Unused Driver Store Packages" Margin="0,2" HorizontalContentAlignment="Left"/>
+                                <TextBlock Text="ENTERPRISE, UPDATES &amp; CACHE PURGE" FontSize="11.5" FontWeight="Bold" Foreground="#34D399" Margin="0,0,0,4"/>
+                                <Button Name="btnUpgradeWinget" Content="Force Upgrade All Installed Software (WinGet)" Margin="0,2" Background="#059669" FontWeight="Bold" HorizontalContentAlignment="Left"/>
+                                <Button Name="btnRestartTally" Content="Restart Active Tally Gateway System Engines" Margin="0,2" Background="#0284C7" FontWeight="Bold" HorizontalContentAlignment="Left"/>
+                                <Button Name="btnPurgeCache" Content="Purge System Prefetch, Cache, and Temp Files" Margin="0,2" Background="#DC2626" FontWeight="Bold" HorizontalContentAlignment="Left"/>
+                                <Button Name="btnCleanDriverStore" Content="Clean Old / Unused Driver Store Packages" Margin="0,2" Background="#7C3AED" FontWeight="Bold" HorizontalContentAlignment="Left"/>
                             </StackPanel>
                         </Border>
                     </Grid>
 
                     <!-- Terminal Output -->
-                    <Border Grid.Row="2" Background="#050B14" CornerRadius="5" Padding="6" BorderBrush="#1E293B" BorderThickness="1">
+                    <Border Grid.Row="2" Background="#050B14" CornerRadius="6" Padding="6" BorderBrush="#10B981" BorderThickness="1.5">
                         <Grid>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="*"/>
                             </Grid.RowDefinitions>
-                            <TextBlock Grid.Row="0" Text="Migration &amp; Engine Outputs Terminal" FontSize="10" FontWeight="Bold" Foreground="#64748B" Margin="0,0,0,2"/>
+                            <TextBlock Grid.Row="0" Text="Migration &amp; Engine Outputs Terminal" FontSize="10" FontWeight="Bold" Foreground="#10B981" Margin="0,0,0,2"/>
                             <TextBox Name="txtTerminalLog" Grid.Row="1" Background="Transparent" Foreground="#10B981" FontFamily="Consolas" FontSize="10.5" IsReadOnly="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" BorderThickness="0" Text="[backups &amp; diagnostics node ready]&#x0a;"/>
                         </Grid>
                     </Border>
@@ -1510,17 +1510,21 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, Sys
             <TabItem Header="Quick Hub">
                 <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="8">
                     <StackPanel>
-                        <TextBlock Text="WINDOWS BUILT-IN ADMINISTRATIVE CONSOLES" FontSize="12.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,6"/>
-                        <UniformGrid Columns="2">
-                            <Button Name="btnHubReg2" Content="Registry Editor (regedit)" Margin="2" Height="32"/>
-                            <Button Name="btnHubDev2" Content="Device Manager (devmgmt.msc)" Margin="2" Height="32"/>
-                            <Button Name="btnHubGP2" Content="Group Policy Editor (gpedit.msc)" Margin="2" Height="32"/>
-                            <Button Name="btnHubDisk2" Content="Disk Management (diskmgmt.msc)" Margin="2" Height="32"/>
-                            <Button Name="btnHubTask2" Content="Task Manager (taskmgr)" Margin="2" Height="32"/>
-                            <Button Name="btnHubRes2" Content="Resource Monitor (resmon)" Margin="2" Height="32"/>
-                            <Button Name="btnHubDx2" Content="DirectX Diagnostic Tool (dxdiag)" Margin="2" Height="32"/>
-                            <Button Name="btnHubServ2" Content="Windows Services (services.msc)" Margin="2" Height="32"/>
-                        </UniformGrid>
+                        <Border Background="#0F172A" CornerRadius="6" Padding="10" BorderBrush="#0284C7" BorderThickness="1.5">
+                            <StackPanel>
+                                <TextBlock Text="WINDOWS BUILT-IN ADMINISTRATIVE CONSOLES" FontSize="12.5" FontWeight="Bold" Foreground="#38BDF8" Margin="0,0,0,8"/>
+                                <UniformGrid Columns="2">
+                                    <Button Name="btnHubReg2" Content="Registry Editor (regedit)" Margin="3" Height="34" Background="#0284C7" FontWeight="Bold"/>
+                                    <Button Name="btnHubDev2" Content="Device Manager (devmgmt.msc)" Margin="3" Height="34" Background="#059669" FontWeight="Bold"/>
+                                    <Button Name="btnHubGP2" Content="Group Policy Editor (gpedit.msc)" Margin="3" Height="34" Background="#7C3AED" FontWeight="Bold"/>
+                                    <Button Name="btnHubDisk2" Content="Disk Management (diskmgmt.msc)" Margin="3" Height="34" Background="#D97706" FontWeight="Bold"/>
+                                    <Button Name="btnHubTask2" Content="Task Manager (taskmgr)" Margin="3" Height="34" Background="#DC2626" FontWeight="Bold"/>
+                                    <Button Name="btnHubRes2" Content="Resource Monitor (resmon)" Margin="3" Height="34" Background="#0D9488" FontWeight="Bold"/>
+                                    <Button Name="btnHubDx2" Content="DirectX Diagnostic Tool (dxdiag)" Margin="3" Height="34" Background="#6366F1" FontWeight="Bold"/>
+                                    <Button Name="btnHubServ2" Content="Windows Services (services.msc)" Margin="3" Height="34" Background="#0891B2" FontWeight="Bold"/>
+                                </UniformGrid>
+                            </StackPanel>
+                        </Border>
                     </StackPanel>
                 </ScrollViewer>
             </TabItem>
