@@ -49,10 +49,15 @@ If you downloaded or cloned this repository:
 ```
 
 ### 1. 🛡️ User Passwords & Accounts Management Hub
+- **Windows 11 / 10 Dedicated Guest Account Manager (One-Click Visitor Access)**:
+  - Fixes Microsoft's permanent block on the legacy built-in `Guest` SID in Windows 10/11.
+  - 1-Click creates a working, passwordless Visitor account displayed as **`Guest`** on the lock screen and Start menu.
+  - Dedicated buttons: **Enable Working Guest Account**, **Disable Guest Account**, and **Check Guest Account Status**.
+  - Includes standalone `Fix_Guest_Account.bat` for offline/quick desktop execution.
 - **Local Account Controls**: Reset user passwords, blank out passwords, unlock locked accounts, toggle "Password Never Expires", create local admin accounts.
 - **Auto-Logon Configurator**: Configure Windows to log on automatically without password prompts on boot.
 - **NirSoft Master Suite Integration (200+ Tools)**:
-  - 1-Click Launchpad for NirLauncher Suite.
+  - 1-Click Launchpad for NirLauncher Suite with direct auto-setup, file unblocking, and direct package execution.
   - Automatic downloaders and helpers for WebBrowserPassView, WirelessKeyView (Wi-Fi Passwords), MailPassView, and PST password recovery.
 - **WinPE Offline SAM Integration**: Direct launcher for offline SAM registry password resets on unbootable Windows installations.
 
@@ -109,9 +114,13 @@ If you downloaded or cloned this repository:
 - **Hosts File Editor**: Integrated graphical Hosts file editor with instant apply and backup.
 
 ### 12. 🔑 Activation & Windows Edition Suite
-- **Microsoft Activation Scripts (MAS)**: Direct, seamless integration with official MAS activation tools.
+- **Microsoft Office Click-to-Run (C2R) Installer Hub**:
+  - Direct 1-Click official Microsoft setup bootstrapper downloads for **Office 2024**, **Office 2021**, **Office 2019**, and **Microsoft 365**.
+  - Smart detection of existing Office installations with 1-click upgrade and activation prompts.
+- **Microsoft Activation Scripts (MAS) & Ohook**:
+  - Direct Ohook permanent Office activation engine (`mas /Ohook`).
+  - HWID permanent Windows activation and KMS38/Online KMS tools.
 - **Edition Switcher**: Upgrade from Windows 10/11 Home to Pro / Enterprise without reinstalling.
-- **Office Deployment**: Office C2R installer and KMS activator.
 
 ### 13. 📁 Data & Drivers Hub
 - **Robocopy Backup Suite**: High-speed, multi-threaded user data backup and mirror tool.
@@ -146,7 +155,7 @@ Located in `winpe_rescue_suite/`:
 
 ## 💻 System Requirements
 
-- **Operating System**: Windows 10 (1809+), Windows 11, or Windows Server 2016/2019/2022/2025.
+- **Operating System**: Windows 11, Windows 10 (1809+), Windows 8 / 8.1 (85%+ features supported natively), or Windows Server 2012 R2 - 2025.
 - **Architecture**: x64, x86, or ARM64.
 - **PowerShell**: PowerShell 5.1 (Built into Windows) or PowerShell 7+.
 
